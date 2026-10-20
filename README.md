@@ -15,7 +15,8 @@ A True Hybrid Ecosystem: A system where users can interact with their graphical 
 
 Zero-Friction Installation: A self-contained ISO image that comes pre-loaded with the inference engine, optimized models, and productivity applications, eliminating the cumbersome manual setup typically required for local AI.
 
-An Open and Free Community: A strictly collaborative development model under the GPL v3 license, ensuring that the software remains free, open, and accessible to everyone—forever. 🏛️ Core System Architecture
+An Open and Free Community: A strictly collaborative development model under the GPL v3 license, ensuring that the software remains free, open, and accessible to everyone—forever. 
+🏛️ Core System Architecture
 The internal structure of ariaOS is divided into modular layers to ensure performance, low resource consumption, and stability:
 
 The Kernel (Kernel & Arch Base): A hyper-optimized, lightweight rolling-release system with support for hardware acceleration (GPU/VRAM).

@@ -1,2 +1,2 @@
 # AriaOS
-AriaOS es una distribución minimalista basada en Arch Linux que integra un agente de IA local. Combina la potencia y velocidad de Arch con automatización inteligente, permitiéndote controlar tu sistema y aplicaciones mediante lenguaje natural de forma rápida, fluida y totalmente autónoma.
+AriaOS is a minimalist distribution based on Arch Linux that integrates a local AI agent. It combines the power and speed of Arch with intelligent automation, allowing you to control your system and applications using natural language—quickly, fluidly, and entirely autonomously.

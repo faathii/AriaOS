@@ -27,13 +27,71 @@ The Shell and Control Layer (APIs / D-Bus): A native communication bridge that a
 
 The AI ​​User Interface: A universal floating command bar (triggered by global keyboard shortcuts) for conversing with the system and executing actions seamlessly.
 
-🧰 Pre-installed Software (Complete Ecosystem)
-To ensure ariaOS is fully functional from the very first boot, the ISO includes a carefully curated suite of dual-use tools (manageable by humans and controllable by the AI):
-Desktop Environment: KDE Plasma (elegant, customizable, and lightweight) / XFCE (maximum resource efficiency).
-Office Suite: LibreOffice (word processor and spreadsheets).
-Web Browsing: Firefox / Brave.
-Multimedia and Graphics: Lightweight viewers, media players, and integrated command-line tools such as ImageMagick and FFmpeg.
-Search and File Tools: Rapid indexing utilities (ripgrep, fd, fzf) for ultra-efficient data management.
+🧰 Pre-installed Software (Complete Ecosystem) on ariaOS
+1. Desktop Environment and Customization
+KDE Plasma: The primary graphical environment—highly customizable, fluid, and featuring an integrated manager for add-ons and widgets.
+
+KDE Discover & Pacman/AUR Helper (Pamac or Yay): Graphical software centers and package management tools for installing any additional application with a single click.
+
+ariaOS-Theme: An exclusive, pre-configured visual package (includes Breeze Dark icons, custom color schemes, and optimized typography).
+
+2. Office, Reading, and Productivity
+LibreOffice Suite Complete: Includes a word processor (Writer), spreadsheets (Calc), presentations (Impress), and databases (Base).
+
+Okular: A universal document viewer (supports PDF, EPUB, comics, annotations, and digital signatures).
+
+Thunderbird: The most powerful and widely used email, calendar, and contact management client on Linux.
+
+KCalc: An advanced calculator (supporting scientific and various numeral systems).
+
+3. Browsing, Networking, and Connectivity
+Brave Browser (Default) / Firefox: Secure, privacy-focused web browsers with built-in tracker blockers and synchronization features.
+
+FileZilla: A standard FTP, FTPS, and SFTP client for advanced server and remote file management.
+
+Kamoso / OBS Studio: Tools for screen recording, streaming, and webcam management.
+
+Kaffeine / VLC Media Player: The ultimate multimedia players, capable of handling virtually any existing audio or video codec.
+
+Elisa: A fast, minimalist local audio player.
+
+4. Creation, Design, and Advanced Multimedia
+GIMP: The definitive open-source image editor and retouching tool (a true alternative to Photoshop).
+
+Krita: Professional software for digital painting, illustration, and 2D animation.
+
+Blender: The global standard for 3D modeling, animation, rendering, and sculpting. Audacity: Digital audio multi-track editor and recorder.
+
+Kdenlive: Professional-grade non-linear, multi-camera video editor.
+
+5. Utilities, Compression, and System
+Dolphin: The official KDE file manager (featuring tab support, split-screen view, and an integrated terminal).
+
+Ark: A universal file compression manager (compatible with formats such as .zip, .rar, .7z, .tar.gz, etc.).
+
+Kate: An advanced text editor with syntax highlighting, designed for software development and technical note-taking.
+
+GParted: The official graphical hard drive partition editor.
+
+BleachBit: A system cleaning tool used to free up disk space and remove temporary files or obsolete cache data.
+
+KInfoCenter / Hardinfo: Tools for detailed hardware diagnostics and performance monitoring.
+
+6. Development, Terminal, and Essential Tools (Linux Staples)
+Konsole: KDE’s advanced terminal emulator—fast, tab-enabled, and featuring customizable profiles.
+
+Git & GitHub CLI (gh): Industry-standard tools for version control and repository management, included by default.
+
+Visual Studio Code (VSCodium—the open-source version): The world’s most popular integrated development environment (IDE), ready for programming.
+
+High-performance CLI utilities: ripgrep (rg), fd, fzf, tmux, and htop/btop for real-time resource monitoring.
+
+7. AI Layer and Native Automation (ariaOS-Core)
+Ollama (Local Background Server): An optimized inference engine running natively via system services (systemd).
+
+Integrated Multimodal/Base Language Model: An optimized model pre-downloaded within the ISO to ensure offline functionality.
+
+ariaOS-Command-Bar: A universal, floating graphical interface (triggered via keyboard shortcut) connected to the operating system and applications through internal APIs. ImageMagick & FFmpeg: Command-line multimedia automation that allows AI to process images and video, invisibly and upon user request.
 
 🗺️ Roadmap
 [ ] Phase 1: Initial repository setup and ISO build scripts using archiso. [ ] Phase 2: Stabilization of the Arch Linux base system and packaging of the desktop environment and essential software.

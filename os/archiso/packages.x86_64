@@ -1,0 +1,90 @@
+# --- Base Arch, Live Boot & Hardware Support ---
+alsa-utils
+amd-ucode
+arch-install-scripts
+archinstall
+base
+btrfs-progs
+dosfstools
+e2fsprogs
+edk2-shell
+efibootmgr
+exfatprogs
+gptfdisk
+grub
+intel-ucode
+linux
+linux-firmware
+livecd-sounds
+lvm2
+mkinitcpio
+mkinitcpio-archiso
+mtools
+networkmanager
+ntfsprogs
+openssh
+polkit
+python
+qemu-guest-agent
+reflector
+rsync
+sof-firmware
+squashfs-tools
+sudo
+syslinux
+systemd
+systemd-resolvconf
+virtualbox-guest-utils
+xdg-utils
+zsh
+
+# --- Desktop Environment (KDE Plasma) ---
+plasma-meta
+sddm
+konsole
+dolphin
+ark
+kate
+discover
+okular
+kcalc
+kinfocenter
+
+# --- AI Layer (ariaOS-Core) ---
+ollama
+
+# --- Productivity & Browsing ---
+libreoffice-fresh
+thunderbird
+firefox
+filezilla
+
+# --- Multimedia & Creation ---
+vlc
+elisa
+kamoso
+obs-studio
+gimp
+krita
+blender
+audacity
+kdenlive
+ffmpeg
+imagemagick
+
+# --- Utilities & System ---
+gparted
+bleachbit
+
+# --- Development & CLI Staples ---
+git
+github-cli
+ripgrep
+fd
+fzf
+tmux
+htop
+btop
+
+# Note: AUR packages (e.g. brave-bin, vscodium-bin, yay) should be built into
+# a local pacman repo referenced in pacman.conf before running mkarchiso.

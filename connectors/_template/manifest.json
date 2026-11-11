@@ -1,0 +1,29 @@
+{
+  "id": "template-example",
+  "name": "Example Program Connector",
+  "version": "0.1.0",
+  "description": "Template connector showing the required manifest and JSON-RPC layout.",
+  "tier": "program_api",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dependencies": [],
+  "tools": [
+    {
+      "name": "ping",
+      "description": "Health check returning a greeting from the connector.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Optional message to echo back."
+          }
+        },
+        "required": []
+      }
+    }
+  ]
+}
+

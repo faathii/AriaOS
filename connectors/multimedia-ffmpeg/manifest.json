@@ -1,0 +1,40 @@
+{
+  "id": "multimedia-ffmpeg",
+  "name": "FFmpeg & ImageMagick Automation",
+  "version": "0.1.0",
+  "description": "Converts, compresses, trims, and inspects video, audio, and image files on demand.",
+  "tier": "program_api",
+  "transport": "stdio",
+  "dependencies": ["ffmpeg", "imagemagick"],
+  "tools": [
+    {
+      "name": "inspect_media",
+      "description": "Inspect resolution, codecs, duration, and bitrate via ffprobe.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string" }
+        },
+        "required": ["path"]
+      }
+    },
+    {
+      "name": "convert_media",
+      "description": "Transcode or resize media into a new output file without overwriting the source.",
+      "risk_level": "write",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "input_path": { "type": "string" },
+          "output_path": { "type": "string" },
+          "preset": { "type": "string" }
+        },
+        "required": ["input_path", "output_path"]
+      }
+    }
+  ]
+}
+

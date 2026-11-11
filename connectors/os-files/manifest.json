@@ -1,0 +1,55 @@
+{
+  "id": "os-files",
+  "name": "OS File Organizer & Inspector",
+  "version": "0.1.0",
+  "description": "Scans directories, detects duplicate files, and safely organizes files by category without overwriting existing data.",
+  "tier": "program_api",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dependencies": ["ripgrep", "fd"],
+  "tools": [
+    {
+      "name": "scan_directory",
+      "description": "Summarize file counts, sizes, and categories inside a directory.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string", "description": "Target directory path." },
+          "recursive": { "type": "boolean", "default": false }
+        },
+        "required": ["path"]
+      }
+    },
+    {
+      "name": "find_duplicates",
+      "description": "Find exact duplicate files by size and SHA-256 hash.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string", "description": "Directory to scan." },
+          "recursive": { "type": "boolean", "default": true }
+        },
+        "required": ["path"]
+      }
+    },
+    {
+      "name": "organize_directory",
+      "description": "Plan or apply categorization of top-level files into Documents, Images, Videos, Audio, Archives, Code, and Other.",
+      "risk_level": "write",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string", "description": "Directory to organize." },
+          "apply": { "type": "boolean", "default": false, "description": "Set true to execute moves; false returns a dry-run plan." }
+        },
+        "required": ["path"]
+      }
+    }
+  ]
+}
+

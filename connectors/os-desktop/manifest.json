@@ -1,0 +1,51 @@
+{
+  "id": "os-desktop",
+  "name": "KDE Plasma & Desktop Control",
+  "version": "0.1.0",
+  "description": "Controls applications, windows, notifications, and clipboard in KDE Plasma over D-Bus, with AT-SPI2 fallback for legacy GUIs.",
+  "tier": "os_ipc",
+  "transport": "dbus",
+  "dbus_service": "org.kde.KWin",
+  "dependencies": ["plasma-workspace", "kwin"],
+  "tools": [
+    {
+      "name": "launch_application",
+      "description": "Launch an installed desktop application by desktop entry ID.",
+      "risk_level": "write",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "desktop_id": { "type": "string", "description": "Desktop entry name (e.g. org.kde.dolphin)." }
+        },
+        "required": ["desktop_id"]
+      }
+    },
+    {
+      "name": "send_notification",
+      "description": "Display a desktop notification via org.freedesktop.Notifications.",
+      "risk_level": "write",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string" },
+          "body": { "type": "string" }
+        },
+        "required": ["title", "body"]
+      }
+    },
+    {
+      "name": "list_windows",
+      "description": "List open windows and active workspace state via KWin D-Bus.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    }
+  ]
+}
+

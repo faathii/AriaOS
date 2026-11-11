@@ -1,0 +1,50 @@
+{
+  "id": "os-system",
+  "name": "OS System Health & Services",
+  "version": "0.1.0",
+  "description": "Monitors system resources, systemd service health, and Arch package state via D-Bus and read-only system APIs.",
+  "tier": "os_ipc",
+  "transport": "dbus",
+  "dbus_service": "org.freedesktop.systemd1",
+  "dependencies": ["systemd", "pacman"],
+  "tools": [
+    {
+      "name": "system_health_summary",
+      "description": "Read CPU, memory, swap, disk usage, and failed systemd units.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "service_status",
+      "description": "Inspect the status and recent journal logs of a systemd unit.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "unit": { "type": "string", "description": "Systemd unit name (e.g. ollama.service)." }
+        },
+        "required": ["unit"]
+      }
+    },
+    {
+      "name": "restart_service",
+      "description": "Restart a systemd service (requires explicit user confirmation and Polkit authorization).",
+      "risk_level": "privileged",
+      "reversible": false,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "unit": { "type": "string" }
+        },
+        "required": ["unit"]
+      }
+    }
+  ]
+}
+

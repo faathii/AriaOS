@@ -27,6 +27,18 @@ The Shell and Control Layer (APIs / D-Bus): A native communication bridge that a
 
 The AI ​​User Interface: A universal floating command bar (triggered by global keyboard shortcuts) for conversing with the system and executing actions seamlessly.
 
+## 📁 Repository Structure & Developer Docs
+
+AriaOS is structured so the AI is an OS-native service (`aria-daemon`) and every program or system capability plugs in as an isolated, API-driven connector:
+
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — OS-native architecture, 3-tier control model (D-Bus, Program Connectors, UI Fallback), and safety trust tiers.
+- [`docs/CONNECTOR_GUIDE.md`](docs/CONNECTOR_GUIDE.md) — Step-by-step guide to adding a new program or tool connector.
+- [`core/`](core/) — Rust `aria-daemon` skeleton, JSON-RPC / manifest schema (`core/protocol/`), and Python connector SDK (`core/sdk/python/`).
+- [`connectors/`](connectors/) — Modular program & OS adapters (`_template/`, `os-files/`, `os-system/`, `os-desktop/`, `multimedia-ffmpeg/`).
+- [`ui/command-bar/`](ui/command-bar/) — Floating KDE/Wayland command bar specification.
+- [`os/`](os/) — Arch Linux `archiso` build profile, package list, systemd units, and ISO build script.
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) — Contribution guidelines and safety rules.
+
 🧰 Pre-installed Software (Complete Ecosystem) on ariaOS
 1. Desktop Environment and Customization
 KDE Plasma: The primary graphical environment—highly customizable, fluid, and featuring an integrated manager for add-ons and widgets.

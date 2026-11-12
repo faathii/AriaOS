@@ -43,6 +43,27 @@ AriaOS provides a dedicated graphical Control Panel (`/usr/bin/ariaos-settings`,
      - Granular toggles for connector families (Core OS, Security, Dev, Creative, Office, Browser, Comms & Gaming).
   4. **Audit & Privacy**: Visual table inspection of `/tmp/ariaos-audit.jsonl` (timestamps, connector, tool, risk level, arguments, approval status), with one-click export and clear functions.
 
+## Real-Time System & Hardware Monitoring Stack
+
+AriaOS provides a 3-layer monitoring architecture covering Graphical UI, Terminal TUI/CLI, and Autonomous AI telemetry:
+
+1. **Desktop Graphical Suite (KDE Plasma 6)**:
+   - **Plasma System Monitor (`plasma-systemmonitor`)**: Modern Qt6 graphical dashboard with real-time graphs for CPU per-core load, RAM/Swap usage, network bandwidth, disk I/O, process tree with sorting/kill, and customizable desktop sensor widgets.
+   - **KDE Info Center (`kinfocenter`)**: Comprehensive hardware inspection suite for PCI topology, USB buses, Vulkan/OpenGL graphics acceleration, memory modules, and CPU architecture.
+2. **Terminal TUI & Hardware CLI Staples**:
+   - **`btop`**: Beautiful, high-performance real-time terminal dashboard with dynamic graphs for CPU cores, GPU telemetry, memory/disks, network throughput, and interactive process management.
+   - **`htop`**: Lightweight, instant interactive process viewer.
+   - **`fastfetch`**: Instant visual hardware, kernel, and OS identity overview for terminal sessions.
+   - **`lm_sensors` (`sensors`)**: Direct motherboard chipset voltage, fan RPM, and CPU/GPU package temperatures.
+   - **`smartmontools` (`smartctl`)**: NVMe and SATA SSD health, endurance, and SMART diagnostics.
+3. **Autonomous AI Subsystem Layer (`os-kernel` & `os-system`)**:
+   - The AI operates natively as part of the operating system:
+     - `os-kernel.kernel_telemetry`: Real-time Linux kernel Pressure Stall Information (`/proc/pressure/cpu`, `memory`, `io`), thermal zones (`/sys/class/thermal/`), and load averages.
+     - `os-kernel.hardware_pci_usb`: Live enumeration of physical GPUs, NVMe drives, USB peripherals, and network controllers.
+     - `os-kernel.dmesg_inspect`: Kernel ring buffer diagnostics to proactively catch hardware errors, driver crashes, or I/O timeouts.
+     - `os-system.system_health_summary` & `list_top_processes`: Instant CPU/RAM breakdown and failed systemd units.
+     - Any user query to the AI (e.g., *"¿cómo están las temperaturas y el uso de CPU?"*) queries these kernel interfaces directly.
+
 ## File Manager (KDE Dolphin) & Built-In Free Antivirus (ClamAV)
 
 - **KDE Dolphin Enhanced Suite**:

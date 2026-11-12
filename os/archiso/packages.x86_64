@@ -91,6 +91,14 @@ imagemagick
 gparted
 bleachbit
 
+# --- Real-Time Monitoring & Hardware Diagnostics ---
+plasma-systemmonitor
+btop
+htop
+fastfetch
+lm_sensors
+smartmontools
+
 # --- Development & CLI Staples ---
 git
 github-cli
@@ -98,8 +106,6 @@ ripgrep
 fd
 fzf
 tmux
-htop
-btop
 
 # Note: AUR packages (e.g. brave-bin, vscodium-bin, yay) should be built into
 # a local pacman repo referenced in pacman.conf before running mkarchiso.

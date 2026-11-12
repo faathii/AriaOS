@@ -15,3 +15,4 @@ Exec=/usr/bin/ariaos-settings
 Categories=Settings;System;Utility;
 Terminal=false
 StartupNotify=true
+

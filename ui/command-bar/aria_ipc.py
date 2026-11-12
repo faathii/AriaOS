@@ -50,7 +50,7 @@ def parse_command(raw: str) -> dict[str, Any]:
 class AriaDaemonClient:
     """Client talking newline-delimited JSON to `aria-daemon` over Unix socket."""
 
-    def __init__(self, socket_path: Path | str | None = None, timeout: float = 60.0) -> None:
+    def __init__(self, socket_path: Path | str | None = None, timeout: float = 300.0) -> None:
         self.socket_path = Path(socket_path) if socket_path else resolve_socket_path()
         self.timeout = timeout
 

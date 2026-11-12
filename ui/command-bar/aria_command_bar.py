@@ -297,7 +297,7 @@ def _launch_gui(client: AriaDaemonClient) -> int:
             approved_tools: list[str] | None = None,
         ) -> None:
             self.input.setEnabled(False)
-            self.status_label.setText("Running via aria-daemon...")
+            self.status_label.setText("Pensando con IA (aria-daemon)...")
             self._worker = DaemonWorker(intent, approved=approved, approved_tools=approved_tools)
             self._worker.finished_payload.connect(self._on_result)
             self._worker.start()

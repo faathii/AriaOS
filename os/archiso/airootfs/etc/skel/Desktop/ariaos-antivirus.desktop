@@ -1,0 +1,18 @@
+[Desktop Entry]
+Type=Application
+Name=Antivirus AriaOS (ClamAV)
+Name[es]=Antivirus AriaOS (ClamAV)
+Name[en]=AriaOS Antivirus (ClamAV)
+GenericName=Antivirus y Seguridad
+GenericName[es]=Antivirus y Protección ClamAV
+GenericName[en]=Antivirus & Malware Protection
+Comment=Protección y análisis de virus y malware con motor ClamAV
+Comment[es]=Protección y análisis de virus y malware con motor ClamAV
+Comment[en]=Scan files and protect system with ClamAV malware engine
+Icon=security-high
+Exec=/usr/bin/ariaos-antivirus %F
+Categories=System;Security;Utility;
+Keywords=antivirus;virus;clam;clamav;malware;seguridad;scan;analizar;proteger;security;
+Terminal=false
+StartupNotify=true
+

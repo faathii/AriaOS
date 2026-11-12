@@ -217,11 +217,15 @@ def main() -> int:
                 layout.addWidget(lbl)
 
             btn_box = QHBoxLayout()
-            self.btn_pull_ai = QPushButton("Descargar / Actualizar Modelo IA (qwen2.5:3b)")
+            self.btn_pull_ai = QPushButton("Descargar / Actualizar Modelo IA")
             self.btn_pull_ai.clicked.connect(lambda: _launch_konsole("AriaOS AI Setup", ["ollama", "pull", "qwen2.5:3b"]))
             btn_box.addWidget(self.btn_pull_ai)
 
-            self.btn_freshclam = QPushButton("Actualizar Firmas de Antivirus (freshclam)")
+            self.btn_open_av = QPushButton("🛡️ Abrir Antivirus AriaOS")
+            self.btn_open_av.clicked.connect(lambda: subprocess.Popen(["ariaos-antivirus"]))
+            btn_box.addWidget(self.btn_open_av)
+
+            self.btn_freshclam = QPushButton("Actualizar Firmas")
             self.btn_freshclam.clicked.connect(lambda: _launch_konsole("AriaOS ClamAV Update", ["sudo", "freshclam"]))
             btn_box.addWidget(self.btn_freshclam)
 
@@ -249,15 +253,19 @@ def main() -> int:
             layout.addWidget(info)
 
             actions = QHBoxLayout()
-            btn_bar = QPushButton("Abrir Barra IA ahora (Alt+Espacio)", objectName="primary")
+            btn_bar = QPushButton("Abrir Barra IA (Alt+Espacio)", objectName="primary")
             btn_bar.clicked.connect(lambda: subprocess.Popen(["aria-command-bar"]))
             actions.addWidget(btn_bar)
 
-            btn_settings = QPushButton("⚙️ Configuración de la IA e Idioma")
+            btn_antivirus = QPushButton("🛡️ Antivirus AriaOS")
+            btn_antivirus.clicked.connect(lambda: subprocess.Popen(["ariaos-antivirus"]))
+            actions.addWidget(btn_antivirus)
+
+            btn_settings = QPushButton("⚙️ Configuración")
             btn_settings.clicked.connect(lambda: subprocess.Popen(["ariaos-settings"]))
             actions.addWidget(btn_settings)
 
-            btn_dolphin = QPushButton("Abrir Gestor de Archivos (Dolphin)")
+            btn_dolphin = QPushButton("Explorador Dolphin")
             btn_dolphin.clicked.connect(lambda: subprocess.Popen(["dolphin"]))
             actions.addWidget(btn_dolphin)
 

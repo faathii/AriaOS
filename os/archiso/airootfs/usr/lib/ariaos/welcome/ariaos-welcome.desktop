@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Bienvenido a AriaOS
+Name[en]=Welcome to AriaOS
+Comment=Centro de bienvenida, estado de la IA y configuración de AriaOS
+Comment[en]=AriaOS Welcome Center, AI setup and system actions
+Icon=ariaos-logo
+Exec=/usr/bin/ariaos-welcome
+Categories=System;Settings;Utility;
+Terminal=false
+StartupNotify=true
+

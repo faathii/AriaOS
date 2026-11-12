@@ -16,7 +16,7 @@ SECURITY_PKGS=(clamav keepassxc veracrypt flameshot wireshark-qt wireshark-cli n
 DEV_PKGS=(docker podman virtualbox qemu-full libvirt virt-manager dbeaver)
 GAMING_PKGS=(steam lutris retroarch)
 COMMS_PKGS=(qbittorrent syncthing telegram-desktop element-desktop signal-desktop discord gnome-tweaks)
-AUR_PKGS=(brave-bin vscodium-bin stacer-bin burpsuite postman-bin insomnia-bin mysql-workbench spotify heroic-games-launcher-bin stremio freetube-bin pcsx2 rpcs3-bin duckstation-gpl ventoy-bin)
+AUR_PKGS=(brave-bin vscodium-bin stacer-bin burpsuite postman-bin insomnia-bin mysql-workbench spotify heroic-games-launcher-bin stremio-enhanced-bin freetube-bin pcsx2-latest-bin rpcs3-bin duckstation-qt-bin ventoy-bin)
 
 if [ "$#" -eq 0 ]; then
   usage

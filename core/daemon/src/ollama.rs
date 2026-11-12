@@ -71,7 +71,7 @@ impl OllamaClient {
             .unwrap_or_else(|| "qwen2.5:3b".to_string());
         let num_ctx = load_config_value("num_ctx")
             .and_then(|v| v.as_u64())
-            .unwrap_or(8192);
+            .unwrap_or(2048);
         let temperature = load_config_value("temperature")
             .and_then(|v| v.as_f64())
             .unwrap_or(0.3);
@@ -150,8 +150,47 @@ pub fn filter_tools_for_prompt(connectors: &[RegisteredConnector], prompt: &str)
     let lower = prompt.to_lowercase();
     let has_word = |terms: &[&str]| terms.iter().any(|&term| lower.contains(term));
 
-    let is_generic = prompt.trim().len() < 8
-        || has_word(&["todo", "todos", "all", "ayuda", "help", "herramientas", "tools", "capacidades", "puedes", "capabilities"]);
+    // Conversational greetings and general queries need NO tools, allowing instant LLM response
+    let is_pure_chat = has_word(&[
+        "hola", "buenos días", "buenos dias", "buenas tardes", "buenas noches",
+        "cómo estás", "como estas", "qué tal", "que tal", "quién eres", "quien eres",
+        "gracias", "de nada", "adiós", "adios", "hasta luego", "cuéntame", "cuentame",
+        "chiste", "poema", "qué es ariaos", "que es ariaos",
+    ]) && !has_word(&["analiz", "escanea", "ejecuta", "abre", "instala", "mata", "reinicia", "busca"]);
+
+    if is_pure_chat && prompt.trim().len() < 40 {
+        return Vec::new();
+    }
+
+    let system_match = has_word(&[
+        "sistema", "salud", "cpu", "memoria", "ram", "uptime", "rendimiento",
+        "proceso", "procesos", "carga", "top", "servicio", "servicios", "status", "estado",
+    ]);
+
+    let kernel_match = has_word(&[
+        "kernel", "temperatura", "hardware", "dmesg", "pci", "usb", "módulo", "modulo", "driver", "sysctl",
+    ]);
+
+    let storage_match = has_word(&[
+        "disco", "particion", "partición", "almacenamiento", "espacio", "tar", "zip", "comprimir", "descomprimir",
+    ]);
+
+    let av_match = has_word(&[
+        "antivirus", "virus", "clam", "clamav", "malware", "escanear", "infect", "cuarentena", "freshclam",
+    ]);
+
+    let files_match = has_word(&[
+        "archivo", "archivos", "carpeta", "carpetas", "fichero", "directorio", "buscar archivo", "organizar",
+    ]);
+
+    let packages_match = has_word(&[
+        "paquete", "paquetes", "programa", "programas", "aplicacion", "aplicación", "aplicaciones",
+        "pacman", "instalar", "actualizar", "actualizaciones", "updates", "limpiar cache",
+    ]);
+
+    let desktop_match = has_word(&[
+        "pantalla", "resolucion", "resolución", "brillo", "fondo", "wallpaper", "tema", "volumen", "audio", "ventana",
+    ]);
 
     let dev_match = has_word(&[
         "git", "repo", "commit", "diff", "docker", "podman", "container", "portainer",
@@ -195,17 +234,17 @@ pub fn filter_tools_for_prompt(connectors: &[RegisteredConnector], prompt: &str)
     let mut selected: Vec<&RegisteredConnector> = Vec::new();
     for conn in connectors {
         let id = conn.manifest.id.as_str();
-        let is_core = matches!(
-            id,
-            "os-kernel" | "os-system" | "os-files" | "security-antivirus" | "os-packages" | "os-desktop" | "os-storage"
-        );
 
-        if is_core || is_generic {
+        if (id == "os-system" && system_match)
+            || (id == "os-kernel" && kernel_match)
+            || (id == "os-storage" && storage_match)
+            || (id == "security-antivirus" && av_match)
+            || (id == "os-files" && files_match)
+            || (id == "os-packages" && packages_match)
+            || (id == "os-desktop" && desktop_match)
+        {
             selected.push(conn);
-            continue;
-        }
-
-        if id.starts_with("dev-") && dev_match {
+        } else if id.starts_with("dev-") && dev_match {
             selected.push(conn);
         } else if (id.starts_with("creative-") || id.starts_with("multimedia-")) && creative_match {
             selected.push(conn);
@@ -215,15 +254,16 @@ pub fn filter_tools_for_prompt(connectors: &[RegisteredConnector], prompt: &str)
             selected.push(conn);
         } else if (id.starts_with("net-") || id.starts_with("comms-")) && comms_gaming_match {
             selected.push(conn);
-        } else if id.starts_with("security-") && security_match {
+        } else if id.starts_with("security-") && (security_match || av_match) {
             selected.push(conn);
         } else if id.starts_with("knowledge-") && knowledge_match {
             selected.push(conn);
         }
     }
 
+    // If no tools match the prompt intent, return empty to let the LLM reply naturally and fast.
     if selected.is_empty() {
-        return ollama_tools_payload(connectors);
+        return Vec::new();
     }
 
     let mut tools = Vec::new();

@@ -1,0 +1,15 @@
+[Unit]
+Description=AriaOS Automatic AI Model & Security Onboarding
+After=network-online.target ollama.service
+Wants=network-online.target
+ConditionPathExists=!/var/lib/ariaos/.onboarding-complete
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/ariaos-onboarding
+RemainAfterExit=yes
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

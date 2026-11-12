@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# AriaOS Welcome Center launcher
+if [ "${1:-}" = "--autostart" ] && [ -f "${HOME}/.config/.ariaos-no-welcome" ]; then
+  exit 0
+fi
+
+if [ -f "/usr/lib/ariaos/welcome/aria_welcome.py" ]; then
+  exec python3 /usr/lib/ariaos/welcome/aria_welcome.py "$@"
+elif [ -f "$(dirname "$0")/../../ui/welcome/aria_welcome.py" ]; then
+  exec python3 "$(dirname "$0")/../../ui/welcome/aria_welcome.py" "$@"
+else
+  echo "Error: aria_welcome.py not found" >&2
+  exit 1
+fi

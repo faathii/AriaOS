@@ -49,6 +49,19 @@ class TestCommandBar(unittest.TestCase):
         self.assertTrue(payload["ok"])
         self.assertEqual(payload["component"], "aria-command-bar")
 
+    def test_welcome_center_check_flag(self) -> None:
+        welcome_py = REPO_ROOT / "ui" / "welcome" / "aria_welcome.py"
+        proc = subprocess.run(
+            [sys.executable, str(welcome_py), "--check"],
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=10,
+        )
+        payload = json.loads(proc.stdout.strip())
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["app"], "ariaos-welcome")
+
     @unittest.skipUnless(hasattr(socket, "AF_UNIX"), "AF_UNIX not available")
     def test_unix_socket_client_roundtrip(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

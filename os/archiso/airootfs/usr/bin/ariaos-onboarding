@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# AriaOS System Onboarding & Network Auto-Init
+set -euo pipefail
+
+MARKER="/var/lib/ariaos/.onboarding-complete"
+[ -f "${MARKER}" ] && exit 0
+
+mkdir -p /var/lib/ariaos/quarantine
+chmod 700 /var/lib/ariaos/quarantine || true
+
+# 1. Sync ClamAV rules, OnAccess exclusions, and SHA-256 .fp whitelist
+if [ -x /usr/bin/ariaos-clamav-sync ]; then
+  /usr/bin/ariaos-clamav-sync || true
+fi
+
+# 2. Check internet connectivity
+if ! curl -sf --connect-timeout 4 https://archlinux.org >/dev/null 2>&1; then
+  echo "AriaOS Onboarding: Waiting for network..."
+  exit 0
+fi
+
+echo "AriaOS Onboarding: Network detected. Initializing virus signatures..."
+freshclam --quiet || true
+
+# 3. Pull default Ollama AI model (qwen2.5:3b) if Ollama is responsive
+if systemctl is-active --quiet ollama.service; then
+  echo "AriaOS Onboarding: Pre-warming local AI model qwen2.5:3b..."
+  ollama pull qwen2.5:3b || true
+fi
+
+date -Iseconds > "${MARKER}"
+echo "AriaOS Onboarding complete."

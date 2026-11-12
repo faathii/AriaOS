@@ -44,6 +44,10 @@ mkdir -p "${STAGE_DIR}/airootfs/usr/lib/ariaos/command-bar"
 cp -a "${REPO_ROOT}/ui/command-bar/." "${STAGE_DIR}/airootfs/usr/lib/ariaos/command-bar/"
 install -Dm644 "${REPO_ROOT}/ui/command-bar/ariaos-command-bar.desktop" \
   "${STAGE_DIR}/airootfs/usr/share/applications/ariaos-command-bar.desktop"
+mkdir -p "${STAGE_DIR}/airootfs/usr/lib/ariaos/welcome"
+cp -a "${REPO_ROOT}/ui/welcome/." "${STAGE_DIR}/airootfs/usr/lib/ariaos/welcome/"
+install -Dm644 "${REPO_ROOT}/ui/welcome/ariaos-welcome.desktop" \
+  "${STAGE_DIR}/airootfs/usr/share/applications/ariaos-welcome.desktop"
 
 # Install AriaOS visual branding (boot splash, menu/system icon, wallpaper, face icon)
 if [ -f "${REPO_ROOT}/assets/branding/ariaos-wallpaper.jpg" ]; then
@@ -95,12 +99,15 @@ sed -i 's/\r$//' \
   "${STAGE_DIR}/airootfs/usr/bin/ariaos-av-scan" \
   "${STAGE_DIR}/airootfs/usr/bin/ariaos-clamav-sync" \
   "${STAGE_DIR}/airootfs/usr/bin/ariaos-file-action" \
-  "${STAGE_DIR}/airootfs/usr/bin/ariaos-install-apps"
+  "${STAGE_DIR}/airootfs/usr/bin/ariaos-install-apps" \
+  "${STAGE_DIR}/airootfs/usr/bin/ariaos-onboarding" \
+  "${STAGE_DIR}/airootfs/usr/bin/ariaos-welcome"
 
 echo "[3/4] Enabling systemd units inside airootfs..."
 WANTS_DIR="${STAGE_DIR}/airootfs/etc/systemd/system/multi-user.target.wants"
 mkdir -p "${WANTS_DIR}"
 ln -sf "/etc/systemd/system/aria-daemon.service" "${WANTS_DIR}/aria-daemon.service"
+ln -sf "/etc/systemd/system/ariaos-onboarding.service" "${WANTS_DIR}/ariaos-onboarding.service"
 ln -sf "/usr/lib/systemd/system/ollama.service" "${WANTS_DIR}/ollama.service"
 ln -sf "/usr/lib/systemd/system/NetworkManager.service" "${WANTS_DIR}/NetworkManager.service"
 ln -sf "/usr/lib/systemd/system/clamav-freshclam.service" "${WANTS_DIR}/clamav-freshclam.service"

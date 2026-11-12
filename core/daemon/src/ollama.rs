@@ -105,6 +105,112 @@ pub fn run_agent_turn(
     }
 }
 
+pub fn filter_tools_for_prompt(connectors: &[RegisteredConnector], prompt: &str) -> Vec<Value> {
+    let lower = prompt.to_lowercase();
+    let has_word = |terms: &[&str]| terms.iter().any(|&term| lower.contains(term));
+
+    let is_generic = prompt.trim().len() < 8
+        || has_word(&["todo", "todos", "all", "ayuda", "help", "herramientas", "tools", "capacidades", "puedes", "capabilities"]);
+
+    let dev_match = has_word(&[
+        "git", "repo", "commit", "diff", "docker", "podman", "container", "portainer",
+        "vm", "virtualbox", "qemu", "kvm", "virsh", "sql", "database", "bd", "tabla",
+        "dbeaver", "workbench", "http", "api", "postman", "insomnia", "vscodium", "codium", "kate", "editor",
+    ]);
+
+    let creative_match = has_word(&[
+        "imagen", "image", "foto", "photo", "svg", "vector", "inkscape", "gimp",
+        "krita", "blender", "3d", "audacity", "audio", "sonido", "video", "render",
+        "transcod", "handbrake", "shotcut", "pitivi", "darktable", "raw", "color",
+    ]);
+
+    let office_match = has_word(&[
+        "libreoffice", "office", "calc", "writer", "impress", "document", "documento",
+        "docx", "odt", "xlsx", "csv", "pdf", "poppler", "okular", "texto",
+    ]);
+
+    let browser_match = has_word(&[
+        "web", "browser", "navegador", "url", "http", "sitio", "página", "pagina",
+        "link", "enlace", "tab", "pestaña", "pestana", "bookmark", "marcador", "brave", "firefox",
+    ]);
+
+    let comms_gaming_match = has_word(&[
+        "mail", "correo", "email", "thunderbird", "filezilla", "ftp", "sftp",
+        "torrent", "qbittorrent", "sync", "syncthing", "telegram", "element", "signal",
+        "discord", "steam", "juego", "game", "lutris", "retroarch", "emula", "pcsx", "rpcs", "duckstation",
+    ]);
+
+    let security_match = has_word(&[
+        "clave", "password", "pass", "contraseña", "contrasena", "keepass", "vault",
+        "cifrad", "encrypt", "veracrypt", "snapshot", "timeshift", "captura", "screenshot",
+        "flameshot", "wireshark", "pcap", "paquete", "packet", "nmap", "port", "puerto",
+        "vulnerab", "exploit", "metasploit", "ghidra", "cutter", "rizin", "hashcat", "john",
+    ]);
+
+    let knowledge_match = has_word(&[
+        "nota", "note", "obsidian", "bóveda", "boveda", "markdown", "libro", "book", "calibre", "epub",
+    ]);
+
+    let mut selected: Vec<&RegisteredConnector> = Vec::new();
+    for conn in connectors {
+        let id = conn.manifest.id.as_str();
+        let is_core = matches!(
+            id,
+            "os-kernel" | "os-system" | "os-files" | "security-antivirus" | "os-packages" | "os-desktop" | "os-storage"
+        );
+
+        if is_core || is_generic {
+            selected.push(conn);
+            continue;
+        }
+
+        if id.starts_with("dev-") && dev_match {
+            selected.push(conn);
+        } else if (id.starts_with("creative-") || id.starts_with("multimedia-")) && creative_match {
+            selected.push(conn);
+        } else if id.starts_with("office-") && office_match {
+            selected.push(conn);
+        } else if id == "browser-web" && browser_match {
+            selected.push(conn);
+        } else if (id.starts_with("net-") || id.starts_with("comms-")) && comms_gaming_match {
+            selected.push(conn);
+        } else if id.starts_with("security-") && security_match {
+            selected.push(conn);
+        } else if id.starts_with("knowledge-") && knowledge_match {
+            selected.push(conn);
+        }
+    }
+
+    if selected.is_empty() {
+        return ollama_tools_payload(connectors);
+    }
+
+    let mut tools = Vec::new();
+    for conn in selected {
+        if conn.manifest.transport != "stdio" || conn.manifest.entrypoint.is_empty() {
+            continue;
+        }
+        for tool in &conn.manifest.tools {
+            let fn_name = format!("{}__{}", conn.manifest.id, tool.name);
+            let desc = format!(
+                "[{} | risk={}] {}",
+                conn.manifest.name,
+                tool.risk_level.as_str(),
+                tool.description
+            );
+            tools.push(json!({
+                "type": "function",
+                "function": {
+                    "name": fn_name,
+                    "description": desc,
+                    "parameters": tool.input_schema
+                }
+            }));
+        }
+    }
+    tools
+}
+
 pub fn run_agent_turn_with_approvals(
     client: &OllamaClient,
     connectors: &[RegisteredConnector],
@@ -118,7 +224,7 @@ pub fn run_agent_turn_with_approvals(
         "content": user_prompt
     }));
 
-    let tools = ollama_tools_payload(connectors);
+    let tools = filter_tools_for_prompt(connectors, user_prompt);
     let max_iterations = 8;
 
     for _ in 0..max_iterations {

@@ -11,8 +11,22 @@ AriaOS is built directly from Arch Linux (`archiso` releng base) paired with **K
 - **Systemd Services Enabled by Default**:
   - `aria-daemon.service` (`/usr/bin/aria-daemon`, creates `/run/ariaos/`)
   - `ollama.service` (configured with drop-in `override.conf` binding `127.0.0.1:11434`)
+  - `ariaos-onboarding.service` (runs on first internet connection to pre-warm `qwen2.5:3b` and initialize ClamAV)
   - `clamav-freshclam.service`, `clamav-daemon.service` & `clamav-clamonacc.service` (configured via `/usr/bin/ariaos-clamav-sync` with `OnAccessExcludeRootUID yes`, `/var/lib/clamav/ariaos-trusted.fp` SHA-256 whitelist, and `ExcludePath` guards so ClamAV protects user data without blocking or freezing the AI/OS daemon)
   - `NetworkManager.service` & `sddm.service`
+
+## Welcome Center, Live Desktop & Disk Installer
+
+- **Welcome Center (`ariaos-welcome`)**:
+  - Automatically launches on first login (`/etc/xdg/autostart/ariaos-welcome.desktop`) to provide a central control panel:
+    - Live checks for Internet, Ollama model status (`qwen2.5:3b`), and ClamAV database freshness.
+    - One-click buttons to download/update the AI model, refresh virus signatures, launch the AI Command Bar, or open Dolphin.
+    - Guided installation links for extra software suites (`ariaos-install-apps`) and full disk installation.
+- **Desktop Launchers**:
+  - Live user desktop (`/home/aria/Desktop/`) and new user template (`/etc/skel/Desktop/`) include:
+    - **Bienvenido a AriaOS** (`ariaos-welcome.desktop`)
+    - **Barra IA de AriaOS** (`ariaos-command-bar.desktop`)
+    - **Instalar AriaOS en Disco** (`ariaos-installer.desktop`) launching guided `archinstall` in Konsole.
 
 ## File Manager (KDE Dolphin) & Built-In Free Antivirus (ClamAV)
 

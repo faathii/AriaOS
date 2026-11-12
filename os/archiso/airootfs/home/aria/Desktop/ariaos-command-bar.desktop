@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=AriaOS Command Bar
+Name[es]=Barra IA de AriaOS
+Comment=Barra flotante de inteligencia artificial nativa de AriaOS
+Comment[en]=AriaOS floating native AI command bar
+Icon=ariaos-logo
+Exec=/usr/bin/aria-command-bar
+Categories=System;Utility;
+Terminal=false
+StartupNotify=true

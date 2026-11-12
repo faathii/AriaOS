@@ -23,10 +23,10 @@ Because `aria-daemon` operates at kernel/OS privilege while user applications li
    - `/run/ariaos/agent.sock` (when `/run/ariaos` exists via `systemd RuntimeDirectory=ariaos`)
    - `/tmp/ariaos-agent.sock` (fallback)
    Socket permissions are set to `0666` so desktop user sessions can communicate with the system service cleanly.
-3. **LLM Tool-Calling Loop (`core/daemon/src/ollama.rs`)**:
-   - Sends tool JSON schemas for all discovered `stdio` connectors to Ollama `/api/chat` with `num_ctx: 8192`.
-   - Default model is `qwen2.5:3b` (override via `--model` or `ARIAOS_MODEL`).
-   - System prompt instructs the model to chain read-only tools autonomously without asking unnecessarily and summarize observed data directly.
+3. **LLM Tool-Calling Loop & Dynamic Intent Filtering (`core/daemon/src/ollama.rs`)**:
+   - `filter_tools_for_prompt` analyzes user prompts: core OS and security pillars (`os-kernel`, `os-system`, `os-files`, `security-antivirus`, `os-packages`, `os-desktop`, `os-storage`) are always present, while domain connectors (creative, dev, office, web, gaming, pentesting) are included dynamically based on intent keywords. This keeps `qwen2.5:3b` fast (~25-35 tools vs 110 tools) and prevents context exhaustion on local inference.
+   - Default model is `qwen2.5:3b` with `num_ctx: 8192` (override via `--model` or `ARIAOS_MODEL`).
+   - System prompt instructs the model that it **is the operating system**, chaining read tools autonomously while requiring confirmation for write/privileged actions.
 4. **Connector Execution (`core/daemon/src/rpc.rs`)**:
    Spawns the connector entrypoint (e.g., `python3 connector.py`) inside the connector's root directory, sends a single JSON-RPC 2.0 `tools/call` request over `stdin`, and reads the JSON response from `stdout`.
 

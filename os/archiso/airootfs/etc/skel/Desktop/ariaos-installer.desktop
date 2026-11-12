@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Instalar AriaOS en Disco
+Name[en]=Install AriaOS to Disk
+Comment=Lanzar el instalador de sistema guiado de AriaOS
+Comment[en]=Launch guided AriaOS system installer
+Icon=system-software-install
+Exec=konsole --title "Instalador de AriaOS" -e sudo archinstall
+Categories=System;
+Terminal=false
+StartupNotify=true

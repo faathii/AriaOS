@@ -153,11 +153,8 @@ sed -i 's/\r$//' \
 # Pre-package lightweight Aria Neural Model (aria-core / qwen2.5:0.5b ~350MB) inside ISO if ollama is available on build host
 if command -v ollama >/dev/null 2>&1; then
   echo "  Pre-packaging lightweight Aria Neural Model (aria-core / qwen2.5:0.5b) into ISO..."
-  OLLAMA_MODELS_STAGE="${STAGE_DIR}/airootfs/usr/share/ollama/.ollama/models"
+  OLLAMA_MODELS_STAGE="${STAGE_DIR}/airootfs/var/lib/ollama"
   mkdir -p "${OLLAMA_MODELS_STAGE}"
-  if [ -d "/usr/share/ollama/.ollama/models" ]; then
-    cp -a /usr/share/ollama/.ollama/models/. "${OLLAMA_MODELS_STAGE}/" || true
-  fi
   MODELFILE_STAGE="${STAGE_DIR}/airootfs/usr/share/ariaos/models/Modelfile.aria-core"
   if [ -f "${MODELFILE_STAGE}" ]; then
     export OLLAMA_MODELS="${OLLAMA_MODELS_STAGE}"
@@ -170,6 +167,7 @@ if command -v ollama >/dev/null 2>&1; then
     kill "${TEMP_OLLAMA_PID}" >/dev/null 2>&1 || true
     wait "${TEMP_OLLAMA_PID}" 2>/dev/null || true
     unset OLLAMA_MODELS OLLAMA_HOST
+    chmod -R a+rX "${OLLAMA_MODELS_STAGE}" || true
   fi
 fi
 

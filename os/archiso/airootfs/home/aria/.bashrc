@@ -34,3 +34,4 @@ if [ -z "${ARIAOS_BANNER_SHOWN:-}" ]; then
   echo -e "\e[1;36m│\e[0m  💡 Comandos: \e[1;32maria \"estado del sistema\"\e[0m | \e[1;32maria \"optimizar ram\"\e[0m | \e[1;32mheal\e[0m   \e[1;36m│\e[0m"
   echo -e "\e[1;36m╰──────────────────────────────────────────────────────────────────────────╯\e[0m"
 fi
+

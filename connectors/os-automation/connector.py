@@ -56,36 +56,21 @@ DEFAULT_SCHEDULES: Dict[str, Dict[str, Any]] = {
 }
 
 DEFAULT_PRETRAINED_RULES: List[Dict[str, Any]] = [
-    {
-        "trigger": "modo gaming",
-        "target_prompt": "activar perfil gaming",
-        "hits": 1,
-    },
-    {
-        "trigger": "modo desarrollo",
-        "target_prompt": "activar perfil desarrollo",
-        "hits": 1,
-    },
-    {
-        "trigger": "modo creativo",
-        "target_prompt": "activar perfil creativo",
-        "hits": 1,
-    },
-    {
-        "trigger": "modo ahorro extremo",
-        "target_prompt": "activar perfil ahorro",
-        "hits": 1,
-    },
-    {
-        "trigger": "modo seguridad",
-        "target_prompt": "activar perfil seguridad",
-        "hits": 1,
-    },
-    {
-        "trigger": "limpieza profunda",
-        "target_prompt": "optimizar ram",
-        "hits": 1,
-    },
+    {"trigger": "modo gaming", "target_prompt": "activar perfil gaming", "hits": 1},
+    {"trigger": "modo desarrollo", "target_prompt": "activar perfil desarrollo", "hits": 1},
+    {"trigger": "modo creativo", "target_prompt": "activar perfil creativo", "hits": 1},
+    {"trigger": "modo ahorro extremo", "target_prompt": "activar perfil ahorro", "hits": 1},
+    {"trigger": "modo seguridad", "target_prompt": "activar perfil seguridad", "hits": 1},
+    {"trigger": "limpieza profunda", "target_prompt": "optimizar ram", "hits": 1},
+    {"trigger": "auditoria de seguridad", "target_prompt": "estado suite seguridad", "hits": 1},
+    {"trigger": "estado contenedores", "target_prompt": "contenedores activos", "hits": 1},
+    {"trigger": "estado virtualizacion", "target_prompt": "maquinas virtuales", "hits": 1},
+    {"trigger": "escanear descargas", "target_prompt": "analizar virus en descargas", "hits": 1},
+    {"trigger": "organizar descargas", "target_prompt": "simular organizacion descargas", "hits": 1},
+    {"trigger": "iniciar streaming", "target_prompt": "estado obs", "hits": 1},
+    {"trigger": "estado servidores", "target_prompt": "sitios filezilla", "hits": 1},
+    {"trigger": "estado p2p", "target_prompt": "estado syncthing", "hits": 1},
+    {"trigger": "resumen git", "target_prompt": "estado de git", "hits": 1},
 ]
 
 

@@ -284,8 +284,8 @@ def _launch_gui(client: AriaDaemonClient) -> int:
                 ("🎛️ Modos Kernel", "modos de trabajo"),
                 ("🧠 Salud Kernel", "estado del sistema"),
                 ("📊 Top Procesos", "procesos"),
-                ("🌐 Red / IP", "estado de red"),
                 ("🛡️ Antivirus", "antivirus"),
+                ("📖 APIs & Comandos", "/apis"),
                 ("📚 Memoria IA", "/memory"),
             ]
             for label, cmd in quick_actions:

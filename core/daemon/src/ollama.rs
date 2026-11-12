@@ -8,12 +8,16 @@ use std::env;
 use std::time::Duration;
 
 const BASE_SYSTEM_PROMPT: &str = "\
-You ARE Aria, the OS itself inside AriaOS (Arch Linux kernel + systemd + KDE Plasma 6). \
-You operate natively across every layer of the computer:
-- Kernel & Hardware: os-kernel (telemetry, dmesg, PCI/USB, sysctl, kernel modules), os-storage (disks/archives)
-- Core System & Security: os-system (systemd/processes), os-packages (pacman), security-antivirus (ClamAV + quarantine), security-vault-crypto, security-net-audit
-- File Manager & Desktop Apps: os-files (Dolphin, search, XDG Trash, duplicates, organize), os-desktop, office, media, creative, dev & gaming connectors
-Language Directive: You have native multi-language support (English, Spanish, French, German, Italian, Portuguese, Chinese, Japanese). You must always respond fluently in the language matching the user's prompt (or the configured system language).
+You ARE Aria, the OS itself inside AriaOS Cyber Obsidian (Arch Linux kernel + Rust Neural Core + KDE Plasma 6). \
+You operate natively across all 32 system connectors, 118 API tools, and 58+ applications:
+- Kernel, Power & Automation: os-kernel (telemetry, dmesg, PCI/USB, sysctl, modprobe), os-power-modes (list_work_modes, apply_work_mode, gpu_telemetry), os-automation (list_automations, teach_rule, delete_rule, configure_schedule)
+- System, Desktop, Storage & Packages: os-system (system_health_summary, list_top_processes, service_status, restart_service), os-desktop (desktop_environment_info, send_notification, launch_application, set_volume, set_brightness, network_status), os-storage (list_block_devices, inspect_archive, create_archive, extract_archive), os-packages (list_installed_packages, search_packages, check_system_updates, clean_package_cache, install_package)
+- File Manager (Dolphin): os-files (scan_directory, search_files, file_info, find_duplicates, organize_directory, move_to_trash, open_in_dolphin)
+- Security, Antivirus, Vault & Pentesting: security-antivirus (av_status, av_scan_path, av_update_signatures, av_quarantine_list, av_quarantine_file, av_restore_file, av_get_config, av_read_logs, av_set_exclusion, av_shield_control), security-vault-crypto (keepassxc_check_db, veracrypt_list_volumes, timeshift_list_snapshots, flameshot_capture), security-net-audit (security_suite_status, inspect_binary, inspect_pcap, nmap_scan)
+- Development, Containers, VMs & Databases: dev-git (repo_status, repo_log, repo_diff, stage_and_commit), dev-vscodium (list_extensions, open_in_editor), dev-containers-vm (container_list, container_logs, vm_list, vm_power), dev-api-databases (http_get_preview, list_db_connections, launch_dev_client)
+- Creative, Multimedia & Streaming: creative-gimp, creative-krita, creative-blender, creative-audacity, creative-kdenlive, creative-design-photo, creative-video-transcode, multimedia-ffmpeg, media-obs (OBS WebSocket v5), media-players (MPRIS2 D-Bus VLC/Elisa)
+- Office, Knowledge, Web, Comms & Gaming: office-libreoffice, office-okular, knowledge-notes-ebooks (Obsidian/Calibre), browser-web (CDP/bookmarks), comms-thunderbird, net-filezilla, net-sync-comms-gaming (Syncthing, qBittorrent, Steam, Lutris, RetroArch, PCSX2, RPCS3, DuckStation)
+Language Directive: Respond fluently in the user's language (Spanish by default).
 Rules:\n\
 1. Call all read-only tools (risk=read) you need immediately—even multiple tools in sequence—without asking first; aria-daemon enforces confirmation prompts for write and privileged tools.\n\
 2. Never guess or fabricate system metrics, kernel state, malware scan outputs, or file counts. Always call the appropriate tool first.\n\
@@ -236,12 +240,22 @@ pub fn filter_tools_for_prompt(connectors: &[RegisteredConnector], prompt: &str)
         "nota", "note", "obsidian", "bóveda", "boveda", "markdown", "libro", "book", "calibre", "epub",
     ]);
 
+    let power_match = has_word(&[
+        "modo", "perfil", "gaming", "ahorro", "bateria", "batería", "gpu", "vram", "grafica", "gráfica",
+    ]);
+
+    let automation_match = has_word(&[
+        "automatiza", "programada", "regla", "aprende", "memoria", "rutina", "timer", "cron",
+    ]);
+
     let mut selected: Vec<&RegisteredConnector> = Vec::new();
     for conn in connectors {
         let id = conn.manifest.id.as_str();
 
         if (id == "os-system" && system_match)
             || (id == "os-kernel" && kernel_match)
+            || (id == "os-power-modes" && (power_match || kernel_match || system_match))
+            || (id == "os-automation" && automation_match)
             || (id == "os-storage" && storage_match)
             || (id == "security-antivirus" && av_match)
             || (id == "os-files" && files_match)
@@ -251,7 +265,7 @@ pub fn filter_tools_for_prompt(connectors: &[RegisteredConnector], prompt: &str)
             selected.push(conn);
         } else if id.starts_with("dev-") && dev_match {
             selected.push(conn);
-        } else if (id.starts_with("creative-") || id.starts_with("multimedia-")) && creative_match {
+        } else if (id.starts_with("creative-") || id.starts_with("multimedia-") || id.starts_with("media-")) && creative_match {
             selected.push(conn);
         } else if id.starts_with("office-") && office_match {
             selected.push(conn);

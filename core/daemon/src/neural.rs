@@ -110,36 +110,94 @@ fn try_neural_reflex_depth(
         return Some(lines.join("\n"));
     }
 
-    // 0c. Complete Ecosystem & Tool Catalog Overview
+    // 0c. Complete Ecosystem & Tool Catalog Overview + API Reference (/catalog, /apis, /comandos)
     if matches_any(
         &lower,
         &[
             "/catalog",
+            "/apis",
+            "/comandos",
             "catalogo",
             "catálogo",
+            "comandos de actuacion",
+            "comandos de actuación",
+            "lista de comandos",
             "que herramientas tienes",
             "qué herramientas tienes",
             "lista de programas",
             "que sabes hacer",
             "qué sabes hacer",
+            "apis de aria",
         ],
     ) {
         mem.record_habit("catalog_inspection");
         let app_count = build_universal_app_catalog().len();
         let tool_count: usize = connectors.iter().map(|c| c.manifest.tools.len()).sum();
         return Some(format!(
-            "🌐 **Dominio Total de AriaOS ({} Conectores • {} Herramientas • {} Aplicaciones)**\n\n\
-             1. **Kernel y Hardware (`os-kernel`, `os-system`, `os-storage`):** Telemetría x86_64 CPUID, PSI, ZRAM, sysctl, dmesg, PCI/USB, procesos y particiones.\n\
-             2. **Escritorio y Archivos (`os-desktop`, `os-files`, `os-packages`):** Control de audio/brillo/red, organización inteligente de archivos, duplicados y paquetes `pacman`.\n\
-             3. **Seguridad y Cifrado (`security-antivirus`, `security-net-audit`, `security-vault-crypto`):** Aria Shield ClamAV, auditoría de red Nmap/Wireshark, Ghidra/Cutter, KeePassXC, VeraCrypt y Timeshift.\n\
-             4. **Desarrollo y Virtualización (`dev-git`, `dev-vscodium`, `dev-containers-vm`, `dev-api-databases`):** Git, VSCodium, Docker/Podman, QEMU/KVM/VirtualBox y bases de datos.\n\
-             5. **Suite Creativa y Multimedia (`creative-*`, `multimedia-ffmpeg`, `media-*`):** GIMP, Krita, Blender 3D, Inkscape, Kdenlive, HandBrake, Audacity, OBS Studio, FFmpeg y reproductores MPRIS.\n\
-             6. **Oficina, Conocimiento y Gaming (`office-*`, `knowledge-*`, `net-sync-comms-gaming`):** LibreOffice, Okular PDF, Obsidian, Calibre, Steam, Lutris, Heroic y emuladores (RetroArch, PCSX2, RPCS3).\n\
-             7. **Auto-Aprendizaje Continuo:** Enseña cualquier orden con `aprende: <frase> -> <acción>`.",
+            "🌐 **Dominio Total de AriaOS ({} Conectores • {} Herramientas API • {} Aplicaciones)**\n\n\
+             1. **Kernel, Energía y Automatización (`os-kernel`, `os-power-modes`, `os-automation`):**\n\
+                • *Comandos:* `«estado del sistema»`, `«estado gpu»`, `«modo gaming»`, `«modo desarrollo»`, `«modo creativo»`, `«modo ahorro extremo»`, `«modo seguridad»`, `«automatizaciones activas»`, `«dmesg»`, `«hardware pci»`\n\
+             2. **Sistema, Escritorio, Archivos y Paquetes (`os-system`, `os-desktop`, `os-files`, `os-storage`, `os-packages`):**\n\
+                • *Comandos:* `«optimizar ram»`, `«procesos»`, `«espacio en disco»`, `«mi ip»`, `«volumen al 80%»`, `«brillo al 70%»`, `«analizar descargas»`, `«buscar duplicados»`, `«organizar descargas»`, `«actualizaciones»`\n\
+             3. **Ciberseguridad, Cifrado y Pentesting (`security-antivirus`, `security-vault-crypto`, `security-net-audit`):**\n\
+                • *Comandos:* `«antivirus»`, `«escanear descargas»`, `«archivos en cuarentena»`, `«exclusiones clamav»`, `«volumenes veracrypt»`, `«snapshots timeshift»`, `«captura de pantalla»`, `«estado suite seguridad»`\n\
+             4. **Ingeniería de Software, Contenedores y VMs (`dev-git`, `dev-vscodium`, `dev-containers-vm`, `dev-api-databases`):**\n\
+                • *Comandos:* `«estado de git»`, `«git log»`, `«git diff»`, `«extensiones vscodium»`, `«contenedores activos»`, `«maquinas virtuales»`, `«conexiones dbeaver»`\n\
+             5. **Estudio Creativo, Multimedia y Streaming (`creative-*`, `multimedia-ffmpeg`, `media-obs`, `media-players`):**\n\
+                • *Comandos:* `«estado obs»`, `«iniciar grabacion obs»`, `«detener grabacion obs»`, `«reproductores activos»`, `«estado audacity»`, `«abre gimp y blender»`\n\
+             6. **Oficina, Conocimiento, Web, Correo y Gaming (`office-*`, `knowledge-*`, `browser-web`, `comms-thunderbird`, `net-filezilla`, `net-sync-comms-gaming`):**\n\
+                • *Comandos:* `«estado libreoffice»`, `«libros calibre»`, `«pestañas abiertas»`, `«perfiles thunderbird»`, `«sitios filezilla»`, `«estado syncthing»`, `«torrents activos»`, `«estado suite gaming»`\n\
+             7. **Inspección de API de cualquier conector:** Escribe `«api de <conector o programa>»` (ej. `«api de obs»`, `«api de seguridad»`, `«api de docker»`) o consulta `docs/COMANDOS_IA_Y_APIS_ARIAOS.md`.",
             connectors.len(),
             tool_count,
             app_count
         ));
+    }
+
+    // 0d. Deep Inspection of Specific Connector / Program API ("api de <nombre>" / "comandos de <nombre>")
+    if lower.starts_with("api de ")
+        || lower.starts_with("apis de ")
+        || lower.starts_with("como controlas ")
+        || lower.starts_with("cómo controlas ")
+        || lower.starts_with("herramientas de ")
+    {
+        let query = lower
+            .trim_start_matches("api de ")
+            .trim_start_matches("apis de ")
+            .trim_start_matches("como controlas ")
+            .trim_start_matches("cómo controlas ")
+            .trim_start_matches("herramientas de ")
+            .trim();
+        let matched: Vec<&RegisteredConnector> = connectors
+            .iter()
+            .filter(|c| {
+                c.manifest.id.contains(query)
+                    || c.manifest.name.to_lowercase().contains(query)
+                    || c.manifest.description.to_lowercase().contains(query)
+            })
+            .collect();
+        if !matched.is_empty() {
+            mem.record_habit("api_schema_inspect");
+            let mut out = Vec::new();
+            for c in matched {
+                out.push(format!(
+                    "🔌 **Conector `{}` — {}** (`tier={}`, `transport={}`)\n_{}_",
+                    c.manifest.id, c.manifest.name, c.manifest.tier, c.manifest.transport, c.manifest.description
+                ));
+                for t in &c.manifest.tools {
+                    out.push(format!(
+                        "  • **`{}.{}`** `[riesgo={}]`: {}\n    *Comando directo:* `/call {} {} {{}}`",
+                        c.manifest.id,
+                        t.name,
+                        t.risk_level.as_str(),
+                        t.description,
+                        c.manifest.id,
+                        t.name
+                    ));
+                }
+            }
+            return Some(out.join("\n"));
+        }
     }
 
     // 1. Pre-trained Kernel Work Modes (Gaming, Development, Creative, PowerSave, Security)
@@ -591,17 +649,44 @@ fn try_neural_reflex_depth(
         }
     }
 
-    // 12. Git Status & Development (`dev-git`)
-    if matches_any(&lower, &["estado de git", "git status", "cambios en git"]) {
+    // 12. Git Status, Log & Diff (`dev-git`)
+    if matches_any(&lower, &["estado de git", "git status", "cambios en git", "resumen git"]) {
         mem.record_habit("git_status");
         if let Some((conn, _)) = find_tool(connectors, "dev-git", "repo_status") {
-            if let Ok(res) = call_stdio_tool(conn, "repo_status", json!({"path": "."})) {
+            if let Ok(res) = call_stdio_tool(conn, "repo_status", json!({"repo_path": "."})) {
                 return Some(format!(
-                    "💻 **Estado del Repositorio Git:**\n```json\n{}\n```",
+                    "💻 **Estado del Repositorio Git (`dev-git.repo_status`):**\n```json\n{}\n```",
                     serde_json::to_string_pretty(&res).unwrap_or_default()
                 ));
             }
         }
+    }
+    if matches_any(&lower, &["git log", "ultimos commits", "últimos commits", "historial git"]) {
+        mem.record_habit("git_log");
+        if let Some((conn, _)) = find_tool(connectors, "dev-git", "repo_log") {
+            if let Ok(res) = call_stdio_tool(conn, "repo_log", json!({"repo_path": ".", "limit": 5})) {
+                return Some(format!(
+                    "📜 **Últimos Commits (`dev-git.repo_log`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+    if matches_any(&lower, &["git diff", "cambios sin guardar"]) {
+        mem.record_habit("git_diff");
+        if let Some((conn, _)) = find_tool(connectors, "dev-git", "repo_diff") {
+            if let Ok(res) = call_stdio_tool(conn, "repo_diff", json!({"repo_path": "."})) {
+                return Some(format!(
+                    "🔍 **Diferencias en el Repositorio (`dev-git.repo_diff`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+
+    // 13. Universal Domain API Action Commands across all 32 Connectors
+    if let Some(domain_reply) = execute_domain_api_reflex(&lower, connectors, &mut mem) {
+        return Some(domain_reply);
     }
 
     None
@@ -722,5 +807,325 @@ fn extract_number(text: &str) -> Option<u64> {
             }
         }
     }
+    None
+}
+
+/// Direct API action dispatcher for specialized connectors (`<1 ms` dispatch).
+fn execute_domain_api_reflex(
+    lower: &str,
+    connectors: &[RegisteredConnector],
+    mem: &mut NeuralMemory,
+) -> Option<String> {
+    let home = std::env::var("HOME")
+        .or_else(|_| std::env::var("USERPROFILE"))
+        .unwrap_or_else(|_| "/home/aria".to_string());
+    let downloads = format!("{home}/Downloads");
+
+    // 1. GPU & DRM Telemetry (`os-power-modes.gpu_telemetry`)
+    if matches_any(lower, &["estado gpu", "telemetria gpu", "telemetría gpu", "vram"]) {
+        mem.record_habit("gpu_telemetry");
+        if let Some((conn, _)) = find_tool(connectors, "os-power-modes", "gpu_telemetry") {
+            if let Ok(res) = call_stdio_tool(conn, "gpu_telemetry", json!({})) {
+                return Some(format!(
+                    "🎮 **Telemetría de GPU y Adaptadores DRM (`os-power-modes.gpu_telemetry`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+
+    // 2. Filesystem & Dolphin (`os-files`)
+    if matches_any(lower, &["analizar descargas", "escanear carpeta descargas", "estado descargas"]) {
+        mem.record_habit("scan_downloads");
+        if let Some((conn, _)) = find_tool(connectors, "os-files", "scan_directory") {
+            if let Ok(res) = call_stdio_tool(conn, "scan_directory", json!({"path": downloads})) {
+                return Some(format!(
+                    "📂 **Análisis de Carpeta de Descargas (`os-files.scan_directory`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+    if matches_any(lower, &["buscar duplicados", "archivos duplicados"]) {
+        mem.record_habit("find_duplicates");
+        if let Some((conn, _)) = find_tool(connectors, "os-files", "find_duplicates") {
+            if let Ok(res) = call_stdio_tool(conn, "find_duplicates", json!({"path": downloads})) {
+                return Some(format!(
+                    "🔍 **Búsqueda de Archivos Duplicados por SHA-256 (`os-files.find_duplicates`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+    if matches_any(lower, &["simular organizacion", "organizar descargas"]) {
+        mem.record_habit("organize_downloads_dryrun");
+        if let Some((conn, _)) = find_tool(connectors, "os-files", "organize_directory") {
+            if let Ok(res) = call_stdio_tool(
+                conn,
+                "organize_directory",
+                json!({"path": downloads, "apply": false}),
+            ) {
+                return Some(format!(
+                    "🗂️ **Simulación Segura de Organización (`os-files.organize_directory` dry-run):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+
+    // 3. Antivirus Scan, Quarantine & Config (`security-antivirus`)
+    if matches_any(lower, &["analizar virus en descargas", "escanear descargas", "analizar descargas con antivirus"]) {
+        mem.record_habit("av_scan_downloads");
+        if let Some((conn, _)) = find_tool(connectors, "security-antivirus", "av_scan_path") {
+            if let Ok(res) = call_stdio_tool(conn, "av_scan_path", json!({"path": downloads})) {
+                return Some(format!(
+                    "🛡️ **Escaneo Antivirus en Descargas (`security-antivirus.av_scan_path`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+    if matches_any(lower, &["archivos en cuarentena", "listar cuarentena"]) {
+        mem.record_habit("av_quarantine_list");
+        if let Some((conn, _)) = find_tool(connectors, "security-antivirus", "av_quarantine_list") {
+            if let Ok(res) = call_stdio_tool(conn, "av_quarantine_list", json!({})) {
+                return Some(format!(
+                    "🔒 **Bóveda de Cuarentena Aria Shield (`security-antivirus.av_quarantine_list`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+    if matches_any(lower, &["configuracion antivirus", "exclusiones clamav", "whitelist antivirus"]) {
+        mem.record_habit("av_get_config");
+        if let Some((conn, _)) = find_tool(connectors, "security-antivirus", "av_get_config") {
+            if let Ok(res) = call_stdio_tool(conn, "av_get_config", json!({})) {
+                return Some(format!(
+                    "⚙️ **Configuración y Whitelist SHA-256 de Aria Shield (`security-antivirus.av_get_config`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+
+    // 4. Vault, Encryption, Snapshots & Pentesting (`security-vault-crypto`, `security-net-audit`)
+    if matches_any(lower, &["volumenes veracrypt", "volúmenes veracrypt", "discos cifrados"]) {
+        mem.record_habit("veracrypt_list");
+        if let Some((conn, _)) = find_tool(connectors, "security-vault-crypto", "veracrypt_list_volumes") {
+            if let Ok(res) = call_stdio_tool(conn, "veracrypt_list_volumes", json!({})) {
+                return Some(format!(
+                    "🔐 **Volúmenes Cifrados VeraCrypt (`security-vault-crypto.veracrypt_list_volumes`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+    if matches_any(lower, &["snapshots timeshift", "copias timeshift", "puntos de restauracion"]) {
+        mem.record_habit("timeshift_list");
+        if let Some((conn, _)) = find_tool(connectors, "security-vault-crypto", "timeshift_list_snapshots") {
+            if let Ok(res) = call_stdio_tool(conn, "timeshift_list_snapshots", json!({})) {
+                return Some(format!(
+                    "⏱️ **Instantáneas del Sistema Timeshift (`security-vault-crypto.timeshift_list_snapshots`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+    if matches_any(lower, &["estado suite seguridad", "herramientas pentesting", "auditoria de seguridad"]) {
+        mem.record_habit("security_suite_status");
+        if let Some((conn, _)) = find_tool(connectors, "security-net-audit", "security_suite_status") {
+            if let Ok(res) = call_stdio_tool(conn, "security_suite_status", json!({})) {
+                return Some(format!(
+                    "🕵️ **Estado de Herramientas de Auditoría y Reversing (`security-net-audit.security_suite_status`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+
+    // 5. Containers, VMs, Editors & Databases (`dev-containers-vm`, `dev-vscodium`, `dev-api-databases`)
+    if matches_any(lower, &["contenedores activos", "docker ps", "podman ps", "listar contenedores"]) {
+        mem.record_habit("container_list");
+        if let Some((conn, _)) = find_tool(connectors, "dev-containers-vm", "container_list") {
+            if let Ok(res) = call_stdio_tool(conn, "container_list", json!({"runtime": "auto"})) {
+                return Some(format!(
+                    "🐳 **Contenedores Docker / Podman (`dev-containers-vm.container_list`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+    if matches_any(lower, &["maquinas virtuales", "máquinas virtuales", "listar vms", "estado kvm"]) {
+        mem.record_habit("vm_list");
+        if let Some((conn, _)) = find_tool(connectors, "dev-containers-vm", "vm_list") {
+            if let Ok(res) = call_stdio_tool(conn, "vm_list", json!({})) {
+                return Some(format!(
+                    "🖥️ **Máquinas Virtuales QEMU/KVM y VirtualBox (`dev-containers-vm.vm_list`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+    if matches_any(lower, &["extensiones vscodium", "plugins vscodium"]) {
+        mem.record_habit("vscodium_extensions");
+        if let Some((conn, _)) = find_tool(connectors, "dev-vscodium", "list_extensions") {
+            if let Ok(res) = call_stdio_tool(conn, "list_extensions", json!({})) {
+                return Some(format!(
+                    "🧩 **Extensiones Instaladas en VSCodium (`dev-vscodium.list_extensions`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+    if matches_any(lower, &["conexiones dbeaver", "conexiones base de datos"]) {
+        mem.record_habit("db_connections");
+        if let Some((conn, _)) = find_tool(connectors, "dev-api-databases", "list_db_connections") {
+            if let Ok(res) = call_stdio_tool(conn, "list_db_connections", json!({})) {
+                return Some(format!(
+                    "🗄️ **Conexiones de Bases de Datos (`dev-api-databases.list_db_connections`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+
+    // 6. Multimedia, OBS, MPRIS Players & Audacity (`media-obs`, `media-players`, `creative-audacity`)
+    if matches_any(lower, &["estado obs", "obs websocket"]) {
+        mem.record_habit("obs_status");
+        if let Some((conn, _)) = find_tool(connectors, "media-obs", "obs_websocket_status") {
+            if let Ok(res) = call_stdio_tool(conn, "obs_websocket_status", json!({})) {
+                return Some(format!(
+                    "🎬 **Estado de OBS Studio WebSocket v5 (`media-obs.obs_websocket_status`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+    if matches_any(lower, &["reproductores activos", "que suena", "qué suena", "estado mpris"]) {
+        mem.record_habit("mpris_players");
+        if let Some((conn, _)) = find_tool(connectors, "media-players", "list_players") {
+            if let Ok(res) = call_stdio_tool(conn, "list_players", json!({})) {
+                return Some(format!(
+                    "🎵 **Reproductores Multimedia MPRIS2 en D-Bus (`media-players.list_players`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+    if matches_any(lower, &["estado audacity", "pipe audacity"]) {
+        mem.record_habit("audacity_pipe");
+        if let Some((conn, _)) = find_tool(connectors, "creative-audacity", "pipe_status") {
+            if let Ok(res) = call_stdio_tool(conn, "creative-audacity", json!({}))
+                .or_else(|_| call_stdio_tool(conn, "pipe_status", json!({})))
+            {
+                return Some(format!(
+                    "🎙️ **Estado del Puente FIFO de Audacity (`creative-audacity.pipe_status`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+
+    // 7. Web, Thunderbird, FileZilla, Syncthing, qBittorrent, LibreOffice, Calibre & Automations
+    if matches_any(lower, &["pestañas abiertas", "tabs del navegador"]) {
+        mem.record_habit("browser_tabs");
+        if let Some((conn, _)) = find_tool(connectors, "browser-web", "list_tabs") {
+            if let Ok(res) = call_stdio_tool(conn, "list_tabs", json!({})) {
+                return Some(format!(
+                    "🌐 **Pestañas del Navegador vía CDP (`browser-web.list_tabs`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+    if matches_any(lower, &["perfiles thunderbird", "cuentas de correo"]) {
+        mem.record_habit("thunderbird_profiles");
+        if let Some((conn, _)) = find_tool(connectors, "comms-thunderbird", "list_profiles") {
+            if let Ok(res) = call_stdio_tool(conn, "list_profiles", json!({})) {
+                return Some(format!(
+                    "✉️ **Perfiles de Correo Thunderbird (`comms-thunderbird.list_profiles`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+    if matches_any(lower, &["sitios filezilla", "servidores ftp", "servidores sftp"]) {
+        mem.record_habit("filezilla_sites");
+        if let Some((conn, _)) = find_tool(connectors, "net-filezilla", "list_sites") {
+            if let Ok(res) = call_stdio_tool(conn, "list_sites", json!({})) {
+                return Some(format!(
+                    "📡 **Sitios FTP/SFTP en FileZilla (`net-filezilla.list_sites`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+    if matches_any(lower, &["estado syncthing", "sincronizacion p2p"]) {
+        mem.record_habit("syncthing_status");
+        if let Some((conn, _)) = find_tool(connectors, "net-sync-comms-gaming", "syncthing_status") {
+            if let Ok(res) = call_stdio_tool(conn, "syncthing_status", json!({})) {
+                return Some(format!(
+                    "🔄 **Estado de Syncthing P2P (`net-sync-comms-gaming.syncthing_status`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+    if matches_any(lower, &["torrents activos", "estado qbittorrent"]) {
+        mem.record_habit("qbittorrent_torrents");
+        if let Some((conn, _)) = find_tool(connectors, "net-sync-comms-gaming", "qbittorrent_torrents") {
+            if let Ok(res) = call_stdio_tool(conn, "qbittorrent_torrents", json!({})) {
+                return Some(format!(
+                    "📥 **Torrents en qBittorrent (`net-sync-comms-gaming.qbittorrent_torrents`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+    if matches_any(lower, &["estado suite gaming", "estado ecosistema", "apps instaladas"]) {
+        mem.record_habit("ecosystem_apps_status");
+        if let Some((conn, _)) = find_tool(connectors, "net-sync-comms-gaming", "ecosystem_apps_status") {
+            if let Ok(res) = call_stdio_tool(conn, "ecosystem_apps_status", json!({})) {
+                return Some(format!(
+                    "🎮 **Estado del Ecosistema Gaming, Emuladores y Comms (`net-sync-comms-gaming.ecosystem_apps_status`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+    if matches_any(lower, &["estado libreoffice", "uno status"]) {
+        mem.record_habit("libreoffice_uno");
+        if let Some((conn, _)) = find_tool(connectors, "office-libreoffice", "uno_status") {
+            if let Ok(res) = call_stdio_tool(conn, "uno_status", json!({})) {
+                return Some(format!(
+                    "📄 **Estado del Puente UNO de LibreOffice (`office-libreoffice.uno_status`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+    if matches_any(lower, &["libros calibre", "biblioteca calibre"]) {
+        mem.record_habit("calibre_books");
+        if let Some((conn, _)) = find_tool(connectors, "knowledge-notes-ebooks", "calibre_list_books") {
+            if let Ok(res) = call_stdio_tool(conn, "calibre_list_books", json!({})) {
+                return Some(format!(
+                    "📚 **Biblioteca de Libros en Calibre (`knowledge-notes-ebooks.calibre_list_books`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+    if matches_any(lower, &["automatizaciones activas", "tareas programadas"]) {
+        mem.record_habit("list_automations");
+        if let Some((conn, _)) = find_tool(connectors, "os-automation", "list_automations") {
+            if let Ok(res) = call_stdio_tool(conn, "list_automations", json!({})) {
+                return Some(format!(
+                    "⏱️ **Automatizaciones y Memoria Neuronal (`os-automation.list_automations`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+
     None
 }

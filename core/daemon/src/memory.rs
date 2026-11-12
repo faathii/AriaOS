@@ -71,38 +71,31 @@ impl NeuralMemory {
     }
 
     pub fn pretrained_rules() -> Vec<LearnedRule> {
-        vec![
-            LearnedRule {
-                trigger: "modo gaming".to_string(),
-                target_prompt: "activar perfil gaming".to_string(),
+        let defaults = [
+            ("modo gaming", "activar perfil gaming"),
+            ("modo desarrollo", "activar perfil desarrollo"),
+            ("modo creativo", "activar perfil creativo"),
+            ("modo ahorro extremo", "activar perfil ahorro"),
+            ("modo seguridad", "activar perfil seguridad"),
+            ("limpieza profunda", "optimizar ram"),
+            ("auditoria de seguridad", "estado suite seguridad"),
+            ("estado contenedores", "contenedores activos"),
+            ("estado virtualizacion", "maquinas virtuales"),
+            ("escanear descargas", "analizar virus en descargas"),
+            ("organizar descargas", "simular organizacion descargas"),
+            ("iniciar streaming", "estado obs"),
+            ("estado servidores", "sitios filezilla"),
+            ("estado p2p", "estado syncthing"),
+            ("resumen git", "estado de git"),
+        ];
+        defaults
+            .iter()
+            .map(|(t, a)| LearnedRule {
+                trigger: (*t).to_string(),
+                target_prompt: (*a).to_string(),
                 hits: 1,
-            },
-            LearnedRule {
-                trigger: "modo desarrollo".to_string(),
-                target_prompt: "activar perfil desarrollo".to_string(),
-                hits: 1,
-            },
-            LearnedRule {
-                trigger: "modo creativo".to_string(),
-                target_prompt: "activar perfil creativo".to_string(),
-                hits: 1,
-            },
-            LearnedRule {
-                trigger: "modo ahorro extremo".to_string(),
-                target_prompt: "activar perfil ahorro".to_string(),
-                hits: 1,
-            },
-            LearnedRule {
-                trigger: "modo seguridad".to_string(),
-                target_prompt: "activar perfil seguridad".to_string(),
-                hits: 1,
-            },
-            LearnedRule {
-                trigger: "limpieza profunda".to_string(),
-                target_prompt: "optimizar ram".to_string(),
-                hits: 1,
-            },
-        ]
+            })
+            .collect()
     }
 
     pub fn save(&self) {

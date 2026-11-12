@@ -33,10 +33,10 @@ SUPPORTED_LANGUAGES: Dict[str, str] = {
 
 DEFAULT_CONFIG: Dict[str, Any] = {
     "language": "es",
-    "model": "qwen2.5:3b",
+    "model": "aria-core",
     "ollama_url": "http://127.0.0.1:11434",
-    "num_ctx": 8192,
-    "temperature": 0.3,
+    "num_ctx": 1024,
+    "temperature": 0.2,
     "approval_mode": "interactive",  # interactive, autowrite, readonly
     "hotkey": "Alt+Space",
     "enabled_connector_groups": {

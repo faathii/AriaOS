@@ -52,6 +52,8 @@ mkdir -p "${STAGE_DIR}/airootfs/usr/lib/ariaos/settings"
 cp -a "${REPO_ROOT}/ui/settings/." "${STAGE_DIR}/airootfs/usr/lib/ariaos/settings/"
 install -Dm644 "${REPO_ROOT}/ui/settings/ariaos-settings.desktop" \
   "${STAGE_DIR}/airootfs/usr/share/applications/ariaos-settings.desktop"
+mkdir -p "${STAGE_DIR}/airootfs/usr/lib/ariaos/antivirus"
+cp -a "${REPO_ROOT}/ui/antivirus/." "${STAGE_DIR}/airootfs/usr/lib/ariaos/antivirus/"
 
 # Install AriaOS visual branding (boot splash, menu/system icon, wallpaper, face icon)
 if [ -f "${REPO_ROOT}/assets/branding/ariaos-wallpaper.jpg" ]; then
@@ -85,7 +87,7 @@ if [ -f "${REPO_ROOT}/assets/branding/ariaos-inicio.mp4" ]; then
 fi
 
 # Strip any CRLF line endings if staged from a Windows working tree
-find "${STAGE_DIR}" -maxdepth 6 -type f \( -name "*.sh" -o -name "*.service" -o -name "*.conf" -o -name "*.desktop" -o -name "*.py" -o -name "*.cfg" -o -name "*.plymouth" -o -name "*.script" -o -name "*.user" \) -exec sed -i 's/\r$//' {} +
+find "${STAGE_DIR}" -maxdepth 7 -type f \( -name "*.sh" -o -name "*.service" -o -name "*.conf" -o -name "*.desktop" -o -name "*.py" -o -name "*.cfg" -o -name "*.plymouth" -o -name "*.script" -o -name "*.user" -o -name "*.colors" -o -name "*.json" -o -name "Modelfile*" -o -name "*rc" -o -name "kdeglobals" -o -name "colors" \) -exec sed -i 's/\r$//' {} +
 sed -i 's/\r$//' \
   "${STAGE_DIR}/profiledef.sh" \
   "${STAGE_DIR}/packages.x86_64" \
@@ -108,6 +110,16 @@ sed -i 's/\r$//' \
   "${STAGE_DIR}/airootfs/usr/bin/ariaos-settings" \
   "${STAGE_DIR}/airootfs/usr/bin/ariaos-welcome"
 
+# Pre-package lightweight Aria Neural Model (aria-core / qwen2.5:0.5b ~350MB) inside ISO if ollama is available on build host
+if command -v ollama >/dev/null 2>&1; then
+  echo "  Pre-packaging lightweight Aria Neural Model (aria-core / qwen2.5:0.5b) into ISO..."
+  OLLAMA_MODELS_STAGE="${STAGE_DIR}/airootfs/usr/share/ollama/.ollama/models"
+  mkdir -p "${OLLAMA_MODELS_STAGE}"
+  if [ -d "/usr/share/ollama/.ollama/models" ]; then
+    cp -a /usr/share/ollama/.ollama/models/. "${OLLAMA_MODELS_STAGE}/" || true
+  fi
+fi
+
 echo "[3/4] Enabling systemd units inside airootfs..."
 WANTS_DIR="${STAGE_DIR}/airootfs/etc/systemd/system/multi-user.target.wants"
 mkdir -p "${WANTS_DIR}"
@@ -115,9 +127,8 @@ ln -sf "/etc/systemd/system/aria-daemon.service" "${WANTS_DIR}/aria-daemon.servi
 ln -sf "/etc/systemd/system/ariaos-onboarding.service" "${WANTS_DIR}/ariaos-onboarding.service"
 ln -sf "/usr/lib/systemd/system/ollama.service" "${WANTS_DIR}/ollama.service"
 ln -sf "/usr/lib/systemd/system/NetworkManager.service" "${WANTS_DIR}/NetworkManager.service"
-ln -sf "/usr/lib/systemd/system/clamav-freshclam.service" "${WANTS_DIR}/clamav-freshclam.service"
-ln -sf "/usr/lib/systemd/system/clamav-daemon.service" "${WANTS_DIR}/clamav-daemon.service"
-ln -sf "/usr/lib/systemd/system/clamav-clamonacc.service" "${WANTS_DIR}/clamav-clamonacc.service"
+# Note: ClamAV services (clamd/clamonacc/freshclam) are intentionally kept on-demand via Aria Shield
+# to save >2GB of RAM during boot and prevent Live ISO tmpfs exhaustion.
 ln -sf "/usr/lib/systemd/system/sddm.service" "${STAGE_DIR}/airootfs/etc/systemd/system/display-manager.service"
 
 echo "[4/4] Running mkarchiso..."

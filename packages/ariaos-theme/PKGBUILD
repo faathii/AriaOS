@@ -15,6 +15,12 @@ package() {
     "${pkgdir}/usr/share/wallpapers/AriaOS/contents/images/2816x1536.jpg"
   install -Dm644 "${root_dir}/os/archiso/airootfs/usr/share/wallpapers/AriaOS/metadata.json" \
     "${pkgdir}/usr/share/wallpapers/AriaOS/metadata.json"
+  install -Dm644 "${root_dir}/os/archiso/airootfs/usr/share/color-schemes/AriaOSCyber.colors" \
+    "${pkgdir}/usr/share/color-schemes/AriaOSCyber.colors"
+  install -Dm644 "${root_dir}/os/archiso/airootfs/usr/share/plasma/desktoptheme/ariaos-cyber/metadata.json" \
+    "${pkgdir}/usr/share/plasma/desktoptheme/ariaos-cyber/metadata.json"
+  install -Dm644 "${root_dir}/os/archiso/airootfs/usr/share/plasma/desktoptheme/ariaos-cyber/colors" \
+    "${pkgdir}/usr/share/plasma/desktoptheme/ariaos-cyber/colors"
   install -Dm644 "${root_dir}/assets/branding/ariaos-logo.png" \
     "${pkgdir}/usr/share/icons/hicolor/512x512/apps/ariaos-logo.png"
   install -Dm644 "${root_dir}/assets/branding/ariaos-logo.png" \

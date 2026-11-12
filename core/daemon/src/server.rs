@@ -10,6 +10,11 @@ pub fn serve_socket(connectors: Vec<RegisteredConnector>, model: Option<String>)
     use std::io::{BufRead, BufReader, Write};
     use std::os::unix::fs::PermissionsExt;
     use std::os::unix::net::UnixListener;
+    use std::sync::Arc;
+    use std::thread;
+
+    // Start the background Autonomic Kernel Governor (ZRAM, I/O scheduler, CPU governor & PSI mitigation)
+    crate::kernel::spawn_autonomic_kernel_governor();
 
     let socket_path = resolve_socket_path();
     if socket_path.exists() {
@@ -22,17 +27,30 @@ pub fn serve_socket(connectors: Vec<RegisteredConnector>, model: Option<String>)
     let listener = UnixListener::bind(&socket_path)
         .map_err(|e| format!("Failed to bind {}: {e}", socket_path.display()))?;
     let _ = fs::set_permissions(&socket_path, fs::Permissions::from_mode(0o666));
-    println!("aria-daemon listening on {}", socket_path.display());
+    let hw = crate::kernel::KernelTelemetry::collect();
+    println!(
+        "aria-daemon listening on {} [profile={}, AVX2={}]",
+        socket_path.display(),
+        hw.hardware_tier.as_str(),
+        hw.silicon.avx2
+    );
+
+    let shared_connectors: Arc<[RegisteredConnector]> = Arc::from(connectors);
 
     for stream in listener.incoming() {
         let Ok(mut stream) = stream else { continue };
-        let mut reader = BufReader::new(stream.try_clone().map_err(|e| e.to_string())?);
-        let mut line = String::new();
-        if reader.read_line(&mut line).is_err() || line.trim().is_empty() {
-            continue;
-        }
-        let response = handle_ipc_request(line.trim(), &connectors, model.clone());
-        let _ = writeln!(stream, "{response}");
+        let conns = Arc::clone(&shared_connectors);
+        let mdl = model.clone();
+        thread::spawn(move || {
+            let Ok(cloned) = stream.try_clone() else { return };
+            let mut reader = BufReader::new(cloned);
+            let mut line = String::new();
+            if reader.read_line(&mut line).is_err() || line.trim().is_empty() {
+                return;
+            }
+            let response = handle_ipc_request(line.trim(), &conns, mdl);
+            let _ = writeln!(stream, "{response}");
+        });
     }
     Ok(())
 }
@@ -65,6 +83,13 @@ fn handle_ipc_request(
     };
 
     match req.get("action").and_then(|v| v.as_str()) {
+        Some("kernel_telemetry") => {
+            let k = crate::kernel::KernelTelemetry::collect();
+            json!({"ok": true, "telemetry": k.to_json()})
+        }
+        Some("optimize_kernel") => {
+            crate::kernel::optimize_kernel_memory()
+        }
         Some("list_tools") => {
             let list: Vec<Value> = connectors
                 .iter()

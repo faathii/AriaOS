@@ -29,6 +29,10 @@ def parse_command(raw: str) -> dict[str, Any]:
         return {"kind": "help"}
     if text == "/tools":
         return {"kind": "tools"}
+    if text in {"/kernel", "/telemetry"}:
+        return {"kind": "kernel"}
+    if text in {"/optimize", "/ram"}:
+        return {"kind": "optimize"}
     if text.startswith("/call "):
         rest = text[6:].strip()
         parts = rest.split(None, 2)
@@ -78,6 +82,12 @@ class AriaDaemonClient:
 
     def list_tools(self) -> dict[str, Any]:
         return self.request({"action": "list_tools"})
+
+    def kernel_telemetry(self) -> dict[str, Any]:
+        return self.request({"action": "kernel_telemetry"})
+
+    def optimize_kernel(self) -> dict[str, Any]:
+        return self.request({"action": "optimize_kernel"})
 
     def call_tool(
         self,

@@ -1,0 +1,19 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Email": "dev@ariaos.org",
+                "Name": "AriaOS Design Lab"
+            }
+        ],
+        "Category": "",
+        "Description": "AriaOS Futuristic Minimalist Cyber-Obsidian Plasma Theme",
+        "EnabledByDefault": true,
+        "Id": "ariaos-cyber",
+        "License": "GPL-3.0-or-later",
+        "Name": "AriaOS Cyber",
+        "Version": "1.0"
+    },
+    "X-Plasma-API": "5.0"
+}
+

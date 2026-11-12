@@ -3,12 +3,31 @@ use serde_json::{json, Value};
 use std::io::{BufRead, BufReader, Write};
 use std::process::{Command, Stdio};
 
-/// Execute one tool on a stdio JSON-RPC 2.0 connector.
+/// Execute one tool on a stdio JSON-RPC 2.0 connector (with zero-overhead native Rust kernel fast-paths).
 pub fn call_stdio_tool(
     connector: &RegisteredConnector,
     tool_name: &str,
     arguments: Value,
 ) -> Result<Value, String> {
+    // Zero-overhead native Rust Kernel fast-path (<0.1ms, bypasses Python subprocess spawning)
+    match (connector.manifest.id.as_str(), tool_name) {
+        ("os-kernel", "summary") | ("os-kernel", "cpu_memory_pressure") | ("os-system", "health") => {
+            let k = crate::kernel::KernelTelemetry::collect();
+            return Ok(k.to_json());
+        }
+        ("os-system", "top_processes") => {
+            let limit = arguments
+                .get("limit")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(10) as usize;
+            return Ok(crate::kernel::native_top_processes(limit.clamp(1, 50)));
+        }
+        ("os-storage", "disk_usage") => {
+            return Ok(crate::kernel::native_disk_usage());
+        }
+        _ => {}
+    }
+
     if connector.manifest.transport != "stdio" {
         return Err(format!(
             "Connector '{}' uses transport '{}', which is not executable over stdio yet",

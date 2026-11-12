@@ -1,35 +1,92 @@
 #!/usr/bin/env bash
-# Apply default AriaOS KDE Plasma wallpaper and Kickoff menu icon once per user.
-MARKER="${XDG_CONFIG_HOME:-$HOME/.config}/.ariaos-branded-v1"
+# AriaOS Futuristic Minimalist KDE Plasma 6 Shell Constructor
+# Transforms stock KDE Plasma into the custom AriaOS Dual-Bar Cyber Desktop.
+
+MARKER="${XDG_CONFIG_HOME:-$HOME/.config}/.ariaos-cyber-shell-v2"
 [ -f "${MARKER}" ] && exit 0
 
 WALLPAPER="/usr/share/wallpapers/AriaOS/contents/images/2816x1536.jpg"
 
-# Wait briefly for plasmashell D-Bus service on first login
-for _ in $(seq 1 20); do
+# Wait for plasmashell D-Bus service on first login
+for _ in $(seq 1 25); do
   if qdbus6 org.kde.plasmashell /PlasmaShell >/dev/null 2>&1; then
     break
   fi
   sleep 1
 done
 
+# 1. Apply AriaOS Cyber Obsidian Color Scheme & Desktop Theme
+if command -v plasma-apply-colorscheme >/dev/null 2>&1; then
+  plasma-apply-colorscheme AriaOSCyber >/dev/null 2>&1 || true
+fi
+if command -v plasma-apply-desktoptheme >/dev/null 2>&1; then
+  plasma-apply-desktoptheme ariaos-cyber >/dev/null 2>&1 || true
+fi
+
+# 2. Apply AriaOS Futuristic Wallpaper
 if [ -f "${WALLPAPER}" ] && command -v plasma-apply-wallpaperimage >/dev/null 2>&1; then
   plasma-apply-wallpaperimage "${WALLPAPER}" >/dev/null 2>&1 || true
 fi
 
+# 3. Reconstruct Plasma Panels: Top Minimalist Status Bar + Bottom Floating Cyber Dock
 if command -v qdbus6 >/dev/null 2>&1; then
   qdbus6 org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript '
-    for (const p of panels()) {
-      for (const w of p.widgets()) {
-        if (w.type === "org.kde.plasma.kickoff" || w.type === "org.kde.plasma.kicker") {
-          w.currentConfigGroup = ["General"];
-          w.writeConfig("icon", "ariaos-logo");
-        }
-      }
+    // Remove stock default panels
+    const existing = panels();
+    for (let i = 0; i < existing.length; i++) {
+      existing[i].remove();
     }
+
+    // --- 1. TOP CYBER STATUS BAR ---
+    const topBar = new Panel("org.kde.panel");
+    topBar.location = "top";
+    topBar.height = 28;
+    topBar.floating = true;
+    topBar.alignment = "center";
+    topBar.lengthMode = "fill";
+
+    const launcher = topBar.addWidget("org.kde.plasma.kickoff");
+    launcher.currentConfigGroup = ["General"];
+    launcher.writeConfig("icon", "ariaos-logo");
+    launcher.writeConfig("favoritesPortedToKAstats", "true");
+    launcher.writeConfig("systemApplications", "ariaos-command-bar.desktop,ariaos-settings.desktop,ariaos-antivirus.desktop,org.kde.dolphin.desktop,org.kde.konsole.desktop");
+
+    topBar.addWidget("org.kde.plasma.appmenu");
+    topBar.addWidget("org.kde.plasma.panelspacer");
+
+    const clock = topBar.addWidget("org.kde.plasma.digitalclock");
+    clock.currentConfigGroup = ["Appearance"];
+    clock.writeConfig("showDate", "true");
+    clock.writeConfig("dateFormat", "shortDate");
+    clock.writeConfig("use24hFormat", "2");
+
+    topBar.addWidget("org.kde.plasma.panelspacer");
+    topBar.addWidget("org.kde.plasma.systemtray");
+    topBar.addWidget("org.kde.plasma.showdesktop");
+
+    // --- 2. BOTTOM FLOATING CYBER DOCK ---
+    const dock = new Panel("org.kde.panel");
+    dock.location = "bottom";
+    dock.height = 54;
+    dock.floating = true;
+    dock.alignment = "center";
+    dock.lengthMode = "fit";
+    dock.hiding = "none";
+
+    const tasks = dock.addWidget("org.kde.plasma.icontasks");
+    tasks.currentConfigGroup = ["General"];
+    tasks.writeConfig("launchers", [
+      "applications:ariaos-command-bar.desktop",
+      "applications:org.kde.dolphin.desktop",
+      "applications:org.kde.konsole.desktop",
+      "applications:ariaos-antivirus.desktop",
+      "applications:ariaos-settings.desktop",
+      "applications:ariaos-welcome.desktop"
+    ]);
+    tasks.writeConfig("showOnlyCurrentScreen", "false");
+    tasks.writeConfig("iconSpacing", "1");
   ' >/dev/null 2>&1 || true
 fi
 
 mkdir -p "$(dirname "${MARKER}")"
 date -Iseconds > "${MARKER}"
-

@@ -1,4 +1,6 @@
+mod kernel;
 mod manifest;
+mod neural;
 mod ollama;
 mod policy;
 mod rpc;
@@ -29,6 +31,22 @@ fn main() {
         }
         Some("list") => {
             print_connectors(&connectors);
+            0
+        }
+        Some("kernel") => {
+            let k = kernel::KernelTelemetry::collect();
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&k.to_json()).unwrap_or_default()
+            );
+            0
+        }
+        Some("optimize") => {
+            let res = kernel::optimize_kernel_memory();
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&res).unwrap_or_default()
+            );
             0
         }
         Some("call") => run_direct_call(&connectors, &args[1..]),

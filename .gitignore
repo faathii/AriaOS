@@ -18,6 +18,8 @@ os/archiso/out/
 
 # Local AI models & runtime sockets
 models/
+!os/archiso/airootfs/usr/share/ariaos/models/
+!os/archiso/airootfs/usr/share/ariaos/models/**
 *.gguf
 *.bin
 *.sock

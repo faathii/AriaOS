@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# AriaOS System Onboarding & Network Auto-Init
+# AriaOS Lightweight System Onboarding (Zero RAM bloat on Live ISO)
 set -euo pipefail
 
 MARKER="/var/lib/ariaos/.onboarding-complete"
@@ -8,26 +8,21 @@ MARKER="/var/lib/ariaos/.onboarding-complete"
 mkdir -p /var/lib/ariaos/quarantine
 chmod 700 /var/lib/ariaos/quarantine || true
 
-# 1. Sync ClamAV rules, OnAccess exclusions, and SHA-256 .fp whitelist
+# 1. Apply kernel performance & memory pressure sysctls immediately
+sysctl --system >/dev/null 2>&1 || true
+
+# 2. Configure ClamAV exclusions without starting heavy background daemons in RAM
 if [ -x /usr/bin/ariaos-clamav-sync ]; then
   /usr/bin/ariaos-clamav-sync || true
 fi
 
-# 2. Check internet connectivity
-if ! curl -sf --connect-timeout 4 https://archlinux.org >/dev/null 2>&1; then
-  echo "AriaOS Onboarding: Waiting for network..."
-  exit 0
-fi
-
-echo "AriaOS Onboarding: Network detected. Initializing virus signatures..."
-freshclam --quiet || true
-
-# 3. Pull default Ollama AI model (qwen2.5:3b) if Ollama is responsive
-if systemctl is-active --quiet ollama.service; then
-  echo "AriaOS Onboarding: Pre-warming local AI model qwen2.5:3b..."
-  ollama pull qwen2.5:3b || true
+# 3. Register pre-packaged Aria Neural Model (aria-core) if local weights exist
+MODELFILE="/usr/share/ariaos/models/Modelfile.aria-core"
+if systemctl is-active --quiet ollama.service && [ -f "${MODELFILE}" ]; then
+  if ollama list 2>/dev/null | grep -q "qwen2.5:0.5b"; then
+    ollama create aria-core -f "${MODELFILE}" >/dev/null 2>&1 || true
+  fi
 fi
 
 date -Iseconds > "${MARKER}"
-echo "AriaOS Onboarding complete."
-
+echo "AriaOS Neural Core & Kernel Onboarding complete."

@@ -33,8 +33,9 @@ AriaOS is structured so the AI is an OS-native service (`aria-daemon`) and every
 
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — OS-native architecture, 3-tier control model (D-Bus, Program Connectors, UI Fallback), and safety trust tiers.
 - [`docs/CONNECTOR_GUIDE.md`](docs/CONNECTOR_GUIDE.md) — Step-by-step guide to adding a new program or tool connector.
-- [`core/`](core/) — Rust `aria-daemon` skeleton, JSON-RPC / manifest schema (`core/protocol/`), and Python connector SDK (`core/sdk/python/`).
-- [`connectors/`](connectors/) — Modular program & OS adapters (`_template/`, `os-files/`, `os-system/`, `os-desktop/`, `multimedia-ffmpeg/`).
+- [`core/`](core/) — Rust `aria-daemon` engine, JSON-RPC / manifest schema (`core/protocol/`), and Python connector SDK (`core/sdk/python/`).
+- [`connectors/`](connectors/) — One directory per OS subsystem or application (`os-files/`, `os-system/`, `os-desktop/`, `multimedia-ffmpeg/`, `office-libreoffice/`, `browser-web/`, `creative-blender/`, `dev-git/`, etc.; see [`connectors/README.md`](connectors/README.md)).
+- [`packages/`](packages/) — Arch Linux `PKGBUILD` recipes, `ariaOS-Theme`, and custom app integration configs (`ariaos-core/`, `ariaos-command-bar/`, `ariaos-theme/`, `ariaos-app-integrations/`).
 - [`ui/command-bar/`](ui/command-bar/) — Floating KDE/Wayland command bar specification.
 - [`os/`](os/) — Arch Linux `archiso` build profile, package list, systemd units, and ISO build script.
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — Contribution guidelines and safety rules.

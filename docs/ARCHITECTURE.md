@@ -83,12 +83,22 @@ AriaOS/
 │   ├── daemon/          # Compiled Rust OS daemon (`aria-daemon`)
 │   ├── protocol/        # Connector manifest JSON Schema & JSON-RPC spec
 │   └── sdk/python/      # Lightweight Python SDK for building connectors fast
-├── connectors/          # Modular program & OS adapters (1 folder = 1 tool/app)
+├── connectors/          # Modular program & OS adapters (1 folder = 1 tool/app; see connectors/README.md)
 │   ├── _template/       # Copy-paste starter for new connectors
 │   ├── os-files/        # File organization, search & safe cleanup
-│   ├── os-system/       # System health, systemd & package inspection
+│   ├── os-system/       # System health, systemd & process inspection
 │   ├── os-desktop/      # KDE Plasma / KWin / D-Bus desktop control
-│   └── multimedia-ffmpeg/
+│   ├── multimedia-ffmpeg/
+│   ├── office-*/        # LibreOffice, Okular
+│   ├── browser-web/     # Brave / Firefox CDP & Native Messaging
+│   ├── media-*/         # OBS Studio, VLC / Elisa
+│   ├── creative-*/      # GIMP, Krita, Blender, Audacity, Kdenlive
+│   └── dev-*/           # VSCodium / Kate, Git / gh
+├── packages/            # Arch PKGBUILDs, ariaOS-Theme & app integration patches
+│   ├── ariaos-core/
+│   ├── ariaos-command-bar/
+│   ├── ariaos-theme/
+│   └── ariaos-app-integrations/
 ├── ui/
 │   └── command-bar/     # Global KDE/Wayland floating command bar spec
 ├── os/

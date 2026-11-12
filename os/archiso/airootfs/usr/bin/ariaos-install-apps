@@ -65,6 +65,8 @@ if [ "${#REPO_SELECTED[@]}" -gt 0 ]; then
     pacman -Sy
   fi
   pacman -S --needed --noconfirm "${REPO_SELECTED[@]}"
+  echo "Limpiando paquetes descargados para ahorrar espacio en disco..."
+  pacman -Scc --noconfirm || true
   for grp in docker libvirt wireshark vboxusers; do
     if getent group "$grp" >/dev/null 2>&1; then
       usermod -aG "$grp" "${TARGET_USER}" || true

@@ -43,9 +43,9 @@ def _check_clamav_ready() -> bool:
 
 def _launch_konsole(title: str, cmd: list[str]) -> None:
     if shutil.which("konsole"):
-        subprocess.Popen(["konsole", "--title", title, "-e", "bash", "-c", " ".join(cmd) + "; echo; read -p 'Presiona Enter para cerrar...'"])
+        subprocess.Popen(["konsole", "--hold", "-e"] + cmd)
     elif shutil.which("xterm"):
-        subprocess.Popen(["xterm", "-title", title, "-e", "bash", "-c", " ".join(cmd) + "; echo; read -p 'Presiona Enter para cerrar...'"])
+        subprocess.Popen(["xterm", "-hold", "-title", title, "-e"] + cmd)
     else:
         subprocess.Popen(cmd)
 

@@ -45,37 +45,53 @@ for flag in "$@"; do
   esac
 done
 
+TARGET_USER="${SUDO_USER:-${USER:-aria}}"
+if [ "${TARGET_USER}" = "root" ] || [ -z "${TARGET_USER}" ]; then
+  TARGET_USER="aria"
+fi
+
 if [ "${#REPO_SELECTED[@]}" -gt 0 ]; then
+  # Ensure pacman keyring is initialized
+  if [ ! -d /etc/pacman.d/gnupg/openpgp-revocs.d ]; then
+    echo "Initializing pacman keyring..."
+    pacman-key --init
+    pacman-key --populate archlinux
+  fi
+
   # Ensure [multilib] repository is enabled for packages like Steam
   if ! grep -q "^\[multilib\]" /etc/pacman.conf; then
     echo "Enabling [multilib] repository in /etc/pacman.conf..."
-    sudo sed -i '/^#\[multilib\]/{s/^#//;n;s/^#//}' /etc/pacman.conf
-    sudo pacman -Sy
+    sed -i '/^#\[multilib\]/{s/^#//;n;s/^#//}' /etc/pacman.conf
+    pacman -Sy
   fi
-  sudo pacman -S --needed --noconfirm "${REPO_SELECTED[@]}"
+  pacman -S --needed --noconfirm "${REPO_SELECTED[@]}"
   for grp in docker libvirt wireshark vboxusers; do
     if getent group "$grp" >/dev/null 2>&1; then
-      sudo usermod -aG "$grp" "${USER}" || true
+      usermod -aG "$grp" "${TARGET_USER}" || true
     fi
   done
   if systemctl list-unit-files | grep -q '^docker\.service'; then
-    sudo systemctl enable --now docker.service || true
+    systemctl enable --now docker.service || true
   fi
   if systemctl list-unit-files | grep -q '^libvirtd\.service'; then
-    sudo systemctl enable --now libvirtd.service || true
+    systemctl enable --now libvirtd.service || true
   fi
 fi
 
 if [ "${DO_AUR}" -eq 1 ]; then
   if ! command -v yay >/dev/null 2>&1; then
     echo "Installing AUR helper 'yay'..."
-    sudo pacman -S --needed --noconfirm base-devel git
-    tmp_dir="$(mktemp -d)"
-    git clone https://aur.archlinux.org/yay-bin.git "${tmp_dir}/yay-bin"
-    (cd "${tmp_dir}/yay-bin" && makepkg -si --noconfirm)
+    pacman -S --needed --noconfirm base-devel git
+    tmp_dir="$(mktemp -d -p /tmp)"
+    chown -R "${TARGET_USER}:${TARGET_USER}" "${tmp_dir}"
+    sudo -u "${TARGET_USER}" git clone https://aur.archlinux.org/yay-bin.git "${tmp_dir}/yay-bin"
+    (cd "${tmp_dir}/yay-bin" && sudo -u "${TARGET_USER}" makepkg -si --noconfirm)
     rm -rf "${tmp_dir}"
   fi
-  yay -S --needed --noconfirm "${AUR_PKGS[@]}"
+  for pkg in "${AUR_PKGS[@]}"; do
+    echo "Installing AUR package: $pkg..."
+    sudo -u "${TARGET_USER}" yay -S --needed --noconfirm "$pkg" || echo "Warning: Failed to install $pkg from AUR (skipped)"
+  done
 fi
 
 if [ "${DO_PORTAINER}" -eq 1 ]; then

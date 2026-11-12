@@ -1,0 +1,48 @@
+{
+  "id": "creative-kdenlive",
+  "name": "Kdenlive & MLT Connector",
+  "version": "0.1.0",
+  "description": "Inspect .kdenlive MLT project timelines/clips and render projects via melt without overwriting.",
+  "tier": "program_api",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dependencies": ["kdenlive", "mlt"],
+  "tools": [
+    {
+      "name": "inspect_project",
+      "description": "Inspect resolution, FPS, tracks, and media sources in a .kdenlive MLT XML project.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to a .kdenlive project file."
+          }
+        },
+        "required": ["path"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "render_project",
+      "description": "Render a .kdenlive MLT project headlessly via melt without overwriting existing files.",
+      "risk_level": "write",
+      "reversible": false,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "project_path": {
+            "type": "string"
+          },
+          "output_path": {
+            "type": "string"
+          }
+        },
+        "required": ["project_path", "output_path"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

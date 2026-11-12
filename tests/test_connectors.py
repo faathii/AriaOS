@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import zipfile
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -319,6 +320,196 @@ class TestStdioConnectors(unittest.TestCase):
         )
         self.assertEqual(pkg_res[0]["result"]["id"], "os-packages")
         self.assertEqual(pkg_res[1]["error"]["code"], -32602)
+
+    def test_user_app_connectors_stdio_and_validation(self) -> None:
+        def call(req_id: int, name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
+            return {
+                "jsonrpc": "2.0",
+                "id": req_id,
+                "method": "tools/call",
+                "params": {"name": name, "arguments": arguments},
+            }
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+
+            # 1. office-libreoffice: cross-platform .odt inspection + uno_status + validation
+            odt_path = root / "sample.odt"
+            with zipfile.ZipFile(odt_path, "w") as zf:
+                zf.writestr(
+                    "content.xml",
+                    '<?xml version="1.0" encoding="UTF-8"?><office:document-content xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"><office:body><text:p xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0">Hola AriaOS LibreOffice</text:p></office:body></office:document-content>',
+                )
+            lo_res = _rpc_session(
+                CONNECTORS_DIR / "office-libreoffice" / "connector.py",
+                [
+                    {"jsonrpc": "2.0", "id": 1, "method": "aria/info", "params": {}},
+                    call(2, "inspect_document", {"path": str(odt_path)}),
+                    call(3, "convert_document", {"input_path": str(odt_path), "target_format": "exe"}),
+                ],
+            )
+            self.assertEqual(lo_res[0]["result"]["id"], "office-libreoffice")
+            self.assertIn("Hola AriaOS LibreOffice", lo_res[1]["result"]["data"]["text_preview"])
+            self.assertEqual(lo_res[2]["error"]["code"], -32602)
+
+            # 2. office-okular: validation before poppler lookup
+            ok_res = _rpc_session(
+                CONNECTORS_DIR / "office-okular" / "connector.py",
+                [
+                    {"jsonrpc": "2.0", "id": 1, "method": "aria/info", "params": {}},
+                    call(2, "inspect_pdf", {"path": str(root / "missing.pdf")}),
+                    call(3, "extract_pdf_text", {"path": str(odt_path)}),
+                ],
+            )
+            self.assertEqual(ok_res[0]["result"]["id"], "office-okular")
+            self.assertEqual(ok_res[1]["error"]["code"], -32602)
+            self.assertEqual(ok_res[2]["error"]["code"], -32602)
+
+            # 3. browser-web: bookmarks search + URL scheme guard
+            bm_path = root / "Bookmarks"
+            bm_path.write_text(
+                json.dumps(
+                    {
+                        "roots": {
+                            "bookmark_bar": {
+                                "type": "folder",
+                                "name": "Dev",
+                                "children": [{"type": "url", "name": "AriaOS Repo", "url": "https://github.com/faathii/AriaOS"}],
+                            }
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+            bw_res = _rpc_session(
+                CONNECTORS_DIR / "browser-web" / "connector.py",
+                [
+                    {"jsonrpc": "2.0", "id": 1, "method": "aria/info", "params": {}},
+                    call(2, "search_bookmarks", {"query": "ariaos", "bookmarks_path": str(bm_path)}),
+                    call(3, "open_url", {"url": "javascript:alert(1)"}),
+                ],
+            )
+            self.assertEqual(bw_res[0]["result"]["id"], "browser-web")
+            self.assertEqual(len(bw_res[1]["result"]["data"]["matches"]), 1)
+            self.assertEqual(bw_res[2]["error"]["code"], -32602)
+
+            # 4. media-players: strict service/action validation
+            mp_res = _rpc_session(
+                CONNECTORS_DIR / "media-players" / "connector.py",
+                [
+                    {"jsonrpc": "2.0", "id": 1, "method": "aria/info", "params": {}},
+                    call(2, "control_playback", {"service": "bad.service", "action": "Play"}),
+                    call(3, "play_media", {"path": str(root / "missing.mp3")}),
+                ],
+            )
+            self.assertEqual(mp_res[0]["result"]["id"], "media-players")
+            self.assertEqual(mp_res[1]["error"]["code"], -32602)
+            self.assertEqual(mp_res[2]["error"]["code"], -32602)
+
+            # 5. comms-thunderbird: profiles.ini reader + email validation
+            tb_dir = root / "tb"
+            tb_dir.mkdir()
+            (tb_dir / "profiles.ini").write_text("[Profile0]\nName=default\nIsRelative=1\nPath=abc.default\nDefault=1\n", encoding="utf-8")
+            tb_res = _rpc_session(
+                CONNECTORS_DIR / "comms-thunderbird" / "connector.py",
+                [
+                    call(1, "list_profiles", {"thunderbird_dir": str(tb_dir)}),
+                    call(2, "compose_email", {"to": "not-an-email", "subject": "Hi"}),
+                ],
+            )
+            self.assertEqual(tb_res[0]["result"]["data"]["profiles"][0]["name"], "default")
+            self.assertEqual(tb_res[1]["error"]["code"], -32602)
+
+            # 6. net-filezilla: site reader strips passwords
+            fz_xml = root / "sitemanager.xml"
+            fz_xml.write_text(
+                "<FileZilla3><Servers><Server><Host>example.org</Host><Port>22</Port><Protocol>1</Protocol><User>alice</User><Pass>SECRET123</Pass><Name>Prod</Name></Server></Servers></FileZilla3>",
+                encoding="utf-8",
+            )
+            fz_res = _rpc_session(
+                CONNECTORS_DIR / "net-filezilla" / "connector.py",
+                [
+                    call(1, "list_sites", {"xml_path": str(fz_xml)}),
+                    call(2, "list_remote_dir", {"host": "bad;host", "user": "alice"}),
+                ],
+            )
+            self.assertEqual(fz_res[0]["result"]["data"]["sites"][0]["host"], "example.org")
+            self.assertNotIn("SECRET123", json.dumps(fz_res[0]))
+            self.assertEqual(fz_res[1]["error"]["code"], -32602)
+
+            # 7. media-obs, creative-gimp, creative-krita, creative-blender, creative-audacity, creative-kdenlive, dev-vscodium
+            obs_res = _rpc_session(
+                CONNECTORS_DIR / "media-obs" / "connector.py",
+                [
+                    {"jsonrpc": "2.0", "id": 1, "method": "aria/info", "params": {}},
+                    call(2, "obs_request", {"request_type": "InvalidOp"}),
+                ],
+            )
+            self.assertEqual(obs_res[0]["result"]["id"], "media-obs")
+            self.assertEqual(obs_res[1]["error"]["code"], -32602)
+
+            png_path = root / "pixel.png"
+            png_path.write_bytes(b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x02\x80\x00\x00\x01\xe0\x08\x06\x00\x00\x00")
+            gimp_res = _rpc_session(
+                CONNECTORS_DIR / "creative-gimp" / "connector.py",
+                [
+                    call(1, "inspect_image", {"path": str(png_path)}),
+                    call(2, "run_script_fu", {"expression": "not-lisp"}),
+                ],
+            )
+            self.assertEqual((gimp_res[0]["result"]["data"]["width"], gimp_res[0]["result"]["data"]["height"]), (640, 480))
+            self.assertEqual(gimp_res[1]["error"]["code"], -32602)
+
+            kra_path = root / "art.kra"
+            with zipfile.ZipFile(kra_path, "w") as zf:
+                zf.writestr(
+                    "maindoc.xml",
+                    '<DOC><IMAGE width="1920" height="1080" colorspacename="RGBA"><layers><layer name="Sketch" nodetype="paintlayer" visible="1" opacity="255"/></layers></IMAGE></DOC>',
+                )
+            krita_res = _rpc_session(
+                CONNECTORS_DIR / "creative-krita" / "connector.py",
+                [call(1, "inspect_krita_doc", {"path": str(kra_path)})],
+            )
+            self.assertEqual(krita_res[0]["result"]["data"]["width"], 1920)
+            self.assertEqual(krita_res[0]["result"]["data"]["layers"][0]["name"], "Sketch")
+
+            blend_res = _rpc_session(
+                CONNECTORS_DIR / "creative-blender" / "connector.py",
+                [call(1, "inspect_blend_scene", {"path": str(root / "x.txt")})],
+            )
+            self.assertEqual(blend_res[0]["error"]["code"], -32602)
+
+            aud_res = _rpc_session(
+                CONNECTORS_DIR / "creative-audacity" / "connector.py",
+                [
+                    call(1, "pipe_status", {}),
+                    call(2, "send_pipe_command", {"command": "line1\nline2"}),
+                ],
+            )
+            self.assertIn("pipe_ready", aud_res[0]["result"]["data"])
+            self.assertEqual(aud_res[1]["error"]["code"], -32602)
+
+            kden_path = root / "proj.kdenlive"
+            kden_path.write_text(
+                '<mlt><profile width="1920" height="1080" frame_rate_num="60" frame_rate_den="1"/><producer id="p0"><property name="resource">clip.mp4</property></producer><playlist id="pl0"/></mlt>',
+                encoding="utf-8",
+            )
+            kden_res = _rpc_session(
+                CONNECTORS_DIR / "creative-kdenlive" / "connector.py",
+                [call(1, "inspect_project", {"path": str(kden_path)})],
+            )
+            self.assertEqual(kden_res[0]["result"]["data"]["profile"]["width"], "1920")
+            self.assertEqual(kden_res[0]["result"]["data"]["sources"], ["clip.mp4"])
+
+            vsc_res = _rpc_session(
+                CONNECTORS_DIR / "dev-vscodium" / "connector.py",
+                [
+                    {"jsonrpc": "2.0", "id": 1, "method": "aria/info", "params": {}},
+                    call(2, "open_in_editor", {"path": str(root / "missing.py"), "line": 0}),
+                ],
+            )
+            self.assertEqual(vsc_res[0]["result"]["id"], "dev-vscodium")
+            self.assertEqual(vsc_res[1]["error"]["code"], -32602)
 
 
 if __name__ == "__main__":

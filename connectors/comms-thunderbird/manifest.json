@@ -1,0 +1,78 @@
+{
+  "id": "comms-thunderbird",
+  "name": "Thunderbird Connector",
+  "version": "0.1.0",
+  "description": "Inspect Thunderbird profiles, search indexed messages safely, and draft emails in compose window.",
+  "tier": "program_api",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dependencies": ["thunderbird"],
+  "tools": [
+    {
+      "name": "list_profiles",
+      "description": "List Thunderbird profiles from profiles.ini.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "thunderbird_dir": {
+            "type": "string",
+            "description": "Optional override directory containing profiles.ini."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "search_messages",
+      "description": "Search Thunderbird global-messages-db.sqlite in read-only mode.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Case-insensitive text to match in message subject or author."
+          },
+          "db_path": {
+            "type": "string",
+            "description": "Optional path to global-messages-db.sqlite."
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50,
+            "default": 15
+          }
+        },
+        "required": ["query"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "compose_email",
+      "description": "Open Thunderbird compose window pre-filled with recipient, subject, and body (does not send).",
+      "risk_level": "write",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "to": {
+            "type": "string",
+            "description": "Recipient email address."
+          },
+          "subject": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          }
+        },
+        "required": ["to", "subject"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

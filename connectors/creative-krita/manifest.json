@@ -1,0 +1,48 @@
+{
+  "id": "creative-krita",
+  "name": "Krita Connector",
+  "version": "0.1.0",
+  "description": "Inspect Krita (.kra) document layers/canvas metadata and export images headlessly via Krita CLI.",
+  "tier": "program_api",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dependencies": ["krita"],
+  "tools": [
+    {
+      "name": "inspect_krita_doc",
+      "description": "Read canvas size, color space, and layer names from a .kra document.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to a .kra file."
+          }
+        },
+        "required": ["path"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "export_krita",
+      "description": "Export a .kra document to PNG, JPEG, or WebP via Krita CLI without overwriting.",
+      "risk_level": "write",
+      "reversible": false,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "input_path": {
+            "type": "string"
+          },
+          "output_path": {
+            "type": "string"
+          }
+        },
+        "required": ["input_path", "output_path"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

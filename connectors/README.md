@@ -14,24 +14,21 @@ Each directory here represents **one application, system service, or tool domain
 | [`os-storage/`](os-storage/README.md) | `program_api` | `stdio` | Disk/partition inspection (`lsblk`) and safe `.zip`/`.tar.gz` archive operations |
 | [`multimedia-ffmpeg/`](multimedia-ffmpeg/README.md) | `program_api` | `stdio` | Video, audio, and image processing via FFmpeg & ImageMagick |
 | [`dev-git/`](dev-git/README.md) | `program_api` | `stdio` | Git repository status, logs, diffs, and safe commits |
+| [`dev-vscodium/`](dev-vscodium/README.md) | `program_api` | `stdio` | Open files at line/col in VSCodium or Kate, list extensions |
+| [`office-libreoffice/`](office-libreoffice/README.md) | `program_api` | `stdio` | Inspect ODF/OOXML docs, UNO probe, and headless LibreOffice conversion |
+| [`office-okular/`](office-okular/README.md) | `program_api` | `stdio` | Inspect PDFs, extract text (`poppler`), and open docs in Okular |
+| [`comms-thunderbird/`](comms-thunderbird/README.md) | `program_api` | `stdio` | Inspect Thunderbird profiles, read-only SQLite search, safe compose |
+| [`browser-web/`](browser-web/README.md) | `program_api` | `stdio` | Brave CDP tabs, bookmarks search, and Brave/Firefox URL launcher |
+| [`net-filezilla/`](net-filezilla/README.md) | `program_api` | `stdio` | Redacted FileZilla `sitemanager.xml` reader and `sftp` directory listing |
+| [`media-obs/`](media-obs/README.md) | `program_api` | `stdio` | OBS WebSocket v5 client (status, scenes, record/stream) and Kamoso launcher |
+| [`media-players/`](media-players/README.md) | `program_api` | `stdio` | VLC, Elisa, and MPRIS2 D-Bus playback inspection and control |
+| [`creative-gimp/`](creative-gimp/README.md) | `program_api` | `stdio` | Image/XCF header inspection and headless GIMP Script-Fu |
+| [`creative-krita/`](creative-krita/README.md) | `program_api` | `stdio` | `.kra` layer/canvas inspector and headless Krita CLI export |
+| [`creative-blender/`](creative-blender/README.md) | `program_api` | `stdio` | `.blend` scene inspection via `bpy` and headless frame rendering |
+| [`creative-audacity/`](creative-audacity/README.md) | `program_api` | `stdio` | Audacity `mod-script-pipe` FIFO status and command bridge |
+| [`creative-kdenlive/`](creative-kdenlive/README.md) | `program_api` | `stdio` | `.kdenlive` MLT timeline inspector and headless `melt` render |
 
-## Planned Program Connectors (Scaffolded)
-
-| Directory | Target Programs | API / Bridge |
-| :--- | :--- | :--- |
-| [`office-libreoffice/`](office-libreoffice/README.md) | LibreOffice Writer, Calc, Impress, Base | UNO API (`pyuno`) + headless CLI |
-| [`office-okular/`](office-okular/README.md) | Okular | KDE D-Bus + `poppler` |
-| [`comms-thunderbird/`](comms-thunderbird/README.md) | Thunderbird | Native Messaging / profile bridge |
-| [`browser-web/`](browser-web/README.md) | Brave Browser, Firefox | CDP / WebDriver BiDi / Native Messaging |
-| [`net-filezilla/`](net-filezilla/README.md) | FileZilla | Site config + `sftp`/`lftp` |
-| [`media-obs/`](media-obs/README.md) | OBS Studio, Kamoso | OBS WebSocket v5 API |
-| [`media-players/`](media-players/README.md) | VLC, Elisa, Kaffeine | MPRIS2 D-Bus |
-| [`creative-gimp/`](creative-gimp/README.md) | GIMP | Script-Fu / Python-Fu |
-| [`creative-krita/`](creative-krita/README.md) | Krita | Krita Python Scripting API |
-| [`creative-blender/`](creative-blender/README.md) | Blender | `bpy` Python API |
-| [`creative-audacity/`](creative-audacity/README.md) | Audacity | `mod-script-pipe` |
-| [`creative-kdenlive/`](creative-kdenlive/README.md) | Kdenlive | MLT (`melt`) + Kdenlive D-Bus |
-| [`dev-vscodium/`](dev-vscodium/README.md) | VSCodium, Kate | CLI + companion extension RPC |
+## Adding a New Connector
 
 ## Adding a New Program
 

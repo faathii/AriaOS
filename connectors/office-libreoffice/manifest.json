@@ -1,0 +1,83 @@
+{
+  "id": "office-libreoffice",
+  "name": "LibreOffice Connector",
+  "version": "0.1.0",
+  "description": "Inspect ODF/Office documents and convert files headlessly via LibreOffice.",
+  "tier": "program_api",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dependencies": ["libreoffice"],
+  "tools": [
+    {
+      "name": "inspect_document",
+      "description": "Read text preview and metadata from ODT, DOCX, ODS, XLSX, or ODP files.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to an ODF or OOXML document."
+          },
+          "max_chars": {
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 20000,
+            "default": 4000
+          }
+        },
+        "required": ["path"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "convert_document",
+      "description": "Convert a document using LibreOffice headless mode without overwriting outputs.",
+      "risk_level": "write",
+      "reversible": false,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "input_path": {
+            "type": "string",
+            "description": "Source document path."
+          },
+          "target_format": {
+            "type": "string",
+            "enum": ["pdf", "docx", "odt", "xlsx", "ods", "pptx", "odp", "txt", "html", "csv"],
+            "description": "Target format extension."
+          },
+          "output_dir": {
+            "type": "string",
+            "description": "Optional output directory (defaults to source file directory)."
+          }
+        },
+        "required": ["input_path", "target_format"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "uno_status",
+      "description": "Check whether LibreOffice UNO IPC socket is listening.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "host": {
+            "type": "string",
+            "default": "127.0.0.1"
+          },
+          "port": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65535,
+            "default": 2002
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  ]
+}

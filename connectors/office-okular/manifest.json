@@ -1,0 +1,85 @@
+{
+  "id": "office-okular",
+  "name": "Okular Document Connector",
+  "version": "0.1.0",
+  "description": "Inspect PDF/EPUB documents, extract text via poppler, and open documents in Okular.",
+  "tier": "program_api",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dbus_service": "org.kde.okular",
+  "dependencies": ["okular", "poppler"],
+  "tools": [
+    {
+      "name": "inspect_pdf",
+      "description": "Read PDF metadata and page count using pdfinfo.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to the PDF file."
+          }
+        },
+        "required": ["path"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "extract_pdf_text",
+      "description": "Extract plain text from a PDF page range using pdftotext.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to the PDF file."
+          },
+          "first_page": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1
+          },
+          "last_page": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 5
+          },
+          "max_chars": {
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 20000,
+            "default": 6000
+          }
+        },
+        "required": ["path"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "open_document",
+      "description": "Open a PDF, EPUB, DjVu, or Markdown file in Okular at an optional page number.",
+      "risk_level": "write",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to the document file."
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Optional 1-based page number."
+          }
+        },
+        "required": ["path"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

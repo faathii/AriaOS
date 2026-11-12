@@ -1,0 +1,84 @@
+{
+  "id": "media-players",
+  "name": "Media Players Connector",
+  "version": "0.1.0",
+  "description": "Control VLC, Elisa, and other MPRIS2 media players over D-Bus and launch local media.",
+  "tier": "program_api",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dbus_service": "org.mpris.MediaPlayer2",
+  "dependencies": ["vlc", "elisa"],
+  "tools": [
+    {
+      "name": "list_players",
+      "description": "List active MPRIS2 media player D-Bus services (e.g. VLC, Elisa).",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "get_playback_status",
+      "description": "Read PlaybackStatus and Metadata from an active MPRIS2 player.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "service": {
+            "type": "string",
+            "description": "MPRIS2 D-Bus service name, e.g. org.mpris.MediaPlayer2.vlc"
+          }
+        },
+        "required": ["service"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "control_playback",
+      "description": "Send Play, Pause, PlayPause, Next, Previous, or Stop to an MPRIS2 player.",
+      "risk_level": "write",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "service": {
+            "type": "string",
+            "description": "MPRIS2 D-Bus service name, e.g. org.mpris.MediaPlayer2.vlc"
+          },
+          "action": {
+            "type": "string",
+            "enum": ["Play", "Pause", "PlayPause", "Next", "Previous", "Stop"]
+          }
+        },
+        "required": ["service", "action"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "play_media",
+      "description": "Open a local audio or video file in VLC or Elisa.",
+      "risk_level": "write",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to the local media file."
+          },
+          "player": {
+            "type": "string",
+            "enum": ["auto", "vlc", "elisa"],
+            "default": "auto"
+          }
+        },
+        "required": ["path"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

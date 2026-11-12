@@ -1,0 +1,46 @@
+{
+  "id": "creative-gimp",
+  "name": "GIMP Connector",
+  "version": "0.1.0",
+  "description": "Inspect image dimensions/formats cleanly and run non-interactive GIMP Script-Fu batches.",
+  "tier": "program_api",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dependencies": ["gimp"],
+  "tools": [
+    {
+      "name": "inspect_image",
+      "description": "Inspect image dimensions, format, and file size (PNG/JPEG/GIF/BMP/WebP/XCF).",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to image file."
+          }
+        },
+        "required": ["path"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "run_script_fu",
+      "description": "Execute a non-interactive GIMP Script-Fu expression headlessly.",
+      "risk_level": "write",
+      "reversible": false,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "expression": {
+            "type": "string",
+            "description": "Script-Fu S-expression starting with '('."
+          }
+        },
+        "required": ["expression"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

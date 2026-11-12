@@ -1,0 +1,85 @@
+{
+  "id": "browser-web",
+  "name": "Web Browser Connector",
+  "version": "0.1.0",
+  "description": "Control Brave or Firefox tabs via CDP HTTP, inspect bookmarks, and open validated web URLs.",
+  "tier": "program_api",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dependencies": ["brave-bin", "firefox"],
+  "tools": [
+    {
+      "name": "list_tabs",
+      "description": "List open browser tabs via Chromium/Brave DevTools Protocol HTTP endpoint.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "cdp_port": {
+            "type": "integer",
+            "minimum": 1024,
+            "maximum": 65535,
+            "default": 9222
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "search_bookmarks",
+      "description": "Search Brave bookmarks JSON locally by title or URL substring.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Case-insensitive text to match in bookmark titles or URLs."
+          },
+          "bookmarks_path": {
+            "type": "string",
+            "description": "Optional override path to Brave Bookmarks JSON file."
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 25
+          }
+        },
+        "required": ["query"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "open_url",
+      "description": "Open an http/https URL in Brave (via CDP or CLI) or Firefox.",
+      "risk_level": "write",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "HTTP or HTTPS URL to open."
+          },
+          "browser": {
+            "type": "string",
+            "enum": ["auto", "brave", "firefox"],
+            "default": "auto"
+          },
+          "cdp_port": {
+            "type": "integer",
+            "minimum": 1024,
+            "maximum": 65535,
+            "default": 9222
+          }
+        },
+        "required": ["url"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "id": "creative-audacity",
+  "name": "Audacity Connector",
+  "version": "0.1.0",
+  "description": "Communicate with Audacity via mod-script-pipe named pipes and inspect pipe availability.",
+  "tier": "program_api",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dependencies": ["audacity"],
+  "tools": [
+    {
+      "name": "pipe_status",
+      "description": "Check whether Audacity mod-script-pipe FIFO endpoints are active.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "send_pipe_command",
+      "description": "Send a single command to Audacity mod-script-pipe (e.g. GetInfo: Type=Tracks or Play).",
+      "risk_level": "write",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string",
+            "description": "Single-line Audacity scripting command."
+          }
+        },
+        "required": ["command"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

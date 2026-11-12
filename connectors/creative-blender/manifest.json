@@ -1,0 +1,54 @@
+{
+  "id": "creative-blender",
+  "name": "Blender Connector",
+  "version": "0.1.0",
+  "description": "Inspect .blend scenes via Blender Python (bpy) background mode and render frames safely.",
+  "tier": "program_api",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dependencies": ["blender"],
+  "tools": [
+    {
+      "name": "inspect_blend_scene",
+      "description": "Inspect scenes, objects, cameras, and render settings inside a .blend file via bpy.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to .blend file."
+          }
+        },
+        "required": ["path"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "render_frame",
+      "description": "Render a single frame from a .blend project headlessly without overwriting existing outputs.",
+      "risk_level": "write",
+      "reversible": false,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "blend_path": {
+            "type": "string"
+          },
+          "output_prefix": {
+            "type": "string",
+            "description": "Output file path prefix (without frame suffix or with ####)."
+          },
+          "frame": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 1
+          }
+        },
+        "required": ["blend_path", "output_prefix"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

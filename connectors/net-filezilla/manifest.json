@@ -1,0 +1,57 @@
+{
+  "id": "net-filezilla",
+  "name": "FileZilla & SFTP Connector",
+  "version": "0.1.0",
+  "description": "List saved FileZilla sites safely (without passwords) and inspect remote SFTP directories.",
+  "tier": "program_api",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dependencies": ["filezilla", "openssh"],
+  "tools": [
+    {
+      "name": "list_sites",
+      "description": "Read FileZilla sitemanager.xml entries with passwords redacted.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "xml_path": {
+            "type": "string",
+            "description": "Optional override path to FileZilla sitemanager.xml."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "list_remote_dir",
+      "description": "List files in a remote SFTP directory via non-interactive sftp batch mode.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "host": {
+            "type": "string"
+          },
+          "user": {
+            "type": "string"
+          },
+          "port": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65535,
+            "default": 22
+          },
+          "remote_path": {
+            "type": "string",
+            "default": "."
+          }
+        },
+        "required": ["host", "user"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

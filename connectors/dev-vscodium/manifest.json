@@ -1,0 +1,53 @@
+{
+  "id": "dev-vscodium",
+  "name": "Code Editors Connector (VSCodium & Kate)",
+  "version": "0.1.0",
+  "description": "Open files or projects in VSCodium or Kate at a specific line and list installed VSCodium extensions.",
+  "tier": "program_api",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dependencies": ["vscodium", "kate"],
+  "tools": [
+    {
+      "name": "list_extensions",
+      "description": "List installed VSCodium extensions with versions.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "open_in_editor",
+      "description": "Open a file or directory in VSCodium or Kate at an optional line and column.",
+      "risk_level": "write",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "File or directory path."
+          },
+          "editor": {
+            "type": "string",
+            "enum": ["auto", "vscodium", "kate"],
+            "default": "auto"
+          },
+          "line": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "column": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": ["path"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,94 @@
+{
+  "id": "media-obs",
+  "name": "OBS Studio Connector",
+  "version": "0.1.0",
+  "description": "Control OBS Studio via OBS WebSocket v5 protocol and launch OBS or Kamoso.",
+  "tier": "program_api",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dependencies": ["obs-studio", "kamoso"],
+  "tools": [
+    {
+      "name": "obs_websocket_status",
+      "description": "Connect to OBS WebSocket v5 and inspect server version and authentication status.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "host": {
+            "type": "string",
+            "default": "127.0.0.1"
+          },
+          "port": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65535,
+            "default": 4455
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "obs_request",
+      "description": "Execute an OBS WebSocket v5 request (e.g. GetSceneList, StartRecord, StopRecord).",
+      "risk_level": "write",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "request_type": {
+            "type": "string",
+            "enum": [
+              "GetVersion",
+              "GetSceneList",
+              "GetRecordStatus",
+              "GetStreamStatus",
+              "StartRecord",
+              "StopRecord",
+              "StartStream",
+              "StopStream",
+              "SetCurrentProgramScene"
+            ]
+          },
+          "request_data": {
+            "type": "object"
+          },
+          "host": {
+            "type": "string",
+            "default": "127.0.0.1"
+          },
+          "port": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65535,
+            "default": 4455
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": ["request_type"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "launch_capture_app",
+      "description": "Launch OBS Studio or Kamoso.",
+      "risk_level": "write",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "app": {
+            "type": "string",
+            "enum": ["obs", "kamoso"],
+            "default": "obs"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=AriaOS Software & Package Center
+Name[es]=Centro de Software y Paquetes AriaOS
+Comment=Install modular application suites, browse Arch packages, and check updates
+Comment[es]=Instala suites de aplicaciones, busca paquetes de Arch Linux y comprueba actualizaciones
+Exec=/usr/bin/ariaos-store
+Icon=ariaos-logo
+Terminal=false
+Categories=System;PackageManager;
+Keywords=store;packages;pacman;suites;updates;ariaos;

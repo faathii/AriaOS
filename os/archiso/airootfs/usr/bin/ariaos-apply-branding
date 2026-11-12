@@ -49,7 +49,7 @@ if command -v qdbus6 >/dev/null 2>&1; then
     launcher.currentConfigGroup = ["General"];
     launcher.writeConfig("icon", "ariaos-logo");
     launcher.writeConfig("favoritesPortedToKAstats", "true");
-    launcher.writeConfig("systemApplications", "ariaos-command-bar.desktop,ariaos-settings.desktop,ariaos-antivirus.desktop,org.kde.dolphin.desktop,org.kde.konsole.desktop");
+    launcher.writeConfig("systemApplications", "ariaos-command-bar.desktop,ariaos-monitor.desktop,ariaos-store.desktop,ariaos-automations.desktop,ariaos-settings.desktop,ariaos-antivirus.desktop,org.kde.dolphin.desktop,org.kde.konsole.desktop");
 
     topBar.addWidget("org.kde.plasma.appmenu");
     topBar.addWidget("org.kde.plasma.panelspacer");
@@ -77,6 +77,9 @@ if command -v qdbus6 >/dev/null 2>&1; then
     tasks.currentConfigGroup = ["General"];
     tasks.writeConfig("launchers", [
       "applications:ariaos-command-bar.desktop",
+      "applications:ariaos-monitor.desktop",
+      "applications:ariaos-store.desktop",
+      "applications:ariaos-automations.desktop",
       "applications:org.kde.dolphin.desktop",
       "applications:org.kde.konsole.desktop",
       "applications:ariaos-antivirus.desktop",

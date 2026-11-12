@@ -1,0 +1,57 @@
+{
+  "id": "os-power-modes",
+  "name": "AriaOS Kernel Work Modes & GPU Telemetry",
+  "version": "0.1.0",
+  "description": "Pre-trained system & kernel performance profiles (Gaming, Development, Creative Studio, Extreme Power Save, Security Fortress) and real-time GPU/DRM hardware telemetry.",
+  "tier": "os_ipc",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dependencies": ["procps-ng", "util-linux", "pciutils"],
+  "tools": [
+    {
+      "name": "list_work_modes",
+      "description": "List all available AriaOS Kernel Work Modes (gaming, development, creative, powersave, security, balanced) and the currently active mode.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "apply_work_mode",
+      "description": "Activate a system-wide AriaOS Work Mode that tunes Linux kernel parameters (CPU governor, swappiness, RAM compaction) and optionally launches the mode's application suite.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": ["gaming", "development", "creative", "powersave", "security", "balanced"],
+            "description": "Target work mode to activate."
+          },
+          "launch_apps": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to automatically launch the mode's primary workspace applications."
+          }
+        },
+        "required": ["mode"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "gpu_telemetry",
+      "description": "Read real-time GPU hardware telemetry across AMD, Intel, NVIDIA, and VM VirtIO/QXL adapters via /sys/class/drm and vendor SMI tools.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    }
+  ]
+}

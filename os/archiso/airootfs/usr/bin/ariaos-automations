@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# AriaOS Neural Memory & Scheduled Automations launcher
+
+if [ -f "/usr/lib/ariaos/automations/aria_automations.py" ]; then
+  exec python3 /usr/lib/ariaos/automations/aria_automations.py "$@"
+elif [ -f "$(dirname "$0")/../../ui/automations/aria_automations.py" ]; then
+  exec python3 "$(dirname "$0")/../../ui/automations/aria_automations.py" "$@"
+else
+  echo "Error: aria_automations.py not found" >&2
+  exit 1
+fi

@@ -798,6 +798,41 @@ class TestStdioConnectors(unittest.TestCase):
             self.assertIn("^/var/lib/ollama/", cfg["directives"]["exclude_path"])
             self.assertIn("clamd.log", res[3]["result"]["data"]["file_logs"])
 
+    def test_power_modes_and_automation_connectors(self) -> None:
+        power_script = CONNECTORS_DIR / "os-power-modes" / "connector.py"
+        auto_script = CONNECTORS_DIR / "os-automation" / "connector.py"
+        with tempfile.TemporaryDirectory() as tmp:
+            env_map = {"HOME": tmp, "USERPROFILE": tmp, "ARIAOS_MEMORY_PATH": str(Path(tmp) / "neural_memory.json")}
+            p_res = _rpc_session(
+                power_script,
+                [
+                    {"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name": "list_work_modes", "arguments": {}}},
+                    {"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": "apply_work_mode", "arguments": {"mode": "gaming", "launch_apps": False}}},
+                    {"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "gpu_telemetry", "arguments": {}}},
+                ],
+                env_overrides=env_map,
+            )
+            self.assertIn("gaming", p_res[0]["result"]["data"]["modes"])
+            self.assertTrue(p_res[1]["result"]["data"]["applied"])
+            self.assertEqual(p_res[1]["result"]["data"]["mode"], "gaming")
+            self.assertIn("gpu_count", p_res[2]["result"]["data"])
+
+            a_res = _rpc_session(
+                auto_script,
+                [
+                    {"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name": "list_automations", "arguments": {}}},
+                    {"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": "teach_rule", "arguments": {"trigger": "modo stream", "action": "abre obs"}}},
+                    {"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "configure_schedule", "arguments": {"task_id": "auto_ram_purge", "enabled": True, "interval": "15m"}}},
+                    {"jsonrpc": "2.0", "id": 4, "method": "tools/call", "params": {"name": "delete_rule", "arguments": {"trigger": "modo stream"}}},
+                ],
+                env_overrides=env_map,
+            )
+            self.assertGreaterEqual(len(a_res[0]["result"]["data"]["neural_memory"]["rules"]), 5)
+            self.assertTrue(a_res[1]["result"]["data"]["saved"])
+            self.assertTrue(a_res[2]["result"]["data"]["updated"])
+            self.assertTrue(a_res[3]["result"]["data"]["deleted"])
+
+
 
 if __name__ == "__main__":
     unittest.main()

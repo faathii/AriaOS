@@ -1,0 +1,89 @@
+{
+  "id": "os-automation",
+  "name": "AriaOS Neural Memory & Scheduled Automations",
+  "version": "0.1.0",
+  "description": "Manage Aria's persistent self-learning synaptic memory rules, command usage habits, and scheduled background OS automations (RAM optimization, Antivirus quick scan, package sync).",
+  "tier": "os_ipc",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dependencies": ["systemd"],
+  "tools": [
+    {
+      "name": "list_automations",
+      "description": "List all learned natural-language neural rules, top usage habits, and scheduled background OS automations.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "teach_rule",
+      "description": "Teach Aria a persistent natural-language trigger -> action macro stored in neural_memory.json.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "trigger": {
+            "type": "string",
+            "description": "Natural language phrase or trigger keyword (e.g. 'modo stream')."
+          },
+          "action": {
+            "type": "string",
+            "description": "Target command or action Aria should execute (e.g. 'abre obs y vscodium')."
+          }
+        },
+        "required": ["trigger", "action"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "delete_rule",
+      "description": "Delete a learned natural-language rule from Aria's neural memory by trigger.",
+      "risk_level": "write",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "trigger": {
+            "type": "string",
+            "description": "Trigger phrase to remove."
+          }
+        },
+        "required": ["trigger"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "configure_schedule",
+      "description": "Enable, disable, or change the interval of a recurring background OS automation task.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "enum": ["auto_ram_purge", "auto_av_scan", "auto_pkg_sync", "auto_trim_ssd"],
+            "description": "Identifier of the scheduled automation."
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether the automation is active."
+          },
+          "interval": {
+            "type": "string",
+            "enum": ["15m", "1h", "6h", "24h"],
+            "default": "1h",
+            "description": "Execution cadence."
+          }
+        },
+        "required": ["task_id", "enabled"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

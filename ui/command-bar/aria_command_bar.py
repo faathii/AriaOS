@@ -36,11 +36,11 @@ except ImportError:
 
 HELP_TEXT = (
     "### ⚡ AriaOS Neural HUD\n"
+    "- **Modos Pre-entrenados del Kernel:** *«Modo gaming»*, *«Modo desarrollo»*, *«Modo creativo»*, *«Modo ahorro extremo»*, *«Modo seguridad»*\n"
     "- **Control Natural del Sistema:** *«Estado del sistema»*, *«Optimizar RAM»*, *«Procesos»*, *«Espacio en disco»*, *«Red / IP»*\n"
-    "- **Lanzador Universal Multi-App:** *«Abrir terminal»*, *«Abrir vscodium y firefox»*, *«Abrir kdenlive»*, *«Abrir godot»*\n"
-    "- **Auto-Aprendizaje Neuronal:** *«aprende: cuando diga modo código -> abre vscodium»*, `/memory`, `/catalog`\n"
+    "- **Herramientas Nativas Cyber Obsidian:** *«Abrir monitor»*, *«Abrir tienda»*, *«Abrir automatizaciones»*, *«Abrir antivirus»*\n"
+    "- **Auto-Aprendizaje Neuronal:** *«aprende: cuando diga modo stream -> abre obs y vscodium»*, `/memory`, `/catalog`\n"
     "- **Hardware:** *«Volumen al 75%»*, *«Brillo al 80%»*, *«Hardware PCI/USB»*\n"
-    "- **Comandos técnicos:** `/kernel`, `/optimize`, `/tools`, `/call <conector> <herramienta> {}`\n"
     "- Pulsa **Esc** para ocultar el HUD."
 )
 
@@ -281,11 +281,12 @@ def _launch_gui(client: AriaDaemonClient) -> int:
             pills_bar.setSpacing(8)
             quick_actions = [
                 ("⚡ Optimizar RAM", "optimizar ram"),
+                ("🎛️ Modos Kernel", "modos de trabajo"),
                 ("🧠 Salud Kernel", "estado del sistema"),
                 ("📊 Top Procesos", "procesos"),
                 ("🌐 Red / IP", "estado de red"),
                 ("🛡️ Antivirus", "antivirus"),
-                ("📚 Memoria & Apps", "/memory"),
+                ("📚 Memoria IA", "/memory"),
             ]
             for label, cmd in quick_actions:
                 btn = QPushButton(label)

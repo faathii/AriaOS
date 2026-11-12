@@ -142,7 +142,72 @@ fn try_neural_reflex_depth(
         ));
     }
 
-    // 1. Direct Kernel & RAM Optimization Intent
+    // 1. Pre-trained Kernel Work Modes (Gaming, Development, Creative, PowerSave, Security)
+    if let Some(target_mode) = detect_work_mode_intent(&lower) {
+        mem.record_habit(&format!("work_mode:{target_mode}"));
+        let opt = optimize_kernel_memory();
+        let freed = opt["freed_mb"].as_u64().unwrap_or(0);
+        let avail = opt["after_available_mb"].as_u64().unwrap_or(0);
+
+        if let Some((conn, _)) = find_tool(connectors, "os-power-modes", "apply_work_mode") {
+            let launch_apps = target_mode != "powersave" && target_mode != "balanced";
+            if let Ok(res) = call_stdio_tool(
+                conn,
+                "apply_work_mode",
+                json!({"mode": target_mode, "launch_apps": launch_apps}),
+            ) {
+                let icon = res.get("icon").and_then(|v| v.as_str()).unwrap_or("⚡");
+                let name = res.get("name").and_then(|v| v.as_str()).unwrap_or(target_mode);
+                let desc = res.get("description").and_then(|v| v.as_str()).unwrap_or("");
+                let launched: Vec<String> = res
+                    .get("launched_apps")
+                    .and_then(|v| v.as_array())
+                    .map(|arr| {
+                        arr.iter()
+                            .filter_map(|x| x.as_str().map(String::from))
+                            .collect()
+                    })
+                    .unwrap_or_default();
+                let apps_str = if launched.is_empty() {
+                    "Ninguna adicional (entorno despejado para máxima eficiencia)".to_string()
+                } else {
+                    launched.join(", ")
+                };
+                return Some(format!(
+                    "{} **{} Activado en el Kernel**\n\
+                     • **Descripción:** {}\n\
+                     • **Memoria RAM compactada:** `+{}` MB liberados (`{} MB` disponibles)\n\
+                     • **Aplicaciones iniciadas:** `{}`",
+                    icon, name, desc, freed, avail, apps_str
+                ));
+            }
+        }
+    }
+
+    if matches_any(
+        &lower,
+        &[
+            "modos de trabajo",
+            "perfiles de rendimiento",
+            "listar modos",
+            "que modos tienes",
+            "qué modos tienes",
+        ],
+    ) {
+        mem.record_habit("list_work_modes");
+        return Some(
+            "⚡ **Modos de Trabajo Pre-entrenados en el Kernel de AriaOS:**\n\n\
+             • 🎮 **`modo gaming`** — Gobernador CPU `performance`, `swappiness=10`, purga de RAM y suite Gaming.\n\
+             • 💻 **`modo desarrollo`** — Caché VFS optimizada para compilación rápida, purga de RAM y lanza VSCodium + Terminal.\n\
+             • 🎨 **`modo creativo`** — Prioridad de ancho de banda para vídeo/3D/audio y lanza Kdenlive/OBS/GIMP/Blender.\n\
+             • 🔋 **`modo ahorro extremo`** — Gobernador `powersave`, compresión agresiva ZRAM (`swappiness=100`) y brillo al 40%.\n\
+             • 🛡️ **`modo seguridad`** — Vigilancia activa con Aria Shield Antivirus e integridad de red.\n\n\
+             *Escribe el nombre de cualquier modo para activarlo en `<0.5 ms`.*"
+                .to_string(),
+        );
+    }
+
+    // 1b. Direct Kernel & RAM Optimization Intent
     if matches_any(
         &lower,
         &[
@@ -574,6 +639,72 @@ pub fn synthesize_offline_neural_reply(prompt: &str, connectors: &[RegisteredCon
 
 fn matches_any(text: &str, patterns: &[&str]) -> bool {
     patterns.iter().any(|p| text.contains(p))
+}
+
+fn detect_work_mode_intent(lower: &str) -> Option<&'static str> {
+    if matches_any(
+        lower,
+        &[
+            "activar perfil gaming",
+            "modo gaming",
+            "modo juego",
+            "gaming mode",
+        ],
+    ) {
+        Some("gaming")
+    } else if matches_any(
+        lower,
+        &[
+            "activar perfil desarrollo",
+            "modo desarrollo",
+            "modo codigo",
+            "modo código",
+            "modo programacion",
+            "modo programación",
+            "dev mode",
+        ],
+    ) {
+        Some("development")
+    } else if matches_any(
+        lower,
+        &[
+            "activar perfil creativo",
+            "modo creativo",
+            "modo estudio",
+            "modo edicion",
+            "modo edición",
+            "modo streaming",
+        ],
+    ) {
+        Some("creative")
+    } else if matches_any(
+        lower,
+        &[
+            "activar perfil ahorro",
+            "modo ahorro",
+            "modo ahorro extremo",
+            "modo bateria",
+            "modo batería",
+            "ahorro de energia",
+            "ahorro de energía",
+        ],
+    ) {
+        Some("powersave")
+    } else if matches_any(
+        lower,
+        &[
+            "activar perfil seguridad",
+            "modo seguridad",
+            "modo blindaje",
+            "modo fortaleza",
+        ],
+    ) {
+        Some("security")
+    } else if matches_any(lower, &["modo equilibrado", "perfil equilibrado"]) {
+        Some("balanced")
+    } else {
+        None
+    }
 }
 
 fn matches_exact_or_starts(text: &str, patterns: &[&str]) -> bool {

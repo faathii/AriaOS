@@ -320,21 +320,29 @@ def main() -> int:
             layout.addWidget(info)
 
             actions = QHBoxLayout()
-            btn_bar = QPushButton("⚡ Lanzar Neural HUD (Alt+Espacio)", objectName="primary")
+            btn_bar = QPushButton("⚡ Neural HUD (Alt+Espacio)", objectName="primary")
             btn_bar.clicked.connect(lambda: subprocess.Popen(["aria-command-bar"]))
             actions.addWidget(btn_bar)
 
-            btn_antivirus = QPushButton("🛡️ Aria Shield Antivirus")
+            btn_mon = QPushButton("📊 Monitor Kernel & GPU")
+            btn_mon.clicked.connect(lambda: subprocess.Popen(["ariaos-monitor"]))
+            actions.addWidget(btn_mon)
+
+            btn_store = QPushButton("📦 Centro de Software")
+            btn_store.clicked.connect(lambda: subprocess.Popen(["ariaos-store"]))
+            actions.addWidget(btn_store)
+
+            btn_auto = QPushButton("🧠 Automatizaciones IA")
+            btn_auto.clicked.connect(lambda: subprocess.Popen(["ariaos-automations"]))
+            actions.addWidget(btn_auto)
+
+            btn_antivirus = QPushButton("🛡️ Aria Shield")
             btn_antivirus.clicked.connect(lambda: subprocess.Popen(["ariaos-antivirus"]))
             actions.addWidget(btn_antivirus)
 
-            btn_settings = QPushButton("⚙️ Centro de Control")
+            btn_settings = QPushButton("⚙️ Ajustes")
             btn_settings.clicked.connect(lambda: subprocess.Popen(["ariaos-settings"]))
             actions.addWidget(btn_settings)
-
-            btn_dolphin = QPushButton("📂 Archivos Dolphin")
-            btn_dolphin.clicked.connect(lambda: subprocess.Popen(["dolphin"]))
-            actions.addWidget(btn_dolphin)
 
             layout.addLayout(actions)
             layout.addStretch()

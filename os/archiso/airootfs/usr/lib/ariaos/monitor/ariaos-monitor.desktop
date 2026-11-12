@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=AriaOS Kernel & GPU Monitor
+Name[es]=Monitor de Kernel, GPU y Procesos AriaOS
+Comment=Real-time kernel telemetry, work modes, and process manager
+Comment[es]=Telemetría del kernel en tiempo real, modos de rendimiento y gestor de procesos
+Exec=/usr/bin/ariaos-monitor
+Icon=ariaos-logo
+Terminal=false
+Categories=System;Monitor;
+Keywords=kernel;gpu;ram;processes;gaming;performance;ariaos;

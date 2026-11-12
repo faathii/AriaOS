@@ -75,6 +75,24 @@ class TestCommandBar(unittest.TestCase):
         self.assertTrue(payload["ok"])
         self.assertEqual(payload["app"], "ariaos-settings")
 
+    def test_new_system_apps_check_flags(self) -> None:
+        for app_dir, script_name, expected_id in (
+            ("monitor", "aria_monitor.py", "ariaos-monitor"),
+            ("store", "aria_store.py", "ariaos-store"),
+            ("automations", "aria_automations.py", "ariaos-automations"),
+        ):
+            script_path = REPO_ROOT / "ui" / app_dir / script_name
+            proc = subprocess.run(
+                [sys.executable, str(script_path), "--check"],
+                capture_output=True,
+                text=True,
+                check=True,
+                timeout=10,
+            )
+            payload = json.loads(proc.stdout.strip())
+            self.assertTrue(payload["ok"])
+            self.assertEqual(payload["component"], expected_id)
+
     def test_i18n_languages_and_translations(self) -> None:
         sdk_py = REPO_ROOT / "core" / "sdk" / "python"
         sys.path.insert(0, str(sdk_py))

@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# AriaOS Cyber Software & Package Center launcher
+
+if [ -f "/usr/lib/ariaos/store/aria_store.py" ]; then
+  exec python3 /usr/lib/ariaos/store/aria_store.py "$@"
+elif [ -f "$(dirname "$0")/../../ui/store/aria_store.py" ]; then
+  exec python3 "$(dirname "$0")/../../ui/store/aria_store.py" "$@"
+else
+  echo "Error: aria_store.py not found" >&2
+  exit 1
+fi

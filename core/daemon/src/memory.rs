@@ -17,6 +17,7 @@ use std::process::{Command, Stdio};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LearnedRule {
     pub trigger: String,
+    #[serde(alias = "action")]
     pub target_prompt: String,
     pub hits: u64,
 }
@@ -53,11 +54,55 @@ impl NeuralMemory {
     pub fn load() -> Self {
         let path = Self::memory_file_path();
         if let Ok(raw) = fs::read_to_string(&path) {
-            if let Ok(mem) = serde_json::from_str::<NeuralMemory>(&raw) {
+            if let Ok(mut mem) = serde_json::from_str::<NeuralMemory>(&raw) {
+                if mem.rules.is_empty() {
+                    mem.rules = Self::pretrained_rules();
+                }
                 return mem;
             }
         }
-        Self::default()
+        let seeded = Self {
+            rules: Self::pretrained_rules(),
+            command_habits: HashMap::new(),
+            total_interactions: 0,
+        };
+        seeded.save();
+        seeded
+    }
+
+    pub fn pretrained_rules() -> Vec<LearnedRule> {
+        vec![
+            LearnedRule {
+                trigger: "modo gaming".to_string(),
+                target_prompt: "activar perfil gaming".to_string(),
+                hits: 1,
+            },
+            LearnedRule {
+                trigger: "modo desarrollo".to_string(),
+                target_prompt: "activar perfil desarrollo".to_string(),
+                hits: 1,
+            },
+            LearnedRule {
+                trigger: "modo creativo".to_string(),
+                target_prompt: "activar perfil creativo".to_string(),
+                hits: 1,
+            },
+            LearnedRule {
+                trigger: "modo ahorro extremo".to_string(),
+                target_prompt: "activar perfil ahorro".to_string(),
+                hits: 1,
+            },
+            LearnedRule {
+                trigger: "modo seguridad".to_string(),
+                target_prompt: "activar perfil seguridad".to_string(),
+                hits: 1,
+            },
+            LearnedRule {
+                trigger: "limpieza profunda".to_string(),
+                target_prompt: "optimizar ram".to_string(),
+                hits: 1,
+            },
+        ]
     }
 
     pub fn save(&self) {
@@ -172,6 +217,9 @@ pub fn build_universal_app_catalog() -> Vec<AppCatalogEntry> {
         ("ariaos-antivirus", "Aria Shield Antivirus", "Security", "ariaos-antivirus", &["antivirus", "escudo", "shield", "clamav", "virus"]),
         ("ariaos-settings", "Centro de Control AriaOS", "System", "ariaos-settings", &["ajustes", "configuracion", "configuración", "settings", "panel de control"]),
         ("ariaos-welcome", "Centro de Bienvenida AriaOS", "System", "ariaos-welcome", &["bienvenida", "welcome", "hub", "centro neuronal"]),
+        ("ariaos-monitor", "Monitor de Kernel, GPU y Procesos AriaOS", "System", "ariaos-monitor", &["monitor de sistema", "monitor", "gestor de procesos", "task manager", "monitor gpu", "ariaos-monitor", "administrador de tareas"]),
+        ("ariaos-store", "Centro de Software y Paquetes AriaOS", "System", "ariaos-store", &["tienda", "centro de software", "gestor de paquetes", "instalar programas", "store", "ariaos-store", "paquetes"]),
+        ("ariaos-automations", "Centro de Automatizaciones y Memoria IA", "System", "ariaos-automations", &["automatizaciones", "tareas programadas", "reglas ia", "memoria ia", "ariaos-automations"]),
         // Core KDE Plasma Utilities
         ("org.kde.dolphin", "Gestor de Archivos Dolphin", "System", "dolphin", &["archivos", "carpetas", "dolphin", "explorador", "files", "gestor de archivos"]),
         ("org.kde.konsole", "Terminal Konsole", "System", "konsole", &["terminal", "consola", "konsole", "bash", "shell", "linea de comandos"]),
@@ -317,3 +365,4 @@ pub fn find_and_launch_app(lower_prompt: &str) -> Option<(String, String)> {
     }
     None
 }
+

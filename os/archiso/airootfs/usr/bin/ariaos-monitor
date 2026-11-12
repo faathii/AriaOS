@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# AriaOS Kernel, GPU & Process Monitor launcher
+
+if [ -f "/usr/lib/ariaos/monitor/aria_monitor.py" ]; then
+  exec python3 /usr/lib/ariaos/monitor/aria_monitor.py "$@"
+elif [ -f "$(dirname "$0")/../../ui/monitor/aria_monitor.py" ]; then
+  exec python3 "$(dirname "$0")/../../ui/monitor/aria_monitor.py" "$@"
+else
+  echo "Error: aria_monitor.py not found" >&2
+  exit 1
+fi

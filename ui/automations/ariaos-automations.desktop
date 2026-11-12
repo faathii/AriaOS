@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=AriaOS Neural Memory & Automations
+Name[es]=Centro de Automatizaciones y Memoria IA AriaOS
+Comment=Teach Aria natural-language rules and schedule autonomous background tasks
+Comment[es]=Enseña reglas de lenguaje natural a Aria y programa tareas autónomas del sistema
+Exec=/usr/bin/ariaos-automations
+Icon=ariaos-logo
+Terminal=false
+Categories=System;Settings;
+Keywords=automation;memory;ai;cron;rules;ariaos;

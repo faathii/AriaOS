@@ -1,8 +1,8 @@
 {
   "id": "os-desktop",
   "name": "KDE Plasma & Desktop Control",
-  "version": "0.1.0",
-  "description": "Controls applications, notifications, clipboard, and desktop state in KDE Plasma over D-Bus/CLI.",
+  "version": "0.2.0",
+  "description": "Controls applications, audio volume, display brightness, network status, notifications, and session power in KDE Plasma.",
   "tier": "os_ipc",
   "transport": "stdio",
   "entrypoint": ["python3", "connector.py"],
@@ -45,6 +45,43 @@
           "desktop_id": { "type": "string" }
         },
         "required": ["desktop_id"]
+      }
+    },
+    {
+      "name": "set_volume",
+      "description": "Set master audio output volume percentage (0 to 100) via PipeWire/PulseAudio/ALSA.",
+      "risk_level": "write",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "level": { "type": "integer", "minimum": 0, "maximum": 100 }
+        },
+        "required": ["level"]
+      }
+    },
+    {
+      "name": "set_brightness",
+      "description": "Set screen backlight brightness percentage (5 to 100).",
+      "risk_level": "write",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "level": { "type": "integer", "minimum": 5, "maximum": 100 }
+        },
+        "required": ["level"]
+      }
+    },
+    {
+      "name": "network_status",
+      "description": "Inspect active network interfaces, local IP addresses, and routing status.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "required": []
       }
     }
   ]

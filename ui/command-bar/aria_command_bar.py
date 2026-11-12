@@ -36,9 +36,10 @@ except ImportError:
 
 HELP_TEXT = (
     "### ⚡ AriaOS Neural HUD\n"
-    "- **Control Natural del Sistema:** *«Estado del sistema»*, *«Optimizar RAM»*, *«Procesos»*, *«Espacio en disco»*\n"
-    "- **Lanzador Instantáneo:** *«Abrir terminal»*, *«Abrir archivos»*, *«Abrir navegador»*, *«Abrir antivirus»*\n"
-    "- **Hardware:** *«Volumen al 75%»*, *«Brillo al 80%»*\n"
+    "- **Control Natural del Sistema:** *«Estado del sistema»*, *«Optimizar RAM»*, *«Procesos»*, *«Espacio en disco»*, *«Red / IP»*\n"
+    "- **Lanzador Universal Multi-App:** *«Abrir terminal»*, *«Abrir vscodium y firefox»*, *«Abrir kdenlive»*, *«Abrir godot»*\n"
+    "- **Auto-Aprendizaje Neuronal:** *«aprende: cuando diga modo código -> abre vscodium»*, `/memory`, `/catalog`\n"
+    "- **Hardware:** *«Volumen al 75%»*, *«Brillo al 80%»*, *«Hardware PCI/USB»*\n"
     "- **Comandos técnicos:** `/kernel`, `/optimize`, `/tools`, `/call <conector> <herramienta> {}`\n"
     "- Pulsa **Esc** para ocultar el HUD."
 )
@@ -282,8 +283,9 @@ def _launch_gui(client: AriaDaemonClient) -> int:
                 ("⚡ Optimizar RAM", "optimizar ram"),
                 ("🧠 Salud Kernel", "estado del sistema"),
                 ("📊 Top Procesos", "procesos"),
-                ("💾 Almacenamiento", "espacio en disco"),
-                ("🛡️ Escudo Antivirus", "antivirus"),
+                ("🌐 Red / IP", "estado de red"),
+                ("🛡️ Antivirus", "antivirus"),
+                ("📚 Memoria & Apps", "/memory"),
             ]
             for label, cmd in quick_actions:
                 btn = QPushButton(label)

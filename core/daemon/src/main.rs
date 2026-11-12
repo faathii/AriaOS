@@ -1,5 +1,6 @@
 mod kernel;
 mod manifest;
+mod memory;
 mod neural;
 mod ollama;
 mod policy;
@@ -46,6 +47,22 @@ fn main() {
             println!(
                 "{}",
                 serde_json::to_string_pretty(&res).unwrap_or_default()
+            );
+            0
+        }
+        Some("memory") => {
+            let mem = memory::NeuralMemory::load();
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&mem.summary_json()).unwrap_or_default()
+            );
+            0
+        }
+        Some("catalog") => {
+            let apps = memory::build_universal_app_catalog();
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&json!({"apps": apps, "total": apps.len()})).unwrap_or_default()
             );
             0
         }

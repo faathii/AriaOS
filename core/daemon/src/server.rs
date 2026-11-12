@@ -90,6 +90,14 @@ fn handle_ipc_request(
         Some("optimize_kernel") => {
             crate::kernel::optimize_kernel_memory()
         }
+        Some("memory_status") => {
+            let mem = crate::memory::NeuralMemory::load();
+            json!({"ok": true, "memory": mem.summary_json()})
+        }
+        Some("catalog") => {
+            let apps = crate::memory::build_universal_app_catalog();
+            json!({"ok": true, "apps": apps, "total": apps.len()})
+        }
         Some("list_tools") => {
             let list: Vec<Value> = connectors
                 .iter()

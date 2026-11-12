@@ -11,18 +11,22 @@ pub fn call_stdio_tool(
 ) -> Result<Value, String> {
     // Zero-overhead native Rust Kernel fast-path (<0.1ms, bypasses Python subprocess spawning)
     match (connector.manifest.id.as_str(), tool_name) {
-        ("os-kernel", "summary") | ("os-kernel", "cpu_memory_pressure") | ("os-system", "health") => {
+        ("os-kernel", "kernel_telemetry")
+        | ("os-kernel", "summary")
+        | ("os-kernel", "cpu_memory_pressure")
+        | ("os-system", "system_health_summary")
+        | ("os-system", "health") => {
             let k = crate::kernel::KernelTelemetry::collect();
             return Ok(k.to_json());
         }
-        ("os-system", "top_processes") => {
+        ("os-system", "list_top_processes") | ("os-system", "top_processes") => {
             let limit = arguments
                 .get("limit")
                 .and_then(|v| v.as_u64())
                 .unwrap_or(10) as usize;
             return Ok(crate::kernel::native_top_processes(limit.clamp(1, 50)));
         }
-        ("os-storage", "disk_usage") => {
+        ("os-storage", "list_block_devices") | ("os-storage", "disk_usage") => {
             return Ok(crate::kernel::native_disk_usage());
         }
         _ => {}

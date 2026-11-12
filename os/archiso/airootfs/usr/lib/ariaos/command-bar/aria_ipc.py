@@ -89,6 +89,12 @@ class AriaDaemonClient:
     def optimize_kernel(self) -> dict[str, Any]:
         return self.request({"action": "optimize_kernel"})
 
+    def memory_status(self) -> dict[str, Any]:
+        return self.request({"action": "memory_status"})
+
+    def catalog(self) -> dict[str, Any]:
+        return self.request({"action": "catalog"})
+
     def call_tool(
         self,
         connector: str,

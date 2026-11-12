@@ -50,8 +50,12 @@
 | **Centro de Software y Paquetes** | `ariaos-store` | `«abrir tienda»` / `«centro de software»` | Instalador visual de las 9 Suites Modulares (58+ apps), buscador `pacman` y comprobador de actualizaciones. |
 | **Centro de Automatizaciones e IA** | `ariaos-automations` | `«abrir automatizaciones»` / `«reglas ia»` | Editor visual de reglas sinápticas (`neural_memory.json`) y programador de tareas autónomas (`15m`, `1h`, `6h`, `24h`). |
 | **Aria Shield Antivirus** | `ariaos-antivirus` | `«abrir antivirus»` / `«abrir escudo»` | Centro de seguridad ClamAV bajo demanda (0 MB RAM en reposo), cuarentena reversible y whitelist SHA-256. |
+| **Cortafuegos y Monitor de Red** | `ariaos-firewall` | `«abrir cortafuegos»` / `«conexiones activas»` | Monitor en vivo de sockets TCP/UDP (`/proc/net/tcp`, `ss`), bloqueo de puertos en 1 clic y Modo Aislamiento de Emergencia. |
+| **Instalador Gráfico de Sistema** | `ariaos-installer` | `«instalar ariaos»` / `«abrir instalador»` | Asistente visual Cyber Obsidian para particionado NVMe/SSD (`ext4`/`btrfs`/`xfs`), cifrado LUKS2 e instalación de AriaOS + IA. |
 | **Centro de Control AriaOS** | `ariaos-settings` | `«abrir ajustes»` / `«configuración»` | Selector de modelo neuronal (`aria-core` 0.5B / 1.5B / 3B), idioma (8 idiomas) y optimización de memoria. |
-| **Centro Neuronal de Bienvenida** | `ariaos-welcome` | `«abrir bienvenida»` | Panel de estado del Kernel, instalación en disco (`archinstall`) y acceso rápido a herramientas. |
+| **Centro Neuronal de Bienvenida** | `ariaos-welcome` | `«abrir bienvenida»` | Panel de estado del Kernel, instalación en disco y acceso rápido a herramientas. |
+| **Menú Contextual IA en Dolphin** | `ariaos-file-action` | Clic derecho en cualquier archivo/carpeta en Dolphin → **⚡ AriaOS Gestor IA** | Analiza metadatos + SHA-256 + cabeceras ELF/PDF/Office, convierte formatos (Doc→PDF, Vídeo→MP3, SVG→PNG, Carpeta→ZIP), organiza y busca duplicados. |
+| **Guardián de Auto-Reparación** | `aria-daemon heal` | `«auto reparar»` / `«procesos zombis»` | Hilo autónomo en `kernel.rs` (cada 18 s) que limpia procesos zombis (`State: Z`), recupera servicios caídos y compacta RAM ante bloqueos PSI. |
 
 ---
 
@@ -389,3 +393,4 @@
   - `/call net-sync-comms-gaming syncthing_status {"port": 8384}`
   - `/call net-sync-comms-gaming qbittorrent_torrents {"port": 8080}`
   - `/call net-sync-comms-gaming launch_ecosystem_app {"app": "steam"}`
+

@@ -832,6 +832,20 @@ class TestStdioConnectors(unittest.TestCase):
             self.assertTrue(a_res[2]["result"]["data"]["updated"])
             self.assertTrue(a_res[3]["result"]["data"]["deleted"])
 
+            fw_script = CONNECTORS_DIR / "security-firewall" / "connector.py"
+            fw_res = _rpc_session(
+                fw_script,
+                [
+                    {"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name": "firewall_status", "arguments": {}}},
+                    {"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": "active_connections", "arguments": {"limit": 10}}},
+                    {"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "manage_port_rule", "arguments": {"action": "block", "port": 8080, "protocol": "tcp"}}},
+                ],
+                env_overrides=env_map,
+            )
+            self.assertTrue(fw_res[0]["result"]["data"]["enabled"])
+            self.assertIn("connections", fw_res[1]["result"]["data"])
+            self.assertTrue(fw_res[2]["result"]["data"]["applied"])
+
 
 
 if __name__ == "__main__":

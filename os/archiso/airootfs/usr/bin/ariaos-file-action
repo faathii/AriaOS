@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
-"""AriaOS Dolphin File Manager AI action launcher."""
+"""AriaOS Dolphin File Manager Universal AI Action Dispatcher.
+
+Supports right-click actions on any file or folder in KDE Dolphin:
+- inspect: Deep metadata + SHA-256 + format-aware content preview (PDF, Office, Media, ELF, Image)
+- convert: Smart one-click conversion (Doc->PDF, Video->MP3/MP4, SVG->PNG, Folder->ZIP)
+- organize: Safe dry-run + confirmed directory categorization
+- duplicates: SHA-256 duplicate file finder
+- ask: Open Aria Neural HUD with context on the selected file/folder
+"""
 
 from __future__ import annotations
 
@@ -8,19 +16,23 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
 IPC_DIR = Path("/usr/lib/ariaos/command-bar")
 if IPC_DIR.exists() and str(IPC_DIR) not in sys.path:
     sys.path.insert(0, str(IPC_DIR))
+REPO_IPC_DIR = Path(__file__).resolve().parents[5] / "ui" / "command-bar"
+if REPO_IPC_DIR.exists() and str(REPO_IPC_DIR) not in sys.path:
+    sys.path.insert(0, str(REPO_IPC_DIR))
 
 
-def _call_files(tool: str, args: dict, approved: bool = False) -> dict:
+def _call_connector(connector: str, tool: str, args: dict[str, Any], approved: bool = True) -> dict[str, Any]:
     try:
         from aria_ipc import AriaDaemonClient  # type: ignore
 
         client = AriaDaemonClient(timeout=120.0)
         if client.socket_path.exists():
-            resp = client.call_tool("os-files", tool, args, approved=approved)
+            resp = client.call_tool(connector, tool, args, approved=approved)
             if not resp.get("ok"):
                 raise RuntimeError(resp.get("error", "aria-daemon call failed"))
             return resp["result"]
@@ -28,7 +40,7 @@ def _call_files(tool: str, args: dict, approved: bool = False) -> dict:
         pass
 
     proc = subprocess.run(
-        ["aria-daemon", "call", "os-files", tool, json.dumps(args), "--yes"],
+        ["aria-daemon", "call", connector, tool, json.dumps(args), "--yes"],
         text=True,
         capture_output=True,
     )
@@ -41,55 +53,181 @@ def _show_message(title: str, text: str) -> None:
     if shutil.which("kdialog"):
         subprocess.run(["kdialog", "--msgbox", text, "--title", title], check=False)
     elif shutil.which("notify-send"):
-        subprocess.run(["notify-send", "-a", "AriaOS Files", "-i", "ariaos-logo", title, text], check=False)
+        subprocess.run(["notify-send", "-a", "AriaOS Files", "-i", "ariaos-logo", title, text[:400]], check=False)
     else:
-        print(f"{title}\n{text}")
+        print(f"=== {title} ===\n{text}")
+
+
+def _handle_inspect(target_path: Path) -> int:
+    target = str(target_path)
+    lines = [f"📄 Ruta: {target}"]
+    try:
+        info = _call_connector("os-files", "file_info", {"path": target, "include_hash": True})
+        lines.append(f"• Tipo: {info.get('type')} ({info.get('mime_type')})")
+        lines.append(f"• Tamaño: {info.get('size_bytes')} bytes")
+        if info.get("sha256"):
+            lines.append(f"• SHA-256: {info.get('sha256')}")
+    except Exception as exc:
+        lines.append(f"• Metadatos base: {exc}")
+
+    ext = target_path.suffix.lower()
+    try:
+        if ext == ".pdf":
+            pdf = _call_connector("office-okular", "inspect_pdf", {"path": target})
+            lines.append(f"\n📑 Metadatos PDF: {json.dumps(pdf, ensure_ascii=False)}")
+        elif ext in {".odt", ".docx", ".ods", ".xlsx", ".odp"}:
+            doc = _call_connector("office-libreoffice", "inspect_document", {"path": target, "max_chars": 600})
+            lines.append(f"\n📝 Vista previa Documento:\n{doc.get('text_preview', '')[:500]}")
+        elif ext in {".mp4", ".mkv", ".webm", ".mp3", ".wav", ".flac"}:
+            med = _call_connector("multimedia-ffmpeg", "inspect_media", {"path": target})
+            lines.append(f"\n🎬 Metadatos Multimedia:\n{json.dumps(med, indent=2, ensure_ascii=False)[:600]}")
+        elif ext in {".png", ".jpg", ".jpeg", ".webp", ".xcf"}:
+            img = _call_connector("creative-gimp", "inspect_image", {"path": target})
+            lines.append(
+                f"\n🖼️ Imagen: {img.get('width')}x{img.get('height')} px ({img.get('format')})"
+            )
+        elif target_path.is_file() and ext in {"", ".bin", ".so", ".exe", ".elf"}:
+            bin_info = _call_connector("security-net-audit", "inspect_binary", {"path": target})
+            lines.append(
+                f"\n🕵️ Cabecera Binaria: {bin_info.get('format')} ({bin_info.get('bitness')})"
+            )
+    except Exception:
+        pass
+
+    _show_message("AriaOS — Inspección Inteligente de Archivo", "\n".join(lines))
+    return 0
+
+
+def _handle_convert(target_path: Path) -> int:
+    target = str(target_path)
+    ext = target_path.suffix.lower()
+    try:
+        if target_path.is_dir():
+            out_zip = f"{target}.zip"
+            res = _call_connector(
+                "os-storage",
+                "create_archive",
+                {"source_path": target, "archive_path": out_zip},
+            )
+            _show_message("AriaOS Compresor IA", f"Carpeta comprimida en:\n{res.get('archive_path', out_zip)}")
+            return 0
+
+        if ext in {".odt", ".docx", ".ods", ".xlsx", ".odp", ".pptx"}:
+            res = _call_connector(
+                "office-libreoffice",
+                "convert_document",
+                {"input_path": target, "target_format": "pdf"},
+            )
+            _show_message("AriaOS Conversor Documental", f"Documento convertido a PDF:\n{res.get('output_path')}")
+            return 0
+
+        if ext == ".svg":
+            out_png = str(target_path.with_suffix(".png"))
+            res = _call_connector(
+                "creative-design-photo",
+                "inkscape_export",
+                {"input_path": target, "output_path": out_png, "dpi": 300},
+            )
+            _show_message("AriaOS Exportador Vectorial", f"SVG exportado a PNG (300 DPI):\n{out_png}")
+            return 0
+
+        if ext in {".mp4", ".mkv", ".mov", ".webm"}:
+            out_mp3 = str(target_path.with_suffix(".mp3"))
+            res = _call_connector(
+                "multimedia-ffmpeg",
+                "convert_media",
+                {"input_path": target, "output_path": out_mp3, "preset": "audio_only"},
+            )
+            _show_message("AriaOS FFmpeg IA", f"Audio extraído en MP3:\n{out_mp3}")
+            return 0
+
+        out_zip = f"{target}.zip"
+        _call_connector("os-storage", "create_archive", {"source_path": target, "archive_path": out_zip})
+        _show_message("AriaOS Empaquetador IA", f"Archivo empaquetado en:\n{out_zip}")
+        return 0
+    except Exception as exc:
+        _show_message("Error en Conversión IA", str(exc))
+        return 1
 
 
 def main(argv: list[str]) -> int:
+    if len(argv) >= 1 and argv[0] == "--check":
+        print(json.dumps({"ok": True, "component": "ariaos-file-action"}))
+        return 0
+
     if len(argv) < 2:
-        print("Usage: ariaos-file-action <organize|duplicates> <directory>", file=sys.stderr)
+        print(
+            "Usage: ariaos-file-action <inspect|convert|organize|duplicates|ask> <path>",
+            file=sys.stderr,
+        )
         return 2
 
     action = argv[0]
-    target = str(Path(argv[1]).expanduser().resolve())
+    target_path = Path(argv[1]).expanduser().resolve()
+    target = str(target_path)
+
+    if action == "inspect":
+        return _handle_inspect(target_path)
+
+    if action == "convert":
+        return _handle_convert(target_path)
+
+    if action == "ask":
+        folder = str(target_path if target_path.is_dir() else target_path.parent)
+        subprocess.Popen(["aria-command-bar", "--prompt", f"analizar archivo {target}"])
+        return 0
 
     if action == "organize":
+        folder = str(target_path if target_path.is_dir() else target_path.parent)
         try:
-            data = _call_files("organize_directory", {"path": target, "apply": False}, approved=True)
+            data = _call_connector("os-files", "organize_directory", {"path": folder, "apply": False})
         except Exception as exc:
             _show_message("AriaOS Gestor de Archivos", str(exc))
             return 1
         moves = data.get("moves", [])
         if not moves:
-            _show_message("AriaOS Organizador IA", f"No hay archivos pendientes de organizar en:\n{target}")
+            _show_message("AriaOS Organizador IA", f"No hay archivos pendientes de organizar en:\n{folder}")
             return 0
-        preview = "\n".join(f"• {Path(m['source']).name} -> {Path(m['destination']).parent.name}/" for m in moves[:20])
+        preview = "\n".join(
+            f"• {Path(m['source']).name} -> {Path(m['destination']).parent.name}/" for m in moves[:20]
+        )
         extra = f"\n... y {len(moves) - 20} más." if len(moves) > 20 else ""
-        prompt = f"Vista previa en {target} ({len(moves)} archivos):\n\n{preview}{extra}\n\n¿Aplicar esta organización ahora?"
+        prompt = (
+            f"Vista previa en {folder} ({len(moves)} archivos):\n\n{preview}{extra}\n\n"
+            f"¿Aplicar esta organización ahora?"
+        )
         if shutil.which("kdialog"):
             if subprocess.run(["kdialog", "--yesno", prompt, "--title", "AriaOS Organizador IA"]).returncode == 0:
-                _call_files("organize_directory", {"path": target, "apply": True}, approved=True)
-                _show_message("AriaOS Organizador IA", f"Carpeta organizada correctamente ({len(moves)} archivo(s) movidos).")
+                _call_connector("os-files", "organize_directory", {"path": folder, "apply": True})
+                _show_message(
+                    "AriaOS Organizador IA",
+                    f"Carpeta organizada correctamente ({len(moves)} archivo(s) movidos).",
+                )
         else:
             print(prompt)
         return 0
 
     if action == "duplicates":
+        folder = str(target_path if target_path.is_dir() else target_path.parent)
         try:
-            groups = _call_files("find_duplicates", {"path": target, "recursive": True}).get("duplicate_groups", [])
+            groups = _call_connector(
+                "os-files", "find_duplicates", {"path": folder, "recursive": True}
+            ).get("duplicate_groups", [])
         except Exception as exc:
             _show_message("AriaOS Buscador de Duplicados", str(exc))
             return 1
         if not groups:
-            _show_message("AriaOS Buscador de Duplicados", f"No se encontraron archivos duplicados en:\n{target}")
+            _show_message("AriaOS Buscador de Duplicados", f"No se encontraron archivos duplicados en:\n{folder}")
             return 0
         lines = []
         for idx, group in enumerate(groups[:10], start=1):
             lines.append(f"Grupo {idx} ({group['size_bytes']} bytes):")
             for path in group["files"]:
                 lines.append(f"  - {path}")
-        _show_message("AriaOS Buscador de Duplicados", f"Se encontraron {len(groups)} grupo(s) de duplicados:\n\n" + "\n".join(lines))
+        _show_message(
+            "AriaOS Buscador de Duplicados",
+            f"Se encontraron {len(groups)} grupo(s) de duplicados:\n\n" + "\n".join(lines),
+        )
         return 0
 
     print(f"Unknown action: {action}", file=sys.stderr)
@@ -98,4 +236,3 @@ def main(argv: list[str]) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv[1:]))
-

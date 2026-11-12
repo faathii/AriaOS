@@ -34,6 +34,7 @@ Each directory here represents **one application, system service, or tool domain
 | [`creative-video-transcode/`](creative-video-transcode/manifest.json) | `program_api` | `stdio` | HandBrakeCLI transcoding and Shotcut/Pitivi project inspection |
 | [`knowledge-notes-ebooks/`](knowledge-notes-ebooks/manifest.json) | `program_api` | `stdio` | Obsidian vault search/notes and Calibre library/conversion |
 | [`security-antivirus/`](security-antivirus/manifest.json) | `program_api` | `stdio` | 100% free ClamAV malware scanning, signature updates (`freshclam`), and reversible quarantine vault |
+| [`security-firewall/`](security-firewall/manifest.json) | `os_ipc` | `stdio` | Intelligent Firewall (`nftables`/`ufw`), live TCP/UDP socket monitor (`/proc/net/tcp`, `ss`), and emergency network lockdown |
 | [`security-vault-crypto/`](security-vault-crypto/manifest.json) | `program_api` | `stdio` | KeePassXC `.kdbx` check, VeraCrypt volumes, Timeshift, Flameshot |
 | [`security-net-audit/`](security-net-audit/manifest.json) | `program_api` | `stdio` | Wireshark/tshark PCAP, ELF/PE headers (Ghidra/Cutter), Nmap & suite status |
 | [`dev-containers-vm/`](dev-containers-vm/manifest.json) | `program_api` | `stdio` | Docker/Podman/Portainer containers and VirtualBox/QEMU-KVM control |

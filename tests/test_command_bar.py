@@ -80,6 +80,8 @@ class TestCommandBar(unittest.TestCase):
             ("monitor", "aria_monitor.py", "ariaos-monitor"),
             ("store", "aria_store.py", "ariaos-store"),
             ("automations", "aria_automations.py", "ariaos-automations"),
+            ("firewall", "aria_firewall.py", "ariaos-firewall"),
+            ("installer", "aria_installer.py", "ariaos-installer"),
         ):
             script_path = REPO_ROOT / "ui" / app_dir / script_name
             proc = subprocess.run(
@@ -92,6 +94,18 @@ class TestCommandBar(unittest.TestCase):
             payload = json.loads(proc.stdout.strip())
             self.assertTrue(payload["ok"])
             self.assertEqual(payload["component"], expected_id)
+
+        file_action_path = REPO_ROOT / "os" / "archiso" / "airootfs" / "usr" / "bin" / "ariaos-file-action"
+        proc_fa = subprocess.run(
+            [sys.executable, str(file_action_path), "--check"],
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=10,
+        )
+        payload_fa = json.loads(proc_fa.stdout.strip())
+        self.assertTrue(payload_fa["ok"])
+        self.assertEqual(payload_fa["component"], "ariaos-file-action")
 
     def test_i18n_languages_and_translations(self) -> None:
         sdk_py = REPO_ROOT / "core" / "sdk" / "python"

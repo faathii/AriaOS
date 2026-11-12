@@ -90,6 +90,9 @@ fn handle_ipc_request(
         Some("optimize_kernel") => {
             crate::kernel::optimize_kernel_memory()
         }
+        Some("self_heal") => {
+            crate::kernel::self_heal_system()
+        }
         Some("memory_status") => {
             let mem = crate::memory::NeuralMemory::load();
             json!({"ok": true, "memory": mem.summary_json()})

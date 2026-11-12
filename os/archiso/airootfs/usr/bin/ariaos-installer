@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# AriaOS Cyber Obsidian Graphical OS Installer launcher
+
+if [ -f "/usr/lib/ariaos/installer/aria_installer.py" ]; then
+  exec python3 /usr/lib/ariaos/installer/aria_installer.py "$@"
+elif [ -f "$(dirname "$0")/../../ui/installer/aria_installer.py" ]; then
+  exec python3 "$(dirname "$0")/../../ui/installer/aria_installer.py" "$@"
+else
+  echo "Error: aria_installer.py not found" >&2
+  exit 1
+fi

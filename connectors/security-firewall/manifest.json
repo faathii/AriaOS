@@ -1,0 +1,88 @@
+{
+  "id": "security-firewall",
+  "name": "AriaOS Intelligent Firewall & Live Connection Monitor",
+  "version": "0.1.0",
+  "description": "Real-time TCP/UDP socket & listening port inspection (/proc/net/tcp, ss), intelligent port blocking/allowing (ufw/nftables), and emergency network lockdown.",
+  "tier": "os_ipc",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dependencies": ["iproute2", "nftables"],
+  "tools": [
+    {
+      "name": "firewall_status",
+      "description": "Inspect firewall engine state (ufw/nftables), default policies, lockdown mode, and active port rules.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "active_connections",
+      "description": "List active TCP/UDP network connections and listening ports with owning processes via ss and /proc/net/tcp.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 200,
+            "default": 50
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "manage_port_rule",
+      "description": "Block or allow incoming/outgoing traffic on a specific TCP/UDP port.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": ["block", "allow", "delete"]
+          },
+          "port": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65535
+          },
+          "protocol": {
+            "type": "string",
+            "enum": ["tcp", "udp", "both"],
+            "default": "tcp"
+          },
+          "comment": {
+            "type": "string",
+            "default": "AriaOS Firewall Rule"
+          }
+        },
+        "required": ["action", "port"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "network_lockdown",
+      "description": "Enable or disable Emergency Network Lockdown (isolating all external network traffic).",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          }
+        },
+        "required": ["enabled"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

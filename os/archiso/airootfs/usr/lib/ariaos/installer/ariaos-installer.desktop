@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Install AriaOS to Disk
+Name[es]=Instalar AriaOS en Disco
+Comment=Graphical Cyber Obsidian wizard to install AriaOS and its Neural Core to NVMe/SSD
+Comment[es]=Asistente gráfico Cyber Obsidian para instalar AriaOS y su Kernel Neuronal en tu disco
+Exec=/usr/bin/ariaos-installer
+Icon=ariaos-logo
+Terminal=false
+Categories=System;
+StartupNotify=true
+Keywords=install;disk;archinstall;ariaos;

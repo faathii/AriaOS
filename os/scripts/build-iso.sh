@@ -66,6 +66,14 @@ mkdir -p "${STAGE_DIR}/airootfs/usr/lib/ariaos/automations"
 cp -a "${REPO_ROOT}/ui/automations/." "${STAGE_DIR}/airootfs/usr/lib/ariaos/automations/"
 install -Dm644 "${REPO_ROOT}/ui/automations/ariaos-automations.desktop" \
   "${STAGE_DIR}/airootfs/usr/share/applications/ariaos-automations.desktop"
+mkdir -p "${STAGE_DIR}/airootfs/usr/lib/ariaos/firewall"
+cp -a "${REPO_ROOT}/ui/firewall/." "${STAGE_DIR}/airootfs/usr/lib/ariaos/firewall/"
+install -Dm644 "${REPO_ROOT}/ui/firewall/ariaos-firewall.desktop" \
+  "${STAGE_DIR}/airootfs/usr/share/applications/ariaos-firewall.desktop"
+mkdir -p "${STAGE_DIR}/airootfs/usr/lib/ariaos/installer"
+cp -a "${REPO_ROOT}/ui/installer/." "${STAGE_DIR}/airootfs/usr/lib/ariaos/installer/"
+install -Dm644 "${REPO_ROOT}/ui/installer/ariaos-installer.desktop" \
+  "${STAGE_DIR}/airootfs/usr/share/applications/ariaos-installer.desktop"
 
 # Install AriaOS visual branding (boot splash, menu/system icon, wallpaper, face icon)
 if [ -f "${REPO_ROOT}/assets/branding/ariaos-wallpaper.jpg" ]; then
@@ -123,7 +131,9 @@ sed -i 's/\r$//' \
   "${STAGE_DIR}/airootfs/usr/bin/ariaos-welcome" \
   "${STAGE_DIR}/airootfs/usr/bin/ariaos-monitor" \
   "${STAGE_DIR}/airootfs/usr/bin/ariaos-store" \
-  "${STAGE_DIR}/airootfs/usr/bin/ariaos-automations"
+  "${STAGE_DIR}/airootfs/usr/bin/ariaos-automations" \
+  "${STAGE_DIR}/airootfs/usr/bin/ariaos-firewall" \
+  "${STAGE_DIR}/airootfs/usr/bin/ariaos-installer"
 
 # Pre-package lightweight Aria Neural Model (aria-core / qwen2.5:0.5b ~350MB) inside ISO if ollama is available on build host
 if command -v ollama >/dev/null 2>&1; then

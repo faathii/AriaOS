@@ -50,6 +50,14 @@ fn main() {
             );
             0
         }
+        Some("heal") => {
+            let res = kernel::self_heal_system();
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&res).unwrap_or_default()
+            );
+            0
+        }
         Some("memory") => {
             let mem = memory::NeuralMemory::load();
             println!(

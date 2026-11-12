@@ -237,13 +237,20 @@ pub fn spawn_autonomic_kernel_governor() {
         apply_hardware_tier_profile(&initial);
 
         // Continuous 6-second autonomic feedback loop
+        let mut tick: u64 = 0;
         loop {
             thread::sleep(Duration::from_secs(6));
+            tick = tick.wrapping_add(1);
             let snap = KernelTelemetry::collect();
 
             // Proactive anti-freeze mitigation if RAM usage >= 88% or PSI memory stall > 8%
             if snap.mem_usage_pct >= 88 || snap.psi_mem_some_avg10 > 8.0 {
                 let _ = optimize_kernel_memory();
+            }
+
+            // Every 18 seconds (3 ticks), run the Self-Healing & Zombie Guardian
+            if tick % 3 == 0 {
+                let _ = self_heal_system();
             }
         }
     });
@@ -563,5 +570,92 @@ pub fn optimize_kernel_memory() -> Value {
         "after_available_mb": after.mem_available_mb,
         "usage_pct": after.mem_usage_pct,
         "hardware_tier": after.hardware_tier.as_str(),
+    })
+}
+
+/// Autonomous Self-Healing Guardian:
+/// 1. Detects zombie (`Z`) processes in `/proc` and notifies parent PIDs (`SIGCHLD`) to reap them.
+/// 2. Detects failed critical systemd services (`NetworkManager.service`, `ollama.service`) and auto-restarts them.
+/// 3. Triggers emergency kernel memory compaction if PSI stalls exceed safety thresholds.
+pub fn self_heal_system() -> Value {
+    let mut zombies_found: Vec<Value> = Vec::new();
+    let mut services_healed: Vec<String> = Vec::new();
+    let mut services_healthy: Vec<String> = Vec::new();
+    let mut actions: Vec<String> = Vec::new();
+
+    // 1. Scan /proc for Zombie (State: Z) processes
+    if let Ok(entries) = fs::read_dir("/proc") {
+        for entry in entries.flatten() {
+            let fname = entry.file_name();
+            let Some(pid_str) = fname.to_str() else { continue };
+            let Ok(pid) = pid_str.parse::<i64>() else { continue };
+
+            let status_path = entry.path().join("status");
+            let Ok(status_raw) = fs::read_to_string(&status_path) else { continue };
+            let mut name = String::new();
+            let mut state_is_zombie = false;
+            let mut ppid = 0i64;
+
+            for line in status_raw.lines() {
+                if let Some(rest) = line.strip_prefix("Name:") {
+                    name = rest.trim().to_string();
+                } else if let Some(rest) = line.strip_prefix("State:") {
+                    if rest.trim().starts_with('Z') {
+                        state_is_zombie = true;
+                    }
+                } else if let Some(rest) = line.strip_prefix("PPid:") {
+                    ppid = rest.trim().parse::<i64>().unwrap_or(0);
+                }
+            }
+
+            if state_is_zombie {
+                zombies_found.push(json!({
+                    "pid": pid,
+                    "name": name,
+                    "ppid": ppid,
+                }));
+                if ppid > 1 {
+                    let _ = Command::new("kill")
+                        .args(["-s", "SIGCHLD", &ppid.to_string()])
+                        .output();
+                }
+            }
+        }
+    }
+    if !zombies_found.is_empty() {
+        actions.push(format!("signaled_sigchld_for_{}_zombies", zombies_found.len()));
+    }
+
+    // 2. Check and auto-heal critical OS services
+    for unit in ["NetworkManager.service", "ollama.service"] {
+        if let Ok(out) = Command::new("systemctl").args(["is-failed", unit]).output() {
+            let status_txt = String::from_utf8_lossy(&out.stdout).trim().to_string();
+            if status_txt == "failed" {
+                if Command::new("systemctl").args(["restart", unit]).output().is_ok() {
+                    services_healed.push(unit.to_string());
+                    actions.push(format!("restarted_failed_unit:{unit}"));
+                }
+            } else {
+                services_healthy.push(unit.to_string());
+            }
+        }
+    }
+
+    // 3. Check PSI pressure and compact memory if needed
+    let snap = KernelTelemetry::collect();
+    if snap.mem_usage_pct >= 85 || snap.psi_mem_some_avg10 > 5.0 {
+        let _ = optimize_kernel_memory();
+        actions.push("proactive_psi_memory_compaction".to_string());
+    }
+
+    json!({
+        "ok": true,
+        "zombies_detected": zombies_found.len(),
+        "zombies": zombies_found,
+        "services_healed": services_healed,
+        "services_healthy": services_healthy,
+        "actions_taken": actions,
+        "psi_memory_avg10": snap.psi_mem_some_avg10,
+        "ram_usage_pct": snap.mem_usage_pct,
     })
 }

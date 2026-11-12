@@ -213,6 +213,8 @@ pub fn build_universal_app_catalog() -> Vec<AppCatalogEntry> {
         ("ariaos-monitor", "Monitor de Kernel, GPU y Procesos AriaOS", "System", "ariaos-monitor", &["monitor de sistema", "monitor", "gestor de procesos", "task manager", "monitor gpu", "ariaos-monitor", "administrador de tareas"]),
         ("ariaos-store", "Centro de Software y Paquetes AriaOS", "System", "ariaos-store", &["tienda", "centro de software", "gestor de paquetes", "instalar programas", "store", "ariaos-store", "paquetes"]),
         ("ariaos-automations", "Centro de Automatizaciones y Memoria IA", "System", "ariaos-automations", &["automatizaciones", "tareas programadas", "reglas ia", "memoria ia", "ariaos-automations"]),
+        ("ariaos-firewall", "Cortafuegos y Monitor de Conexiones AriaOS", "Security", "ariaos-firewall", &["cortafuegos", "firewall", "monitor de red", "ariaos-firewall"]),
+        ("ariaos-installer", "Instalador Gráfico de Sistema AriaOS", "System", "ariaos-installer", &["instalador", "instalar ariaos", "instalar en disco", "ariaos-installer"]),
         // Core KDE Plasma Utilities
         ("org.kde.dolphin", "Gestor de Archivos Dolphin", "System", "dolphin", &["archivos", "carpetas", "dolphin", "explorador", "files", "gestor de archivos"]),
         ("org.kde.konsole", "Terminal Konsole", "System", "konsole", &["terminal", "consola", "konsole", "bash", "shell", "linea de comandos"]),

@@ -6,7 +6,8 @@
 //! - Continuously learns custom user commands, macros, and usage habits via `NeuralMemory`.
 
 use crate::kernel::{
-    native_disk_usage, native_top_processes, optimize_kernel_memory, KernelTelemetry,
+    native_disk_usage, native_top_processes, optimize_kernel_memory, self_heal_system,
+    KernelTelemetry,
 };
 use crate::manifest::{find_tool, RegisteredConnector};
 use crate::memory::{
@@ -265,7 +266,41 @@ fn try_neural_reflex_depth(
         );
     }
 
-    // 1b. Direct Kernel & RAM Optimization Intent
+    // 1c. Self-Healing & Zombie Process Guardian
+    if matches_any(
+        &lower,
+        &[
+            "auto reparar",
+            "autoreparar",
+            "reparar sistema",
+            "procesos zombis",
+            "procesos colgados",
+            "self heal",
+            "guardian del kernel",
+            "guardián del kernel",
+        ],
+    ) {
+        mem.record_habit("kernel_self_heal");
+        let res = self_heal_system();
+        let z_cnt = res["zombies_detected"].as_u64().unwrap_or(0);
+        let healed = res["services_healed"]
+            .as_array()
+            .map(|a| a.len())
+            .unwrap_or(0);
+        return Some(format!(
+            "🔄 **Guardián de Auto-Reparación del Kernel (`self_heal_system`)**\n\
+             • **Procesos zombis (`State: Z`) detectados y limpiados:** `{}`\n\
+             • **Servicios críticos recuperados automáticamente:** `{}`\n\
+             • **Estado de servicios base (`NetworkManager`, `ollama`):** Operativos\n\
+             • **Presión PSI de memoria:** `{:.1}%` (RAM en uso: `{}%`)\n\n\
+             ```json\n{}\n```",
+            z_cnt,
+            healed,
+            res["psi_memory_avg10"].as_f64().unwrap_or(0.0),
+            res["ram_usage_pct"].as_u64().unwrap_or(0),
+            serde_json::to_string_pretty(&res).unwrap_or_default()
+        ));
+    }
     if matches_any(
         &lower,
         &[
@@ -1121,6 +1156,30 @@ fn execute_domain_api_reflex(
             if let Ok(res) = call_stdio_tool(conn, "list_automations", json!({})) {
                 return Some(format!(
                     "⏱️ **Automatizaciones y Memoria Neuronal (`os-automation.list_automations`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+
+    // 8. Intelligent Firewall & Live Socket Monitor (`security-firewall`)
+    if matches_any(lower, &["estado cortafuegos", "estado firewall", "reglas firewall"]) {
+        mem.record_habit("firewall_status");
+        if let Some((conn, _)) = find_tool(connectors, "security-firewall", "firewall_status") {
+            if let Ok(res) = call_stdio_tool(conn, "firewall_status", json!({})) {
+                return Some(format!(
+                    "🛡️ **Estado del Cortafuegos Inteligente (`security-firewall.firewall_status`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+    if matches_any(lower, &["conexiones activas", "puertos abiertos", "sockets activos"]) {
+        mem.record_habit("active_connections");
+        if let Some((conn, _)) = find_tool(connectors, "security-firewall", "active_connections") {
+            if let Ok(res) = call_stdio_tool(conn, "active_connections", json!({"limit": 30})) {
+                return Some(format!(
+                    "🌐 **Conexiones TCP/UDP y Puertos en Escucha (`security-firewall.active_connections`):**\n```json\n{}\n```",
                     serde_json::to_string_pretty(&res).unwrap_or_default()
                 ));
             }

@@ -340,6 +340,10 @@ def main() -> int:
             btn_antivirus.clicked.connect(lambda: subprocess.Popen(["ariaos-antivirus"]))
             actions.addWidget(btn_antivirus)
 
+            btn_fw = QPushButton("🔒 Cortafuegos")
+            btn_fw.clicked.connect(lambda: subprocess.Popen(["ariaos-firewall"]))
+            actions.addWidget(btn_fw)
+
             btn_settings = QPushButton("⚙️ Ajustes")
             btn_settings.clicked.connect(lambda: subprocess.Popen(["ariaos-settings"]))
             actions.addWidget(btn_settings)
@@ -382,7 +386,7 @@ def main() -> int:
             card_layout = QHBoxLayout(install_card)
             card_lbl = QLabel("<b>Instalación Nativa en Disco:</b> Transfiere AriaOS y su Kernel Neuronal a tu disco.")
             btn_install_os = QPushButton("💿 Instalar AriaOS en Disco", objectName="primary")
-            btn_install_os.clicked.connect(lambda: _launch_konsole("Instalador de AriaOS", ["sudo", "archinstall"]))
+            btn_install_os.clicked.connect(lambda: subprocess.Popen(["ariaos-installer"]))
             card_layout.addWidget(card_lbl)
             card_layout.addStretch()
             card_layout.addWidget(btn_install_os)

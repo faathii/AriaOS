@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# AriaOS Intelligent Firewall & Live Connection Monitor launcher
+
+if [ -f "/usr/lib/ariaos/firewall/aria_firewall.py" ]; then
+  exec python3 /usr/lib/ariaos/firewall/aria_firewall.py "$@"
+elif [ -f "$(dirname "$0")/../../ui/firewall/aria_firewall.py" ]; then
+  exec python3 "$(dirname "$0")/../../ui/firewall/aria_firewall.py" "$@"
+else
+  echo "Error: aria_firewall.py not found" >&2
+  exit 1
+fi

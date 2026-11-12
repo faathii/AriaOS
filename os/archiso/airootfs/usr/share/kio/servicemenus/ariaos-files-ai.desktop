@@ -1,25 +1,36 @@
 [Desktop Entry]
 Type=Service
-MimeType=inode/directory;
-Actions=AriaOrganizePreview;AriaFindDuplicates;AriaAskFiles;
-X-KDE-Submenu=AriaOS Gestor IA
-X-KDE-Submenu[en]=AriaOS AI File Actions
+MimeType=all/all;inode/directory;
+Actions=AriaInspectFile;AriaConvertFile;AriaOrganizePreview;AriaFindDuplicates;AriaAskFiles;
+X-KDE-Submenu=⚡ AriaOS Gestor IA
+X-KDE-Submenu[en]=⚡ AriaOS AI File Actions
+
+[Desktop Action AriaInspectFile]
+Name=🔍 Analizar archivo / Metadatos + SHA-256 con Aria
+Name[en]=🔍 Inspect file / Metadata + SHA-256 with Aria
+Icon=document-properties
+Exec=/usr/bin/ariaos-file-action inspect %f
+
+[Desktop Action AriaConvertFile]
+Name=🔄 Convertir / Comprimir con Aria (PDF, MP3, PNG, ZIP)
+Name[en]=🔄 Convert / Compress with Aria (PDF, MP3, PNG, ZIP)
+Icon=document-export
+Exec=/usr/bin/ariaos-file-action convert %f
 
 [Desktop Action AriaOrganizePreview]
-Name=Organizar carpeta (vista previa segura)
-Name[en]=Organize folder (safe dry-run)
+Name=🗂️ Organizar carpeta (vista previa segura)
+Name[en]=🗂️ Organize folder (safe dry-run)
 Icon=view-sort-ascending
 Exec=/usr/bin/ariaos-file-action organize %f
 
 [Desktop Action AriaFindDuplicates]
-Name=Buscar archivos duplicados (SHA-256)
-Name[en]=Find duplicate files (SHA-256)
+Name=🧬 Buscar archivos duplicados (SHA-256)
+Name[en]=🧬 Find duplicate files (SHA-256)
 Icon=edit-duplicate
 Exec=/usr/bin/ariaos-file-action duplicates %f
 
 [Desktop Action AriaAskFiles]
-Name=Abrir barra IA de AriaOS
-Name[en]=Open AriaOS AI Command Bar
+Name=⚡ Abrir Aria Neural HUD
+Name[en]=⚡ Open Aria Neural HUD
 Icon=ariaos-logo
 Exec=/usr/bin/aria-command-bar
-

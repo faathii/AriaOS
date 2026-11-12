@@ -1,8 +1,8 @@
 {
   "id": "security-antivirus",
-  "name": "AriaOS Free Antivirus (ClamAV Engine & Quarantine)",
-  "version": "0.1.0",
-  "description": "100% free, open-source ClamAV antivirus engine integrated with AriaOS: checks signature databases and daemon status, scans files or folders, updates signatures with freshclam, and manages an isolated, reversible quarantine vault.",
+  "name": "AriaOS Free Antivirus (ClamAV Engine, Shield & Whitelist)",
+  "version": "0.2.0",
+  "description": "100% free, open-source ClamAV antivirus engine fully visible and controllable by AriaOS: inspects configuration & On-Access shield (clamonacc), manages AriaOS trusted SHA-256 whitelist (.fp) and ExcludePath rules so ClamAV never blocks Aria, reads AV logs, scans files, updates signatures, and isolates threats into a system-protected quarantine vault.",
   "tier": "program_api",
   "transport": "stdio",
   "entrypoint": ["python3", "connector.py"],
@@ -83,6 +83,60 @@
           "quarantine_id": { "type": "string", "description": "Unique ID from av_quarantine_list." }
         },
         "required": ["quarantine_id"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "av_get_config",
+      "description": "Inspect live ClamAV daemon settings (clamd.conf), AriaOS exclusions (ExcludePath / OnAccessExcludeRootUID), trusted SHA-256 whitelist (.fp), and On-Access real-time shield status.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "av_read_logs",
+      "description": "Read recent ClamAV scan, freshclam update, and On-Access shield events from /var/log/clamav or systemd journal.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "lines": { "type": "integer", "minimum": 1, "maximum": 300, "default": 60 }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "av_set_exclusion",
+      "description": "Add or remove a managed ClamAV path exclusion in clamd.conf or certify a verified file hash into ClamAV's native trusted SHA-256 whitelist (ariaos-trusted.fp).",
+      "risk_level": "privileged",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "kind": { "type": "string", "enum": ["path", "trust_binary"] },
+          "action": { "type": "string", "enum": ["add", "remove"] },
+          "target": { "type": "string", "description": "Directory/regex path or binary file path to whitelist by SHA-256." }
+        },
+        "required": ["kind", "action", "target"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "av_shield_control",
+      "description": "Check, start, stop, or reload ClamAV's resident daemon (clamav-daemon) and real-time On-Access shield (clamav-clamonacc).",
+      "risk_level": "privileged",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "action": { "type": "string", "enum": ["status", "start", "stop", "reload"] }
+        },
+        "required": ["action"],
         "additionalProperties": false
       }
     }

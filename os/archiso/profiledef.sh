@@ -27,6 +27,7 @@ file_permissions=(
   ["/usr/bin/aria-daemon"]="0:0:755"
   ["/usr/bin/ariaos-apply-branding"]="0:0:755"
   ["/usr/bin/ariaos-av-scan"]="0:0:755"
+  ["/usr/bin/ariaos-clamav-sync"]="0:0:755"
   ["/usr/bin/ariaos-file-action"]="0:0:755"
   ["/usr/bin/ariaos-install-apps"]="0:0:755"
   ["/usr/local/bin/choose-mirror"]="0:0:755"

@@ -746,6 +746,58 @@ class TestStdioConnectors(unittest.TestCase):
         self.assertEqual(k_res[3]["error"]["code"], -32602)
         self.assertEqual(k_res[4]["error"]["code"], -32602)
 
+    def test_antivirus_visibility_exclusions_and_trust_fp(self) -> None:
+        av_script = CONNECTORS_DIR / "security-antivirus" / "connector.py"
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            clamd_conf = root / "clamd.conf"
+            clamd_conf.write_text(
+                "# >>> ARIAOS MANAGED BLOCK >>>\n"
+                "LocalSocket /run/clamav/clamd.ctl\n"
+                "OnAccessExcludeRootUID yes\n"
+                "ExcludePath ^/usr/lib/ariaos/\n"
+                "# <<< ARIAOS MANAGED BLOCK <<<\n",
+                encoding="utf-8",
+            )
+            trust_fp = root / "ariaos-trusted.fp"
+            fake_bin = root / "aria-daemon"
+            fake_bin.write_bytes(b"ariaos-trusted-binary-payload")
+            log_dir = root / "logs"
+            log_dir.mkdir()
+            (log_dir / "clamd.log").write_text("SelfCheck: Database status OK.\n", encoding="utf-8")
+
+            env_map = {
+                "ARIAOS_CLAMD_CONF": str(clamd_conf),
+                "ARIAOS_CLAMAV_TRUST_FP": str(trust_fp),
+                "ARIAOS_CLAMAV_LOG_DIR": str(log_dir),
+            }
+            res = _rpc_session(
+                av_script,
+                [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "tools/call",
+                        "params": {"name": "av_set_exclusion", "arguments": {"kind": "trust_binary", "action": "add", "target": str(fake_bin)}},
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 2,
+                        "method": "tools/call",
+                        "params": {"name": "av_set_exclusion", "arguments": {"kind": "path", "action": "add", "target": "^/var/lib/ollama/"}},
+                    },
+                    {"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "av_get_config", "arguments": {}}},
+                    {"jsonrpc": "2.0", "id": 4, "method": "tools/call", "params": {"name": "av_read_logs", "arguments": {"lines": 10}}},
+                ],
+                env_overrides=env_map,
+            )
+            self.assertIn("ariaos.trusted.aria-daemon", res[0]["result"]["data"]["entry"])
+            cfg = res[2]["result"]["data"]
+            self.assertTrue(cfg["aria_ai_root_exempt"])
+            self.assertEqual(len(cfg["trusted_whitelist_entries"]), 1)
+            self.assertIn("^/var/lib/ollama/", cfg["directives"]["exclude_path"])
+            self.assertIn("clamd.log", res[3]["result"]["data"]["file_logs"])
+
 
 if __name__ == "__main__":
     unittest.main()

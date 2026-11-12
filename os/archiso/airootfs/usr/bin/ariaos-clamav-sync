@@ -1,0 +1,117 @@
+#!/usr/bin/env python3
+"""Synchronize ClamAV daemon exclusions, On-Access shield rules, and AriaOS SHA-256 whitelist (.fp)."""
+
+from __future__ import annotations
+
+import hashlib
+import os
+from pathlib import Path
+
+CLAMD_CONF = Path("/etc/clamav/clamd.conf")
+TRUST_FP = Path("/var/lib/clamav/ariaos-trusted.fp")
+QUARANTINE_DIR = Path("/var/lib/ariaos/quarantine")
+
+MANAGED_START = "# >>> ARIAOS MANAGED BLOCK >>>"
+MANAGED_END = "# <<< ARIAOS MANAGED BLOCK <<<"
+
+TRUSTED_BINARIES = [
+    Path("/usr/bin/aria-daemon"),
+    Path("/usr/bin/aria-command-bar"),
+    Path("/usr/bin/ariaos-apply-branding"),
+    Path("/usr/bin/ariaos-av-scan"),
+    Path("/usr/bin/ariaos-clamav-sync"),
+    Path("/usr/bin/ariaos-file-action"),
+    Path("/usr/bin/ariaos-install-apps"),
+]
+
+MANAGED_BLOCK = f"""{MANAGED_START}
+# Native AriaOS integration: ClamAV protects the user without blocking or freezing the AI/OS layer.
+LocalSocket /run/clamav/clamd.ctl
+LocalSocketMode 666
+FixStaleSocket yes
+
+# Exclude AriaOS runtime sockets, quarantine vault, system connector tree, and Ollama model blobs
+ExcludePath ^/var/lib/ariaos/quarantine/
+ExcludePath ^/run/ariaos/
+ExcludePath ^/tmp/ariaos-audit\\.jsonl$
+ExcludePath ^/usr/lib/ariaos/
+ExcludePath ^/var/lib/ollama/
+ExcludePath ^/proc/
+ExcludePath ^/sys/
+ExcludePath ^/dev/
+
+# Fanotify On-Access shield: never intercept root/OS daemon (Aria) or ClamAV itself
+OnAccessExcludeRootUID yes
+OnAccessExcludeUname clamav
+OnAccessExcludePath /var/lib/ariaos/quarantine
+OnAccessExcludePath /run/ariaos
+OnAccessExcludePath /usr/lib/ariaos
+OnAccessExcludePath /var/lib/ollama
+OnAccessIncludePath /home
+OnAccessIncludePath /tmp
+OnAccessExtraScanning yes
+OnAccessPrevention no
+{MANAGED_END}"""
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(65536), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def sync_clamd_conf(conf_path: Path = CLAMD_CONF) -> None:
+    if not conf_path.exists():
+        return
+    raw = conf_path.read_text(encoding="utf-8", errors="ignore")
+    # Strip previous AriaOS managed block and uncomment duplicate LocalSocket lines
+    out_lines = []
+    in_block = False
+    for line in raw.splitlines():
+        stripped = line.strip()
+        if stripped == MANAGED_START:
+            in_block = True
+            continue
+        if stripped == MANAGED_END:
+            in_block = False
+            continue
+        if in_block:
+            continue
+        if stripped.startswith("LocalSocket ") or stripped.startswith("LocalSocketMode ") or stripped.startswith("FixStaleSocket "):
+            continue
+        out_lines.append(line)
+
+    updated = "\n".join(out_lines).rstrip() + "\n\n" + MANAGED_BLOCK + "\n"
+    conf_path.write_text(updated, encoding="utf-8")
+
+
+def sync_trusted_fp(fp_path: Path = TRUST_FP) -> None:
+    if not fp_path.parent.exists():
+        return
+    entries = []
+    for path in TRUSTED_BINARIES:
+        if path.exists() and path.is_file():
+            entries.append(f"{_sha256(path)}:{path.stat().st_size}:ariaos.trusted.{path.name}")
+    if entries:
+        fp_path.write_text("\n".join(entries) + "\n", encoding="utf-8")
+        try:
+            os.chmod(fp_path, 0o644)
+        except OSError:
+            pass
+
+
+def main() -> int:
+    QUARANTINE_DIR.mkdir(parents=True, exist_ok=True)
+    try:
+        os.chmod(QUARANTINE_DIR, 0o700)
+    except OSError:
+        pass
+    sync_clamd_conf()
+    sync_trusted_fp()
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

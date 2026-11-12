@@ -93,6 +93,7 @@ sed -i 's/\r$//' \
   "${STAGE_DIR}/airootfs/usr/bin/aria-command-bar" \
   "${STAGE_DIR}/airootfs/usr/bin/ariaos-apply-branding" \
   "${STAGE_DIR}/airootfs/usr/bin/ariaos-av-scan" \
+  "${STAGE_DIR}/airootfs/usr/bin/ariaos-clamav-sync" \
   "${STAGE_DIR}/airootfs/usr/bin/ariaos-file-action" \
   "${STAGE_DIR}/airootfs/usr/bin/ariaos-install-apps"
 
@@ -104,6 +105,7 @@ ln -sf "/usr/lib/systemd/system/ollama.service" "${WANTS_DIR}/ollama.service"
 ln -sf "/usr/lib/systemd/system/NetworkManager.service" "${WANTS_DIR}/NetworkManager.service"
 ln -sf "/usr/lib/systemd/system/clamav-freshclam.service" "${WANTS_DIR}/clamav-freshclam.service"
 ln -sf "/usr/lib/systemd/system/clamav-daemon.service" "${WANTS_DIR}/clamav-daemon.service"
+ln -sf "/usr/lib/systemd/system/clamav-clamonacc.service" "${WANTS_DIR}/clamav-clamonacc.service"
 ln -sf "/usr/lib/systemd/system/sddm.service" "${STAGE_DIR}/airootfs/etc/systemd/system/display-manager.service"
 
 echo "[4/4] Running mkarchiso..."

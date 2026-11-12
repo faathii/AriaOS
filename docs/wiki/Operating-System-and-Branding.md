@@ -11,7 +11,7 @@ AriaOS is built directly from Arch Linux (`archiso` releng base) paired with **K
 - **Systemd Services Enabled by Default**:
   - `aria-daemon.service` (`/usr/bin/aria-daemon`, creates `/run/ariaos/`)
   - `ollama.service` (configured with drop-in `override.conf` binding `127.0.0.1:11434`)
-  - `clamav-freshclam.service` & `clamav-daemon.service` (guarded by `wait-for-db.conf` so resident `clamd` activates automatically once free ClamAV signatures are downloaded)
+  - `clamav-freshclam.service`, `clamav-daemon.service` & `clamav-clamonacc.service` (configured via `/usr/bin/ariaos-clamav-sync` with `OnAccessExcludeRootUID yes`, `/var/lib/clamav/ariaos-trusted.fp` SHA-256 whitelist, and `ExcludePath` guards so ClamAV protects user data without blocking or freezing the AI/OS daemon)
   - `NetworkManager.service` & `sddm.service`
 
 ## File Manager (KDE Dolphin) & Built-In Free Antivirus (ClamAV)

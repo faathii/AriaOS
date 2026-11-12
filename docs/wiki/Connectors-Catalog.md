@@ -43,7 +43,7 @@ AriaOS currently ships **30 active connectors** under `connectors/`. All connect
 | Connector ID | Target Programs / API | Tools |
 | :--- | :--- | :--- |
 | `knowledge-notes-ebooks` | Obsidian Vaults (Markdown), Calibre (`calibredb`, `ebook-convert`) | `search_obsidian_vault`, `create_obsidian_note`, `calibre_list_books`, `calibre_convert_ebook` |
-| `security-antivirus` | ClamAV (`clamdscan`, `clamscan`, `freshclam`, Quarantine Vault) | `av_status`, `av_scan_path`, `av_update_signatures`, `av_quarantine_list`, `av_quarantine_file`, `av_restore_file` |
+| `security-antivirus` | ClamAV (`clamdscan`, `clamscan`, `clamonacc`, `freshclam`, `.fp` Whitelist, Quarantine Vault) | `av_status`, `av_scan_path`, `av_update_signatures`, `av_quarantine_list`, `av_quarantine_file`, `av_restore_file`, `av_get_config`, `av_read_logs`, `av_set_exclusion`, `av_shield_control` |
 | `security-vault-crypto` | KeePassXC (`.kdbx`), VeraCrypt, Timeshift, Flameshot | `keepassxc_check_db`, `veracrypt_list_volumes`, `timeshift_list_snapshots`, `flameshot_capture` |
 | `security-net-audit` | Wireshark (`tshark`), Ghidra/Cutter/rizin, Nmap, Burp, Metasploit, Hashcat, John | `security_suite_status`, `inspect_binary`, `inspect_pcap`, `nmap_scan` |
 | `dev-git` | Git CLI (`git status`, `log`, `diff`, `commit`) | `repo_status`, `repo_log`, `repo_diff`, `stage_and_commit` |

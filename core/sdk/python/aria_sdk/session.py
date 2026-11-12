@@ -169,3 +169,4 @@ def launch_in_desktop_session(cmd: List[str], ctx: DesktopContext) -> subprocess
         kwargs["user"] = ctx.uid
         kwargs["group"] = ctx.gid
     return subprocess.Popen(cmd, **kwargs)  # type: ignore[arg-type]
+

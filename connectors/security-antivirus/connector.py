@@ -21,8 +21,30 @@ from aria_sdk import ConnectorError, ConnectorServer  # noqa: E402
 
 CLAMAV_DB_DIR = Path("/var/lib/clamav")
 CLAMD_SOCKET = Path("/run/clamav/clamd.ctl")
+MANAGED_START = "# >>> ARIAOS MANAGED BLOCK >>>"
+MANAGED_END = "# <<< ARIAOS MANAGED BLOCK <<<"
 
-server = ConnectorServer(connector_id="security-antivirus", version="0.1.0")
+DEFAULT_EXCLUDED_DIRS = (
+    "^/var/lib/ariaos/quarantine",
+    "^/run/ariaos",
+    "^/usr/lib/ariaos",
+    "^/var/lib/ollama",
+    "^/proc",
+    "^/sys",
+    "^/dev",
+)
+
+server = ConnectorServer(connector_id="security-antivirus", version="0.2.0")
+
+
+def _clamd_conf_path() -> Path:
+    override = os.environ.get("ARIAOS_CLAMD_CONF")
+    return Path(override).expanduser() if override else Path("/etc/clamav/clamd.conf")
+
+
+def _trusted_fp_path() -> Path:
+    override = os.environ.get("ARIAOS_CLAMAV_TRUST_FP")
+    return Path(override).expanduser() if override else CLAMAV_DB_DIR / "ariaos-trusted.fp"
 
 
 def _quarantine_dir() -> Path:
@@ -113,6 +135,7 @@ def av_status(_args: Dict[str, Any]) -> Dict[str, Any]:
         "services": {
             "clamav-daemon": _systemctl_state("clamav-daemon.service"),
             "clamav-freshclam": _systemctl_state("clamav-freshclam.service"),
+            "clamav-clamonacc": _systemctl_state("clamav-clamonacc.service"),
         },
         "clamd_socket_present": CLAMD_SOCKET.exists(),
         "databases_ready": len(dbs) > 0,
@@ -163,6 +186,8 @@ def av_scan_path(args: Dict[str, Any]) -> Dict[str, Any]:
                 "threats": [],
             }
         cmd = [clamscan, "--infected", f"--max-filesize={max_filesize_mb}M", f"--max-scansize={max_filesize_mb}M"]
+        for pattern in DEFAULT_EXCLUDED_DIRS:
+            cmd.append(f"--exclude-dir={pattern}")
         if recursive and target.is_dir():
             cmd.append("--recursive")
         cmd.append(str(target))
@@ -320,6 +345,208 @@ def av_restore_file(args: Dict[str, Any]) -> Dict[str, Any]:
     remaining = [item for item in items if item.get("id") != q_id]
     _save_manifest(qdir, remaining)
     return {"restored": True, "quarantine_id": q_id, "restored_path": str(orig_path)}
+
+
+def _parse_clamd_directives(conf_text: str) -> Dict[str, Any]:
+    directives: Dict[str, List[str]] = {}
+    for raw in conf_text.splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        parts = line.split(None, 1)
+        key = parts[0]
+        val = parts[1].strip() if len(parts) > 1 else ""
+        directives.setdefault(key, []).append(val)
+    return {
+        "local_socket": directives.get("LocalSocket", []),
+        "exclude_path": directives.get("ExcludePath", []),
+        "on_access_exclude_root_uid": directives.get("OnAccessExcludeRootUID", []),
+        "on_access_exclude_uname": directives.get("OnAccessExcludeUname", []),
+        "on_access_exclude_path": directives.get("OnAccessExcludePath", []),
+        "on_access_include_path": directives.get("OnAccessIncludePath", []),
+        "on_access_prevention": directives.get("OnAccessPrevention", []),
+    }
+
+
+def _read_trusted_fp(fp_path: Path) -> List[Dict[str, str]]:
+    if not fp_path.exists():
+        return []
+    entries: List[Dict[str, str]] = []
+    for raw in fp_path.read_text(encoding="utf-8", errors="ignore").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        parts = line.split(":", 2)
+        if len(parts) == 3:
+            entries.append({"sha256": parts[0], "size_bytes": parts[1], "label": parts[2]})
+    return entries
+
+
+def _safe_reload_clamd() -> str:
+    if shutil.which("clamdscan") and CLAMD_SOCKET.exists():
+        proc = subprocess.run(["clamdscan", "--reload"], text=True, capture_output=True, timeout=15)
+        if proc.returncode == 0:
+            return "reloaded_via_clamdscan"
+    return "saved_to_disk"
+
+
+@server.tool("av_get_config")
+def av_get_config(_args: Dict[str, Any]) -> Dict[str, Any]:
+    """Inspect ClamAV configuration, AriaOS exclusions, trusted .fp whitelist, and shield status."""
+    conf_path = _clamd_conf_path()
+    fp_path = _trusted_fp_path()
+    conf_exists = conf_path.exists()
+    conf_text = conf_path.read_text(encoding="utf-8", errors="ignore") if conf_exists else ""
+    parsed = _parse_clamd_directives(conf_text)
+    return {
+        "clamd_conf_path": str(conf_path),
+        "clamd_conf_exists": conf_exists,
+        "ariaos_managed_block_present": MANAGED_START in conf_text and MANAGED_END in conf_text,
+        "aria_ai_root_exempt": any(v.lower() in {"yes", "true", "1"} for v in parsed["on_access_exclude_root_uid"]),
+        "directives": parsed,
+        "trusted_fp_path": str(fp_path),
+        "trusted_whitelist_entries": _read_trusted_fp(fp_path),
+        "services": {
+            "clamav-daemon": _systemctl_state("clamav-daemon.service"),
+            "clamav-clamonacc": _systemctl_state("clamav-clamonacc.service"),
+        },
+    }
+
+
+@server.tool("av_read_logs")
+def av_read_logs(args: Dict[str, Any]) -> Dict[str, Any]:
+    """Read recent ClamAV logs from /var/log/clamav or systemd journalctl."""
+    lines = max(1, min(int(args.get("lines") or 60), 300))
+    log_dir = Path(os.environ.get("ARIAOS_CLAMAV_LOG_DIR", "/var/log/clamav"))
+    file_logs: Dict[str, List[str]] = {}
+    if log_dir.exists():
+        for logfile in sorted(log_dir.glob("*.log")):
+            try:
+                content = logfile.read_text(encoding="utf-8", errors="ignore").splitlines()
+                file_logs[logfile.name] = content[-lines:]
+            except OSError:
+                continue
+
+    journal_lines: List[str] = []
+    if shutil.which("journalctl"):
+        proc = subprocess.run(
+            [
+                "journalctl",
+                "-u",
+                "clamav-daemon.service",
+                "-u",
+                "clamav-freshclam.service",
+                "-u",
+                "clamav-clamonacc.service",
+                "--no-pager",
+                "-n",
+                str(lines),
+            ],
+            text=True,
+            capture_output=True,
+            timeout=10,
+        )
+        if proc.returncode == 0:
+            journal_lines = [line for line in proc.stdout.splitlines() if line.strip()]
+
+    return {
+        "log_dir": str(log_dir),
+        "file_logs": file_logs,
+        "journal_lines": journal_lines,
+    }
+
+
+@server.tool("av_set_exclusion")
+def av_set_exclusion(args: Dict[str, Any]) -> Dict[str, Any]:
+    """Manage ClamAV path exclusions or SHA-256 .fp trust whitelist entries for AriaOS."""
+    kind = args.get("kind")
+    action = args.get("action")
+    raw_target = args.get("target")
+    if kind not in {"path", "trust_binary"}:
+        raise ConnectorError("kind must be 'path' or 'trust_binary'", code=-32602)
+    if action not in {"add", "remove"}:
+        raise ConnectorError("action must be 'add' or 'remove'", code=-32602)
+    if not isinstance(raw_target, str) or not raw_target.strip() or any(c in raw_target for c in "\r\n\0"):
+        raise ConnectorError("Invalid target parameter.", code=-32602)
+    target = raw_target.strip()
+
+    if kind == "trust_binary":
+        fp_path = _trusted_fp_path()
+        fp_path.parent.mkdir(parents=True, exist_ok=True)
+        existing_lines = fp_path.read_text(encoding="utf-8", errors="ignore").splitlines() if fp_path.exists() else []
+
+        if action == "add":
+            bin_path = Path(target).expanduser().resolve()
+            if not bin_path.exists() or not bin_path.is_file():
+                raise ConnectorError(f"Binary file not found: {bin_path}", code=-32602)
+            digest = _sha256(bin_path)
+            size = bin_path.stat().st_size
+            label = f"ariaos.trusted.{bin_path.name}"
+            record_line = f"{digest}:{size}:{label}"
+            filtered = [ln for ln in existing_lines if not ln.startswith(f"{digest}:")]
+            filtered.append(record_line)
+            fp_path.write_text("\n".join(filtered) + "\n", encoding="utf-8")
+            reload_state = _safe_reload_clamd()
+            return {"kind": kind, "action": action, "entry": record_line, "fp_path": str(fp_path), "reload": reload_state}
+
+        # remove by hash, label, or filename
+        filtered = [ln for ln in existing_lines if target not in ln]
+        fp_path.write_text(("\n".join(filtered) + "\n") if filtered else "", encoding="utf-8")
+        reload_state = _safe_reload_clamd()
+        return {"kind": kind, "action": action, "removed_matching": target, "fp_path": str(fp_path), "reload": reload_state}
+
+    # kind == "path" -> manage ExcludePath in clamd.conf
+    conf_path = _clamd_conf_path()
+    conf_path.parent.mkdir(parents=True, exist_ok=True)
+    text = conf_path.read_text(encoding="utf-8", errors="ignore") if conf_path.exists() else ""
+    directive_line = f"ExcludePath {target}"
+    on_access_line = f"OnAccessExcludePath {target}" if target.startswith("/") else None
+
+    lines = text.splitlines()
+    if action == "add":
+        if directive_line not in lines:
+            lines.append(directive_line)
+        if on_access_line and on_access_line not in lines:
+            lines.append(on_access_line)
+    else:
+        lines = [ln for ln in lines if ln.strip() not in {directive_line, on_access_line}]
+
+    conf_path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+    reload_state = _safe_reload_clamd()
+    return {"kind": kind, "action": action, "target": target, "clamd_conf": str(conf_path), "reload": reload_state}
+
+
+@server.tool("av_shield_control")
+def av_shield_control(args: Dict[str, Any]) -> Dict[str, Any]:
+    """Check, start, stop, or reload ClamAV daemon & On-Access shield services."""
+    action = args.get("action")
+    if action not in {"status", "start", "stop", "reload"}:
+        raise ConnectorError("action must be status, start, stop, or reload", code=-32602)
+
+    if action == "status":
+        return {
+            "clamav-daemon": _systemctl_state("clamav-daemon.service"),
+            "clamav-clamonacc": _systemctl_state("clamav-clamonacc.service"),
+        }
+
+    if not shutil.which("systemctl"):
+        raise ConnectorError("systemctl not found on this host.", code=-32000)
+
+    if action == "reload":
+        proc = subprocess.run(["systemctl", "restart", "clamav-daemon.service"], text=True, capture_output=True, timeout=30)
+    elif action == "start":
+        proc = subprocess.run(["systemctl", "start", "clamav-daemon.service", "clamav-clamonacc.service"], text=True, capture_output=True, timeout=30)
+    else:
+        proc = subprocess.run(["systemctl", "stop", "clamav-clamonacc.service"], text=True, capture_output=True, timeout=30)
+
+    if proc.returncode != 0:
+        raise ConnectorError(f"systemctl failed: {(proc.stderr or proc.stdout).strip()}", code=-32000)
+
+    return {
+        "action": action,
+        "clamav-daemon": _systemctl_state("clamav-daemon.service"),
+        "clamav-clamonacc": _systemctl_state("clamav-clamonacc.service"),
+    }
 
 
 if __name__ == "__main__":

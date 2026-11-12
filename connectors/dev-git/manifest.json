@@ -1,0 +1,72 @@
+{
+  "id": "dev-git",
+  "name": "Git & GitHub CLI Connector",
+  "version": "0.1.0",
+  "description": "Inspects Git repositories (status, logs, diffs) and stages/commits changes safely.",
+  "tier": "program_api",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dependencies": ["git"],
+  "tools": [
+    {
+      "name": "repo_status",
+      "description": "Show current branch, tracking status, and modified/untracked files in a Git repository.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "repo_path": { "type": "string", "description": "Path to a Git repository." }
+        },
+        "required": ["repo_path"]
+      }
+    },
+    {
+      "name": "repo_log",
+      "description": "Show recent commits in a Git repository.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "repo_path": { "type": "string" },
+          "limit": { "type": "integer", "default": 10 }
+        },
+        "required": ["repo_path"]
+      }
+    },
+    {
+      "name": "repo_diff",
+      "description": "Show unstaged or staged diff statistics and preview for a repository.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "repo_path": { "type": "string" },
+          "staged": { "type": "boolean", "default": false }
+        },
+        "required": ["repo_path"]
+      }
+    },
+    {
+      "name": "stage_and_commit",
+      "description": "Stage specified file paths and create a Git commit.",
+      "risk_level": "write",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "repo_path": { "type": "string" },
+          "files": {
+            "type": "array",
+            "items": { "type": "string" },
+            "minItems": 1
+          },
+          "message": { "type": "string" }
+        },
+        "required": ["repo_path", "files", "message"]
+      }
+    }
+  ]
+}

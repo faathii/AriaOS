@@ -46,7 +46,10 @@ impl OllamaClient {
             "model": self.model,
             "messages": messages,
             "tools": tools,
-            "stream": false
+            "stream": false,
+            "options": {
+                "num_ctx": 8192
+            }
         });
 
         let response = self

@@ -226,6 +226,100 @@ class TestStdioConnectors(unittest.TestCase):
         self.assertEqual(ff_res[0]["result"]["id"], "multimedia-ffmpeg")
         self.assertEqual(ff_res[1]["error"]["code"], -32602)
 
+    def test_os_storage_archives_dev_git_and_os_packages(self) -> None:
+        storage_script = CONNECTORS_DIR / "os-storage" / "connector.py"
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            src_dir = root / "bundle"
+            src_dir.mkdir()
+            (src_dir / "hello.txt").write_text("aria archive", encoding="utf-8")
+            zip_path = root / "bundle.zip"
+            out_dir = root / "extracted"
+
+            st_res = _rpc_session(
+                storage_script,
+                [
+                    {"jsonrpc": "2.0", "id": 1, "method": "aria/info", "params": {}},
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 2,
+                        "method": "tools/call",
+                        "params": {
+                            "name": "create_archive",
+                            "arguments": {"source_path": str(src_dir), "archive_path": str(zip_path)},
+                        },
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 3,
+                        "method": "tools/call",
+                        "params": {
+                            "name": "inspect_archive",
+                            "arguments": {"archive_path": str(zip_path)},
+                        },
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 4,
+                        "method": "tools/call",
+                        "params": {
+                            "name": "extract_archive",
+                            "arguments": {
+                                "archive_path": str(zip_path),
+                                "destination_dir": str(out_dir),
+                            },
+                        },
+                    },
+                ],
+            )
+            self.assertEqual(st_res[0]["result"]["id"], "os-storage")
+            self.assertTrue(zip_path.exists())
+            self.assertEqual(st_res[2]["result"]["data"]["count"], 1)
+            self.assertEqual(st_res[3]["result"]["data"]["extracted_count"], 1)
+            self.assertTrue((out_dir / "bundle" / "hello.txt").exists())
+
+        git_script = CONNECTORS_DIR / "dev-git" / "connector.py"
+        git_res = _rpc_session(
+            git_script,
+            [
+                {"jsonrpc": "2.0", "id": 1, "method": "aria/info", "params": {}},
+                {
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "method": "tools/call",
+                    "params": {"name": "repo_status", "arguments": {"repo_path": str(REPO_ROOT)}},
+                },
+                {
+                    "jsonrpc": "2.0",
+                    "id": 3,
+                    "method": "tools/call",
+                    "params": {
+                        "name": "repo_log",
+                        "arguments": {"repo_path": str(REPO_ROOT), "limit": 2},
+                    },
+                },
+            ],
+        )
+        self.assertEqual(git_res[0]["result"]["id"], "dev-git")
+        self.assertIn("main", git_res[1]["result"]["data"]["branch"])
+        self.assertEqual(len(git_res[2]["result"]["data"]["commits"]), 2)
+
+        pkg_script = CONNECTORS_DIR / "os-packages" / "connector.py"
+        pkg_res = _rpc_session(
+            pkg_script,
+            [
+                {"jsonrpc": "2.0", "id": 1, "method": "aria/info", "params": {}},
+                {
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "method": "tools/call",
+                    "params": {"name": "install_package", "arguments": {"package": "bad;rm -rf /"}},
+                },
+            ],
+        )
+        self.assertEqual(pkg_res[0]["result"]["id"], "os-packages")
+        self.assertEqual(pkg_res[1]["error"]["code"], -32602)
+
 
 if __name__ == "__main__":
     unittest.main()

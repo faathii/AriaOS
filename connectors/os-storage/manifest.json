@@ -1,0 +1,64 @@
+{
+  "id": "os-storage",
+  "name": "Storage, Disks & Archive Manager",
+  "version": "0.1.0",
+  "description": "Inspects block devices/partitions and safely inspects, creates, or extracts .zip and .tar.gz archives.",
+  "tier": "program_api",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dependencies": ["util-linux"],
+  "tools": [
+    {
+      "name": "list_block_devices",
+      "description": "List disks, partitions, filesystems, sizes, and mountpoints via lsblk.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "inspect_archive",
+      "description": "List files and sizes inside a .zip or .tar(.gz/.xz/.zst) archive without extracting.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "archive_path": { "type": "string" }
+        },
+        "required": ["archive_path"]
+      }
+    },
+    {
+      "name": "create_archive",
+      "description": "Compress a file or directory into a new .zip or .tar.gz archive without overwriting existing files.",
+      "risk_level": "write",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "source_path": { "type": "string" },
+          "archive_path": { "type": "string" }
+        },
+        "required": ["source_path", "archive_path"]
+      }
+    },
+    {
+      "name": "extract_archive",
+      "description": "Extract a .zip or .tar.gz archive safely into an empty or new destination directory.",
+      "risk_level": "write",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "archive_path": { "type": "string" },
+          "destination_dir": { "type": "string" }
+        },
+        "required": ["archive_path", "destination_dir"]
+      }
+    }
+  ]
+}

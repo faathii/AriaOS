@@ -1,0 +1,78 @@
+{
+  "id": "os-packages",
+  "name": "Arch Package & Cache Manager",
+  "version": "0.1.0",
+  "description": "Queries installed packages, checks updates, cleans pacman cache safely, and manages Arch packages.",
+  "tier": "program_api",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dependencies": ["pacman", "pacman-contrib"],
+  "tools": [
+    {
+      "name": "list_installed_packages",
+      "description": "List installed Arch packages, optionally filtered by substring.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "query": { "type": "string", "description": "Optional substring filter." },
+          "limit": { "type": "integer", "default": 30 }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "search_packages",
+      "description": "Search available packages in Arch Linux sync repositories.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "query": { "type": "string", "description": "Search keyword." },
+          "limit": { "type": "integer", "default": 15 }
+        },
+        "required": ["query"]
+      }
+    },
+    {
+      "name": "check_system_updates",
+      "description": "Check pending package updates and inspect pacman package cache disk usage.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "clean_package_cache",
+      "description": "Safely prune old cached package versions via paccache keeping the latest 2 versions.",
+      "risk_level": "write",
+      "reversible": false,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "keep_versions": { "type": "integer", "default": 2 },
+          "dry_run": { "type": "boolean", "default": true }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "install_package",
+      "description": "Install an Arch package via pacman (requires explicit confirmation).",
+      "risk_level": "privileged",
+      "reversible": false,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "package": { "type": "string", "description": "Exact Arch package name." }
+        },
+        "required": ["package"]
+      }
+    }
+  ]
+}

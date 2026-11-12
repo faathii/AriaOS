@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=AriaOS Cyber Desktop Shell
+Comment=Entorno de escritorio nativo Cyber Obsidian de AriaOS
+Icon=ariaos-command-bar
+Exec=/usr/bin/ariaos-shell
+Terminal=false
+Categories=System;Core;
+StartupNotify=false

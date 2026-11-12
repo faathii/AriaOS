@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300">
+  <g id="decoration-center">
+    <rect x="20" y="40" width="80" height="80" fill="#070b14" fill-opacity="0.96"/>
+  </g>
+  <g id="decoration-top">
+    <rect x="20" y="10" width="80" height="30" fill="#070b14" fill-opacity="0.97"/>
+    <rect x="20" y="10" width="80" height="2" fill="#00f0ff"/>
+  </g>
+  <g id="decoration-topleft">
+    <rect x="10" y="10" width="10" height="30" rx="4" fill="#070b14" fill-opacity="0.97"/>
+    <rect x="10" y="10" width="10" height="2" fill="#00f0ff"/>
+    <rect x="10" y="10" width="2" height="30" fill="#00f0ff"/>
+  </g>
+  <g id="decoration-topright">
+    <rect x="100" y="10" width="10" height="30" rx="4" fill="#070b14" fill-opacity="0.97"/>
+    <rect x="100" y="10" width="10" height="2" fill="#00f0ff"/>
+    <rect x="108" y="10" width="2" height="30" fill="#00f0ff"/>
+  </g>
+  <g id="decoration-left">
+    <rect x="10" y="40" width="10" height="80" fill="#070b14"/>
+    <rect x="10" y="40" width="2" height="80" fill="#00f0ff" fill-opacity="0.65"/>
+  </g>
+  <g id="decoration-right">
+    <rect x="100" y="40" width="10" height="80" fill="#070b14"/>
+    <rect x="108" y="40" width="2" height="80" fill="#00f0ff" fill-opacity="0.65"/>
+  </g>
+  <g id="decoration-bottom">
+    <rect x="20" y="120" width="80" height="10" fill="#070b14"/>
+    <rect x="20" y="128" width="80" height="2" fill="#00f0ff" fill-opacity="0.65"/>
+  </g>
+  <g id="decoration-bottomleft">
+    <rect x="10" y="120" width="10" height="10" fill="#070b14"/>
+    <rect x="10" y="128" width="10" height="2" fill="#00f0ff" fill-opacity="0.65"/>
+    <rect x="10" y="120" width="2" height="10" fill="#00f0ff" fill-opacity="0.65"/>
+  </g>
+  <g id="decoration-bottomright">
+    <rect x="100" y="120" width="10" height="10" fill="#070b14"/>
+    <rect x="100" y="128" width="10" height="2" fill="#00f0ff" fill-opacity="0.65"/>
+    <rect x="108" y="120" width="2" height="10" fill="#00f0ff" fill-opacity="0.65"/>
+  </g>
+  <!-- Inactive variants -->
+  <g id="decoration-inactive-center">
+    <rect x="160" y="40" width="80" height="80" fill="#05080f" fill-opacity="0.92"/>
+  </g>
+  <g id="decoration-inactive-top">
+    <rect x="160" y="10" width="80" height="30" fill="#05080f" fill-opacity="0.92"/>
+    <rect x="160" y="10" width="80" height="1.5" fill="#2a3b55"/>
+  </g>
+  <g id="decoration-inactive-topleft">
+    <rect x="150" y="10" width="10" height="30" fill="#05080f" fill-opacity="0.92"/>
+  </g>
+  <g id="decoration-inactive-topright">
+    <rect x="240" y="10" width="10" height="30" fill="#05080f" fill-opacity="0.92"/>
+  </g>
+  <g id="decoration-inactive-left">
+    <rect x="150" y="40" width="10" height="80" fill="#05080f"/>
+  </g>
+  <g id="decoration-inactive-right">
+    <rect x="240" y="40" width="10" height="80" fill="#05080f"/>
+  </g>
+  <g id="decoration-inactive-bottom">
+    <rect x="160" y="120" width="80" height="10" fill="#05080f"/>
+  </g>
+  <g id="decoration-inactive-bottomleft">
+    <rect x="150" y="120" width="10" height="10" fill="#05080f"/>
+  </g>
+  <g id="decoration-inactive-bottomright">
+    <rect x="240" y="120" width="10" height="10" fill="#05080f"/>
+  </g>
+</svg>

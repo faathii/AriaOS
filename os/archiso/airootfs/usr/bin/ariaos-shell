@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+export PYTHONPATH="/usr/lib/ariaos/core/sdk/python:${PYTHONPATH:-}"
+
+# Ensure X11 / XWayland DISPLAY is ready when invoked by systemd plasma-plasmashell.service
+for _ in $(seq 1 20); do
+  if [ -n "${DISPLAY:-}" ]; then
+    break
+  fi
+  if [ -S /tmp/.X11-unix/X0 ]; then
+    export DISPLAY=":0"
+    break
+  elif [ -S /tmp/.X11-unix/X1 ]; then
+    export DISPLAY=":1"
+    break
+  fi
+  sleep 0.3
+done
+
+exec python3 /usr/lib/ariaos/shell/aria_shell.py

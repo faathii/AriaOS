@@ -74,12 +74,20 @@ mkdir -p "${STAGE_DIR}/airootfs/usr/lib/ariaos/installer"
 cp -a "${REPO_ROOT}/ui/installer/." "${STAGE_DIR}/airootfs/usr/lib/ariaos/installer/"
 install -Dm644 "${REPO_ROOT}/ui/installer/ariaos-installer.desktop" \
   "${STAGE_DIR}/airootfs/usr/share/applications/ariaos-installer.desktop"
-for app_dir in snapshots vault ai-studio netradar optimizer clipboard; do
+for app_dir in snapshots vault ai-studio netradar optimizer clipboard shell; do
   mkdir -p "${STAGE_DIR}/airootfs/usr/lib/ariaos/${app_dir}"
   cp -a "${REPO_ROOT}/ui/${app_dir}/." "${STAGE_DIR}/airootfs/usr/lib/ariaos/${app_dir}/"
   install -Dm644 "${REPO_ROOT}/ui/${app_dir}/ariaos-${app_dir}.desktop" \
     "${STAGE_DIR}/airootfs/usr/share/applications/ariaos-${app_dir}.desktop"
 done
+
+# Install custom Cyber Obsidian SVG icons for all AriaOS tools
+if [ -d "${REPO_ROOT}/assets/icons" ]; then
+  mkdir -p "${STAGE_DIR}/airootfs/usr/share/icons/hicolor/scalable/apps"
+  mkdir -p "${STAGE_DIR}/airootfs/usr/share/pixmaps"
+  cp -a "${REPO_ROOT}/assets/icons/." "${STAGE_DIR}/airootfs/usr/share/icons/hicolor/scalable/apps/"
+  cp -a "${REPO_ROOT}/assets/icons/." "${STAGE_DIR}/airootfs/usr/share/pixmaps/"
+fi
 
 # Install AriaOS visual branding (boot splash, menu/system icon, wallpaper, face icon)
 if [ -f "${REPO_ROOT}/assets/branding/ariaos-wallpaper.jpg" ]; then
@@ -113,7 +121,7 @@ if [ -f "${REPO_ROOT}/assets/branding/ariaos-inicio.mp4" ]; then
 fi
 
 # Strip any CRLF line endings if staged from a Windows working tree
-find "${STAGE_DIR}" -maxdepth 7 -type f \( -name "*.sh" -o -name "*.service" -o -name "*.conf" -o -name "*.desktop" -o -name "*.py" -o -name "*.cfg" -o -name "*.plymouth" -o -name "*.script" -o -name "*.user" -o -name "*.colors" -o -name "*.json" -o -name "Modelfile*" -o -name "*rc" -o -name "kdeglobals" -o -name "colors" \) -exec sed -i 's/\r$//' {} +
+find "${STAGE_DIR}" -maxdepth 7 -type f \( -name "*.sh" -o -name "*.service" -o -name "*.conf" -o -name "*.desktop" -o -name "*.py" -o -name "*.cfg" -o -name "*.plymouth" -o -name "*.script" -o -name "*.user" -o -name "*.colors" -o -name "*.json" -o -name "*.hook" -o -name "*.svg" -o -name "Modelfile*" -o -name "*rc" -o -name "kdeglobals" -o -name "colors" \) -exec sed -i 's/\r$//' {} +
 sed -i 's/\r$//' \
   "${STAGE_DIR}/profiledef.sh" \
   "${STAGE_DIR}/packages.x86_64" \
@@ -148,7 +156,9 @@ sed -i 's/\r$//' \
   "${STAGE_DIR}/airootfs/usr/bin/ariaos-ai-studio" \
   "${STAGE_DIR}/airootfs/usr/bin/ariaos-netradar" \
   "${STAGE_DIR}/airootfs/usr/bin/ariaos-optimizer" \
-  "${STAGE_DIR}/airootfs/usr/bin/ariaos-clipboard"
+  "${STAGE_DIR}/airootfs/usr/bin/ariaos-clipboard" \
+  "${STAGE_DIR}/airootfs/usr/bin/ariaos-shell" \
+  "${STAGE_DIR}/airootfs/usr/bin/startariaos"
 
 # Pre-package lightweight Aria Neural Model (aria-core / qwen2.5:0.5b ~350MB) inside ISO if ollama is available on build host
 if command -v ollama >/dev/null 2>&1; then

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="24" viewBox="0 0 120 24">
+  <g id="active-center" transform="translate(0,0)">
+    <rect x="2" y="2" width="20" height="20" rx="5" fill="#0d1626" stroke="#00ff9d" stroke-width="1.2"/>
+    <polygon points="12,7 17,12 12,17 7,12" fill="none" stroke="#00ff9d" stroke-width="1.7"/>
+  </g>
+  <g id="hover-center" transform="translate(24,0)">
+    <rect x="2" y="2" width="20" height="20" rx="5" fill="#008866" stroke="#ffffff" stroke-width="1.4"/>
+    <polygon points="12,7 17,12 12,17 7,12" fill="none" stroke="#00ff9d" stroke-width="1.7"/>
+  </g>
+  <g id="pressed-center" transform="translate(48,0)">
+    <rect x="2" y="2" width="20" height="20" rx="5" fill="#00ff9d" stroke="#ffffff" stroke-width="1.4"/>
+    <polygon points="12,7 17,12 12,17 7,12" fill="none" stroke="#00ff9d" stroke-width="1.7"/>
+  </g>
+  <g id="inactive-center" transform="translate(72,0)">
+    <rect x="2" y="2" width="20" height="20" rx="5" fill="#080d17" stroke="#2c3e5a" stroke-width="1"/>
+    <polygon points="12,7 17,12 12,17 7,12" fill="none" stroke="#00ff9d" stroke-width="1.7"/>
+  </g>
+  <g id="deactivated-center" transform="translate(96,0)">
+    <rect x="2" y="2" width="20" height="20" rx="5" fill="#080d17" stroke="#1e2a3d" stroke-width="1"/>
+  </g>
+</svg>

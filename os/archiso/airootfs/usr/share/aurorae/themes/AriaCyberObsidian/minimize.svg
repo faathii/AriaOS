@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="24" viewBox="0 0 120 24">
+  <g id="active-center" transform="translate(0,0)">
+    <rect x="2" y="2" width="20" height="20" rx="5" fill="#0d1626" stroke="#c77dff" stroke-width="1.2"/>
+    <line x1="8" y1="15" x2="16" y2="15" stroke="#c77dff" stroke-width="2" stroke-linecap="round"/>
+  </g>
+  <g id="hover-center" transform="translate(24,0)">
+    <rect x="2" y="2" width="20" height="20" rx="5" fill="#7b2cbf" stroke="#ffffff" stroke-width="1.4"/>
+    <line x1="8" y1="15" x2="16" y2="15" stroke="#c77dff" stroke-width="2" stroke-linecap="round"/>
+  </g>
+  <g id="pressed-center" transform="translate(48,0)">
+    <rect x="2" y="2" width="20" height="20" rx="5" fill="#c77dff" stroke="#ffffff" stroke-width="1.4"/>
+    <line x1="8" y1="15" x2="16" y2="15" stroke="#c77dff" stroke-width="2" stroke-linecap="round"/>
+  </g>
+  <g id="inactive-center" transform="translate(72,0)">
+    <rect x="2" y="2" width="20" height="20" rx="5" fill="#080d17" stroke="#2c3e5a" stroke-width="1"/>
+    <line x1="8" y1="15" x2="16" y2="15" stroke="#c77dff" stroke-width="2" stroke-linecap="round"/>
+  </g>
+  <g id="deactivated-center" transform="translate(96,0)">
+    <rect x="2" y="2" width="20" height="20" rx="5" fill="#080d17" stroke="#1e2a3d" stroke-width="1"/>
+  </g>
+</svg>

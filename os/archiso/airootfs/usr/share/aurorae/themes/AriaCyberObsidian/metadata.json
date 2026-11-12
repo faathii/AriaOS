@@ -1,0 +1,17 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Email": "core@ariaos.org",
+                "Name": "AriaOS Cyber Team"
+            }
+        ],
+        "Category": "Window Decorations",
+        "Description": "Decoración de ventanas futurista Cyber Obsidian para AriaOS",
+        "EnabledByDefault": true,
+        "Id": "AriaCyberObsidian",
+        "License": "GPLv3",
+        "Name": "AriaOS Cyber Obsidian"
+    },
+    "X-KDE-PluginInfo-Name": "AriaCyberObsidian"
+}

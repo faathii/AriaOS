@@ -11,13 +11,23 @@ WindowsBlockCompositing=true
 BlurStrength=6
 NoiseStrength=0
 
-[OrgKdeKDecoration2]
-BorderSize=None
+[org.kde.kwin.decoration]
+BorderSize=Normal
 BorderSizeAuto=false
 ButtonsOnLeft=M
 ButtonsOnRight=IAX
 ShowToolTips=false
-library=org.kde.breeze
+library=org.kde.kwin.aurorae
+theme=__aurorae__svg__AriaCyberObsidian
+
+[OrgKdeKDecoration2]
+BorderSize=Normal
+BorderSizeAuto=false
+ButtonsOnLeft=M
+ButtonsOnRight=IAX
+ShowToolTips=false
+library=org.kde.kwin.aurorae
+theme=__aurorae__svg__AriaCyberObsidian
 
 [Plugins]
 blurEnabled=true
@@ -30,7 +40,7 @@ wobblywindowsEnabled=false
 
 [Windows]
 BorderlessMaximizedWindows=false
- ElectricBorderMaximize=true
+ElectricBorderMaximize=true
 ElectricBorderTiling=true
 FocusPolicy=ClickToFocus
 Placement=Centered

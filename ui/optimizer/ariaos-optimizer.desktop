@@ -3,7 +3,7 @@ Type=Application
 Name=AriaOS Boot & System Optimizer
 Comment=Analyze boot latency, clean package/journal caches, and optimize background services
 Exec=/usr/bin/ariaos-optimizer
-Icon=utilities-system-monitor
+Icon=ariaos-optimizer
 Terminal=false
 Categories=System;Utility;
 

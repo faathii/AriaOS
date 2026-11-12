@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# AriaOS Cyber Obsidian Native Desktop Session Launcher (AriaDE)
+# Launches KWin compositor + AriaOS Custom Shell without stock KDE plasmashell bloat.
+
+export XDG_CURRENT_DESKTOP="AriaOS:KDE"
+export XDG_SESSION_DESKTOP="ariaos"
+export XDG_SESSION_TYPE="x11"
+export QT_QPA_PLATFORM="xcb"
+export QT_AUTO_SCREEN_SCALE_FACTOR="1"
+export PYTHONPATH="/usr/lib/ariaos/core/sdk/python:${PYTHONPATH:-}"
+
+# Ensure D-Bus session bus is active
+if [ -z "${DBUS_SESSION_BUS_ADDRESS:-}" ] && command -v dbus-launch >/dev/null 2>&1; then
+  eval "$(dbus-launch --sh-syntax --exit-with-session)"
+fi
+
+# Set optimal resolution on VirtualBox / VM displays if currently at small fallback
+if command -v xrandr >/dev/null 2>&1; then
+  OUT_DEV="$(xrandr | awk '/ connected/{print $1; exit}')"
+  if [ -n "${OUT_DEV}" ]; then
+    xrandr --output "${OUT_DEV}" --mode 1360x768 2>/dev/null || \
+    xrandr --output "${OUT_DEV}" --mode 1280x800 2>/dev/null || \
+    xrandr --output "${OUT_DEV}" --preferred 2>/dev/null || true
+  fi
+fi
+
+# Disable screen blanking in live session
+if command -v xset >/dev/null 2>&1; then
+  xset s off -dpms 2>/dev/null || true
+fi
+
+# Prevent stock plasma-welcome or plasmashell from interfering
+rm -f /etc/xdg/autostart/org.kde.plasma-welcome.desktop 2>/dev/null || true
+killall -9 plasmashell plasma-welcome 2>/dev/null || true
+
+# Apply AriaOS Cyber color scheme for Qt/KDE apps
+if command -v plasma-apply-colorscheme >/dev/null 2>&1; then
+  plasma-apply-colorscheme AriaOSCyber >/dev/null 2>&1 || true
+fi
+
+# Start KWin Window Manager & Compositor with AriaOS Cyber Obsidian decorations
+if command -v kwin_x11 >/dev/null 2>&1; then
+  kwin_x11 --replace >/dev/null 2>&1 &
+fi
+
+# Start Polkit authentication agent if installed
+for agent in /usr/lib/polkit-kde-authentication-agent-1 /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1; do
+  if [ -x "${agent}" ]; then
+    "${agent}" >/dev/null 2>&1 &
+    break
+  fi
+done
+
+# Launch AriaOS Welcome / Onboarding assistant in background on first session
+if [ -x /usr/bin/ariaos-welcome ]; then
+  /usr/bin/ariaos-welcome --autostart >/dev/null 2>&1 &
+fi
+
+# Start the custom AriaOS Cyber Obsidian Desktop Shell as the primary session leader
+exec /usr/bin/ariaos-shell

@@ -1186,5 +1186,157 @@ fn execute_domain_api_reflex(
         }
     }
 
+    // 9. Time Machine & System Snapshots (`os-snapshots`)
+    if matches_any(lower, &["listar snapshots", "puntos de restauracion", "puntos de restauración", "estado snapshots"]) {
+        mem.record_habit("list_snapshots");
+        if let Some((conn, _)) = find_tool(connectors, "os-snapshots", "list_snapshots") {
+            if let Ok(res) = call_stdio_tool(conn, "list_snapshots", json!({})) {
+                return Some(format!(
+                    "⏪ **Puntos de Restauración y Snapshots (`os-snapshots.list_snapshots`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+    if matches_any(lower, &["crear snapshot", "crear punto de restauracion", "crear punto de restauración"]) {
+        mem.record_habit("create_snapshot");
+        if let Some((conn, _)) = find_tool(connectors, "os-snapshots", "create_snapshot") {
+            if let Ok(res) = call_stdio_tool(
+                conn,
+                "create_snapshot",
+                json!({"label": "Snapshot instantáneo desde Aria Neural HUD", "scope": "config"}),
+            ) {
+                return Some(format!(
+                    "📸 **Punto de Restauración Creado (`os-snapshots.create_snapshot`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+
+    // 10. Cryptographic Vault & Secret Manager (`security-vault`)
+    if matches_any(lower, &["estado boveda", "estado bóveda", "auditar llaves ssh", "boveda secreta"]) {
+        mem.record_habit("vault_status");
+        if let Some((conn, _)) = find_tool(connectors, "security-vault", "vault_status") {
+            if let Ok(res) = call_stdio_tool(conn, "vault_status", json!({})) {
+                return Some(format!(
+                    "🔐 **Estado de la Bóveda Criptográfica y Auditoría SSH (`security-vault.vault_status`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+    if matches_any(lower, &["generar clave segura", "generar contraseña", "clave entropica", "clave entrópica"]) {
+        mem.record_habit("generate_entropy_key");
+        if let Some((conn, _)) = find_tool(connectors, "security-vault", "generate_entropy_key") {
+            if let Ok(res) = call_stdio_tool(
+                conn,
+                "generate_entropy_key",
+                json!({"length": 28, "include_symbols": true}),
+            ) {
+                return Some(format!(
+                    "🎲 **Clave Criptográfica Generada (`security-vault.generate_entropy_key`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+
+    // 11. Local AI Studio & Model Manager (`ai-model-manager`)
+    if matches_any(lower, &["modelos de ia", "listar modelos ia", "modelos locales", "cerebro ia"]) {
+        mem.record_habit("list_models");
+        if let Some((conn, _)) = find_tool(connectors, "ai-model-manager", "list_models") {
+            if let Ok(res) = call_stdio_tool(conn, "list_models", json!({})) {
+                return Some(format!(
+                    "🧠 **Modelos Locales y Estado de AI Studio (`ai-model-manager.list_models`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+    if matches_any(lower, &["benchmark de ia", "benchmark ia", "velocidad de inferencia", "test de ia"]) {
+        mem.record_habit("benchmark_inference");
+        if let Some((conn, _)) = find_tool(connectors, "ai-model-manager", "benchmark_inference") {
+            if let Ok(res) = call_stdio_tool(conn, "benchmark_inference", json!({})) {
+                return Some(format!(
+                    "⚡ **Benchmark de Inferencia Neuronal (`ai-model-manager.benchmark_inference`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+
+    // 12. Network Radar, LAN Scanner & Private DNS (`network-radar`)
+    if matches_any(lower, &["dispositivos en mi red", "escanear red local", "escanear lan", "nodos en red"]) {
+        mem.record_habit("scan_lan_devices");
+        if let Some((conn, _)) = find_tool(connectors, "network-radar", "scan_lan_devices") {
+            if let Ok(res) = call_stdio_tool(conn, "scan_lan_devices", json!({})) {
+                return Some(format!(
+                    "📡 **Dispositivos Detectados en la Red Local (`network-radar.scan_lan_devices`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+    if matches_any(lower, &["activar dns seguro", "dns privado", "estado dns", "test de latencia", "radar de latencia"]) {
+        mem.record_habit("latency_radar");
+        if let Some((conn, _)) = find_tool(connectors, "network-radar", "latency_radar") {
+            if let Ok(res) = call_stdio_tool(conn, "latency_radar", json!({})) {
+                return Some(format!(
+                    "🌐 **Radar de Latencia y DNS Privado (`network-radar.latency_radar`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+
+    // 13. Boot Analyzer & Deep System Optimizer (`os-optimizer`)
+    if matches_any(lower, &["analizar tiempo de arranque", "tiempo de boot", "systemd analyze", "servicios lentos"]) {
+        mem.record_habit("analyze_boot_time");
+        if let Some((conn, _)) = find_tool(connectors, "os-optimizer", "analyze_boot_time") {
+            if let Ok(res) = call_stdio_tool(conn, "analyze_boot_time", json!({})) {
+                return Some(format!(
+                    "⏱️ **Análisis de Arranque del Kernel y Servicios (`os-optimizer.analyze_boot_time`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+    if matches_any(lower, &["limpiar sistema a fondo", "escanear basura", "espacio recuperable", "limpiar caches"]) {
+        mem.record_habit("scan_junk_data");
+        if let Some((conn, _)) = find_tool(connectors, "os-optimizer", "scan_junk_data") {
+            if let Ok(res) = call_stdio_tool(conn, "scan_junk_data", json!({})) {
+                return Some(format!(
+                    "🧹 **Análisis de Cachés y Espacio Recuperable (`os-optimizer.scan_junk_data`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+
+    // 14. Smart Neural Clipboard (`os-clipboard`)
+    if matches_any(lower, &["historial del portapapeles", "que he copiado", "qué he copiado", "ver portapapeles"]) {
+        mem.record_habit("clipboard_history");
+        if let Some((conn, _)) = find_tool(connectors, "os-clipboard", "clipboard_history") {
+            if let Ok(res) = call_stdio_tool(conn, "clipboard_history", json!({"limit": 10})) {
+                return Some(format!(
+                    "📋 **Historial Semántico del Portapapeles (`os-clipboard.clipboard_history`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+    if matches_any(lower, &["limpiar portapapeles", "vaciar portapapeles"]) {
+        mem.record_habit("clear_clipboard");
+        if let Some((conn, _)) = find_tool(connectors, "os-clipboard", "clear_clipboard") {
+            if let Ok(res) = call_stdio_tool(conn, "clear_clipboard", json!({})) {
+                return Some(format!(
+                    "🧹 **Portapapeles Vaciado (`os-clipboard.clear_clipboard`):**\n```json\n{}\n```",
+                    serde_json::to_string_pretty(&res).unwrap_or_default()
+                ));
+            }
+        }
+    }
+
     None
 }

@@ -846,6 +846,90 @@ class TestStdioConnectors(unittest.TestCase):
             self.assertIn("connections", fw_res[1]["result"]["data"])
             self.assertTrue(fw_res[2]["result"]["data"]["applied"])
 
+            # 4. os-snapshots (Time Machine)
+            snap_res = _rpc_session(
+                CONNECTORS_DIR / "os-snapshots" / "connector.py",
+                [
+                    {"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name": "list_snapshots", "arguments": {}}},
+                    {"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": "create_snapshot", "arguments": {"label": "Test Snapshot", "scope": "config"}}},
+                ],
+                env_overrides=env_map,
+            )
+            self.assertGreaterEqual(snap_res[0]["result"]["data"]["count"], 1)
+            self.assertTrue(snap_res[1]["result"]["data"]["created"])
+
+            # 5. security-vault (Cryptographic Vault & CSPRNG)
+            vault_res = _rpc_session(
+                CONNECTORS_DIR / "security-vault" / "connector.py",
+                [
+                    {"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name": "vault_status", "arguments": {}}},
+                    {"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": "store_secret", "arguments": {"label": "TestKey", "category": "api_token", "secret_value": "super-secret-123"}}},
+                    {"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "list_secrets", "arguments": {"reveal_label": "TestKey"}}},
+                    {"jsonrpc": "2.0", "id": 4, "method": "tools/call", "params": {"name": "generate_entropy_key", "arguments": {"length": 24, "include_symbols": True}}},
+                ],
+                env_overrides=env_map,
+            )
+            self.assertFalse(vault_res[0]["result"]["data"]["vault_locked"])
+            self.assertTrue(vault_res[1]["result"]["data"]["stored"])
+            self.assertEqual(vault_res[2]["result"]["data"]["secrets"][0]["value"], "super-secret-123")
+            self.assertEqual(len(vault_res[3]["result"]["data"]["generated_key"]), 24)
+
+            # 6. ai-model-manager (AI Studio & Benchmark)
+            ai_res = _rpc_session(
+                CONNECTORS_DIR / "ai-model-manager" / "connector.py",
+                [
+                    {"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name": "list_models", "arguments": {}}},
+                    {"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": "benchmark_inference", "arguments": {}}},
+                    {"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "switch_active_model", "arguments": {"model_name": "qwen2.5-coder:1.5b"}}},
+                ],
+                env_overrides=env_map,
+            )
+            self.assertIn("models", ai_res[0]["result"]["data"])
+            self.assertIn("estimated_tokens_per_sec", ai_res[1]["result"]["data"])
+            self.assertTrue(ai_res[2]["result"]["data"]["switched"])
+
+            # 7. network-radar (LAN Scanner & Private DNS)
+            nr_res = _rpc_session(
+                CONNECTORS_DIR / "network-radar" / "connector.py",
+                [
+                    {"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name": "scan_lan_devices", "arguments": {}}},
+                    {"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": "set_secure_dns", "arguments": {"provider": "quad9", "adblock_hosts": True}}},
+                    {"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "latency_radar", "arguments": {}}},
+                ],
+                env_overrides=env_map,
+            )
+            self.assertGreaterEqual(nr_res[0]["result"]["data"]["count"], 1)
+            self.assertTrue(nr_res[1]["result"]["data"]["applied"])
+            self.assertEqual(nr_res[2]["result"]["data"]["quality"], "EXCELLENT")
+
+            # 8. os-optimizer (Boot Analyzer & Deep Cleaner)
+            opt_res = _rpc_session(
+                CONNECTORS_DIR / "os-optimizer" / "connector.py",
+                [
+                    {"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name": "analyze_boot_time", "arguments": {}}},
+                    {"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": "scan_junk_data", "arguments": {}}},
+                    {"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "deep_clean_system", "arguments": {"targets": ["tmp_files"]}}},
+                ],
+                env_overrides=env_map,
+            )
+            self.assertIn("boot_summary", opt_res[0]["result"]["data"])
+            self.assertGreater(opt_res[1]["result"]["data"]["total_reclaimable_mb"], 0)
+            self.assertTrue(opt_res[2]["result"]["data"]["cleaned"])
+
+            # 9. os-clipboard (Neural Clipboard & Transformer)
+            clip_res = _rpc_session(
+                CONNECTORS_DIR / "os-clipboard" / "connector.py",
+                [
+                    {"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name": "copy_to_clipboard", "arguments": {"text": '{"aria":1}'}}},
+                    {"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": "transform_clipboard", "arguments": {"operation": "format_json"}}},
+                    {"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "clear_clipboard", "arguments": {}}},
+                ],
+                env_overrides=env_map,
+            )
+            self.assertEqual(clip_res[0]["result"]["data"]["kind"], "json")
+            self.assertIn('"aria": 1', clip_res[1]["result"]["data"]["output"])
+            self.assertTrue(clip_res[2]["result"]["data"]["cleared"])
+
 
 
 if __name__ == "__main__":

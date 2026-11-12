@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=AriaOS AI Studio & Neural Core
+Comment=Manage local AI models, run inference benchmarks, and inspect neural memory
+Exec=/usr/bin/ariaos-ai-studio
+Icon=preferences-system
+Terminal=false
+Categories=System;Development;

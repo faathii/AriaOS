@@ -1,0 +1,87 @@
+{
+  "id": "security-vault",
+  "name": "AriaOS Cryptographic Vault & Secret Manager",
+  "version": "0.1.0",
+  "description": "Local encrypted vault (PBKDF2-HMAC-SHA256 + Authenticated Cipher) for passwords, API tokens, SSH key auditing, and high-entropy secret generation.",
+  "tier": "os_ipc",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dependencies": ["openssh", "gnupg"],
+  "tools": [
+    {
+      "name": "vault_status",
+      "description": "Inspect vault encryption status, stored secret count, and local SSH key permission audit.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "store_secret",
+      "description": "Encrypt and store a password, API token, or SSH passphrase in the local AriaOS Vault.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "category": {
+            "type": "string",
+            "enum": ["password", "api_token", "ssh_key", "note"],
+            "default": "password"
+          },
+          "secret_value": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": ["label", "secret_value"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "list_secrets",
+      "description": "List stored secrets in the vault (masked by default, or decrypted if reveal_label is provided).",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "reveal_label": {
+            "type": "string",
+            "default": ""
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "generate_entropy_key",
+      "description": "Generate a cryptographically secure password or token using OS CSPRNG (/dev/urandom).",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "length": {
+            "type": "integer",
+            "minimum": 8,
+            "maximum": 128,
+            "default": 28
+          },
+          "include_symbols": {
+            "type": "boolean",
+            "default": true
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  ]
+}

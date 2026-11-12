@@ -1,0 +1,75 @@
+{
+  "id": "os-optimizer",
+  "name": "AriaOS Boot Analyzer & Deep System Optimizer",
+  "version": "0.1.0",
+  "description": "Analyze systemd boot timing (kernel, initrd, userspace, slow units), scan reclaimable caches/logs/orphans, and run deep system cleanup.",
+  "tier": "os_ipc",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dependencies": ["systemd", "pacman"],
+  "tools": [
+    {
+      "name": "analyze_boot_time",
+      "description": "Inspect Linux kernel, initramfs, and systemd service boot latencies (`systemd-analyze`).",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "scan_junk_data",
+      "description": "Scan user caches (~/.cache), Pacman package cache, systemd journal logs, and temporary directories for reclaimable space.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "deep_clean_system",
+      "description": "Safely clean temporary caches, old logs, and thumbnail caches to reclaim disk and RAM.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "targets": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["user_cache", "journal_logs", "pacman_cache", "tmp_files"]
+            },
+            "default": ["user_cache", "tmp_files"]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "optimize_services",
+      "description": "Inspect or toggle non-essential background services (e.g. bluetooth, cups, ModemManager) to speed up boot time.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "service": {
+            "type": "string",
+            "default": ""
+          },
+          "action": {
+            "type": "string",
+            "enum": ["list", "disable", "enable"],
+            "default": "list"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  ]
+}

@@ -87,6 +87,12 @@ impl NeuralMemory {
             ("estado servidores", "sitios filezilla"),
             ("estado p2p", "estado syncthing"),
             ("resumen git", "estado de git"),
+            ("punto de restauracion", "crear snapshot del sistema"),
+            ("boveda criptografica", "estado boveda secreta"),
+            ("laboratorio ia", "modelos de ia locales"),
+            ("escanear mi red", "dispositivos en mi red"),
+            ("acelerar arranque", "analizar tiempo de arranque"),
+            ("portapapeles", "historial del portapapeles"),
         ];
         defaults
             .iter()
@@ -215,6 +221,12 @@ pub fn build_universal_app_catalog() -> Vec<AppCatalogEntry> {
         ("ariaos-automations", "Centro de Automatizaciones y Memoria IA", "System", "ariaos-automations", &["automatizaciones", "tareas programadas", "reglas ia", "memoria ia", "ariaos-automations"]),
         ("ariaos-firewall", "Cortafuegos y Monitor de Conexiones AriaOS", "Security", "ariaos-firewall", &["cortafuegos", "firewall", "monitor de red", "ariaos-firewall"]),
         ("ariaos-installer", "Instalador Gráfico de Sistema AriaOS", "System", "ariaos-installer", &["instalador", "instalar ariaos", "instalar en disco", "ariaos-installer"]),
+        ("ariaos-snapshots", "Máquina del Tiempo y Snapshots AriaOS", "System", "ariaos-snapshots", &["snapshots", "time machine", "maquina del tiempo", "máquina del tiempo", "restaurar sistema", "ariaos-snapshots"]),
+        ("ariaos-vault", "Bóveda Criptográfica y Gestor de Secretos AriaOS", "Security", "ariaos-vault", &["boveda", "bóveda", "vault", "secretos", "claves", "ariaos-vault"]),
+        ("ariaos-ai-studio", "Laboratorio de Modelos e IA Local AriaOS", "System", "ariaos-ai-studio", &["ai studio", "estudio ia", "modelos ia", "cerebro ia", "ariaos-ai-studio"]),
+        ("ariaos-netradar", "Radar de Red, Escáner LAN y DNS Privado AriaOS", "Internet", "ariaos-netradar", &["radar de red", "netradar", "escaner lan", "dns seguro", "ariaos-netradar"]),
+        ("ariaos-optimizer", "Optimizador de Arranque y Limpiador Profundo AriaOS", "System", "ariaos-optimizer", &["optimizador", "limpiador", "boot analyzer", "ariaos-optimizer"]),
+        ("ariaos-clipboard", "Portapapeles Inteligente e Historial Neuronal AriaOS", "System", "ariaos-clipboard", &["portapapeles", "clipboard", "historial copiado", "ariaos-clipboard"]),
         // Core KDE Plasma Utilities
         ("org.kde.dolphin", "Gestor de Archivos Dolphin", "System", "dolphin", &["archivos", "carpetas", "dolphin", "explorador", "files", "gestor de archivos"]),
         ("org.kde.konsole", "Terminal Konsole", "System", "konsole", &["terminal", "consola", "konsole", "bash", "shell", "linea de comandos"]),

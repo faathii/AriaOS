@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=AriaOS Network Radar & Private DNS
+Comment=LAN device scanner, encrypted DNS switcher, and latency radar
+Exec=/usr/bin/ariaos-netradar
+Icon=preferences-system-network
+Terminal=false
+Categories=System;Network;

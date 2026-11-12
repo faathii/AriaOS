@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=AriaOS Cryptographic Vault
+Comment=Encrypted secret manager, SSH key auditor, and CSPRNG key generator
+Exec=/usr/bin/ariaos-vault
+Icon=dialog-password
+Terminal=false
+Categories=System;Security;Utility;

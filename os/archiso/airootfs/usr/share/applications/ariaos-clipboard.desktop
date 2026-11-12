@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=AriaOS Neural Clipboard
+Comment=Semantic clipboard history and 1-click JSON/Base64/Hash transformer
+Exec=/usr/bin/ariaos-clipboard
+Icon=edit-paste
+Terminal=false
+Categories=System;Utility;

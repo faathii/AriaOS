@@ -1,0 +1,71 @@
+{
+  "id": "ai-model-manager",
+  "name": "AriaOS Neural Core & Local LLM Studio Manager",
+  "version": "0.1.0",
+  "description": "Manage local LLM weights (aria-core, qwen2.5, deepseek-coder), benchmark CPU/GPU inference speed, and inspect/edit AriaOS persistent neural memory.",
+  "tier": "os_ipc",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dependencies": ["ollama"],
+  "tools": [
+    {
+      "name": "list_models",
+      "description": "List installed and recommended local AI models, active model profile, and neural memory statistics.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "benchmark_inference",
+      "description": "Run a fast local CPU/RAM neural inference benchmark and estimate tokens/second capacity.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "switch_active_model",
+      "description": "Switch AriaOS active local LLM model (e.g. aria-core, qwen2.5:0.5b, qwen2.5-coder:1.5b, llama3.2:1b).",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "model_name": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": ["model_name"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "inspect_neural_memory",
+      "description": "Inspect or add custom learned aliases and user preferences in AriaOS persistent neural memory.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "add_alias_trigger": {
+            "type": "string",
+            "default": ""
+          },
+          "add_alias_target": {
+            "type": "string",
+            "default": ""
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  ]
+}

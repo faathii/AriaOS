@@ -82,6 +82,12 @@ class TestCommandBar(unittest.TestCase):
             ("automations", "aria_automations.py", "ariaos-automations"),
             ("firewall", "aria_firewall.py", "ariaos-firewall"),
             ("installer", "aria_installer.py", "ariaos-installer"),
+            ("snapshots", "aria_snapshots.py", "ariaos-snapshots"),
+            ("vault", "aria_vault.py", "ariaos-vault"),
+            ("ai-studio", "aria_ai_studio.py", "ariaos-ai-studio"),
+            ("netradar", "aria_netradar.py", "ariaos-netradar"),
+            ("optimizer", "aria_optimizer.py", "ariaos-optimizer"),
+            ("clipboard", "aria_clipboard.py", "ariaos-clipboard"),
         ):
             script_path = REPO_ROOT / "ui" / app_dir / script_name
             proc = subprocess.run(

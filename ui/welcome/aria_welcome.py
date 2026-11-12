@@ -349,6 +349,33 @@ def main() -> int:
             actions.addWidget(btn_settings)
 
             layout.addLayout(actions)
+
+            actions2 = QHBoxLayout()
+            btn_snap = QPushButton("⏪ Time Machine")
+            btn_snap.clicked.connect(lambda: subprocess.Popen(["ariaos-snapshots"]))
+            actions2.addWidget(btn_snap)
+
+            btn_vault = QPushButton("🔐 Bóveda Secreta")
+            btn_vault.clicked.connect(lambda: subprocess.Popen(["ariaos-vault"]))
+            actions2.addWidget(btn_vault)
+
+            btn_studio = QPushButton("🚀 AI Studio")
+            btn_studio.clicked.connect(lambda: subprocess.Popen(["ariaos-ai-studio"]))
+            actions2.addWidget(btn_studio)
+
+            btn_radar = QPushButton("🌐 Radar de Red")
+            btn_radar.clicked.connect(lambda: subprocess.Popen(["ariaos-netradar"]))
+            actions2.addWidget(btn_radar)
+
+            btn_opt = QPushButton("🧹 Optimizador Boot")
+            btn_opt.clicked.connect(lambda: subprocess.Popen(["ariaos-optimizer"]))
+            actions2.addWidget(btn_opt)
+
+            btn_clip = QPushButton("📋 Portapapeles IA")
+            btn_clip.clicked.connect(lambda: subprocess.Popen(["ariaos-clipboard"]))
+            actions2.addWidget(btn_clip)
+
+            layout.addLayout(actions2)
             layout.addStretch()
             return w
 

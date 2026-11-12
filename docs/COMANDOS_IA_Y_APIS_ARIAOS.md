@@ -1,7 +1,7 @@
 # 🧠 Manual Maestro de IA, Conectores, APIs y Comandos de Actuación — AriaOS Cyber Obsidian
 
 > **Filosofía de AriaOS:** *"La IA no es un programa; la IA ES el Sistema Operativo."*
-> Aria opera directamente desde el Kernel de Linux y el demonio nativo en Rust/Ensamblador x86_64 (`aria-daemon`), gobernando **32 conectores oficiales**, **118 herramientas de API** y **más de 58 aplicaciones de escritorio**.
+> Aria opera directamente desde el Kernel de Linux y el demonio nativo en Rust/Ensamblador x86_64 (`aria-daemon`), gobernando **39 conectores oficiales**, **146 herramientas de API** y **más de 66 aplicaciones de escritorio**.
 
 ---
 
@@ -52,6 +52,12 @@
 | **Aria Shield Antivirus** | `ariaos-antivirus` | `«abrir antivirus»` / `«abrir escudo»` | Centro de seguridad ClamAV bajo demanda (0 MB RAM en reposo), cuarentena reversible y whitelist SHA-256. |
 | **Cortafuegos y Monitor de Red** | `ariaos-firewall` | `«abrir cortafuegos»` / `«conexiones activas»` | Monitor en vivo de sockets TCP/UDP (`/proc/net/tcp`, `ss`), bloqueo de puertos en 1 clic y Modo Aislamiento de Emergencia. |
 | **Instalador Gráfico de Sistema** | `ariaos-installer` | `«instalar ariaos»` / `«abrir instalador»` | Asistente visual Cyber Obsidian para particionado NVMe/SSD (`ext4`/`btrfs`/`xfs`), cifrado LUKS2 e instalación de AriaOS + IA. |
+| **Máquina del Tiempo (Snapshots)** | `ariaos-snapshots` | `«abrir snapshots»` / `«crear snapshot»` | Puntos de restauración instantáneos (Btrfs, Timeshift y configuración neuronal AriaOS) con reversión en 1 clic. |
+| **Bóveda Criptográfica y Secretos** | `ariaos-vault` | `«abrir boveda»` / `«generar clave segura»` | Gestor local cifrado (`PBKDF2-HMAC-SHA256`), generador CSPRNG de alta entropía y auditor de llaves SSH (`~/.ssh`). |
+| **Laboratorio de IA Local (AI Studio)** | `ariaos-ai-studio` | `«abrir ai studio»` / `«benchmark de ia»` | Conmutador de modelos locales (`aria-core`, `qwen2.5`, `llama3.2`), benchmark de tokens/s y editor de memoria neuronal. |
+| **Radar de Red y DNS Privado** | `ariaos-netradar` | `«abrir netradar»` / `«dispositivos en mi red»` | Escáner de dispositivos LAN (ARP/NDP), selector de DNS cifrado (`Cloudflare`, `Quad9`, `Mullvad`) y radar de latencia. |
+| **Optimizador de Boot y Limpiador** | `ariaos-optimizer` | `«abrir optimizador»` / `«analizar tiempo de arranque»` | Analizador de tiempos de arranque (`systemd-analyze`) y limpiador profundo de cachés Pacman, logs `journald` y miniaturas. |
+| **Portapapeles Inteligente IA** | `ariaos-clipboard` | `«abrir portapapeles»` / `«historial del portapapeles»` | Historial semántico de elementos copiados (JSON, URL, código, bash) y transformador en 1 clic (JSON, Base64, SHA-256). |
 | **Centro de Control AriaOS** | `ariaos-settings` | `«abrir ajustes»` / `«configuración»` | Selector de modelo neuronal (`aria-core` 0.5B / 1.5B / 3B), idioma (8 idiomas) y optimización de memoria. |
 | **Centro Neuronal de Bienvenida** | `ariaos-welcome` | `«abrir bienvenida»` | Panel de estado del Kernel, instalación en disco y acceso rápido a herramientas. |
 | **Menú Contextual IA en Dolphin** | `ariaos-file-action` | Clic derecho en cualquier archivo/carpeta en Dolphin → **⚡ AriaOS Gestor IA** | Analiza metadatos + SHA-256 + cabeceras ELF/PDF/Office, convierte formatos (Doc→PDF, Vídeo→MP3, SVG→PNG, Carpeta→ZIP), organiza y busca duplicados. |
@@ -393,4 +399,64 @@
   - `/call net-sync-comms-gaming syncthing_status {"port": 8384}`
   - `/call net-sync-comms-gaming qbittorrent_torrents {"port": 8080}`
   - `/call net-sync-comms-gaming launch_ecosystem_app {"app": "steam"}`
+
+---
+
+### G. Subsistemas Avanzados Cyber Obsidian (7 Conectores Nuevos)
+
+#### 33. `security-firewall` — Cortafuegos Inteligente y Monitor de Conexiones en Vivo
+* **Herramientas API y Comandos:**
+  - **Nosotros:** `«estado cortafuegos»`, `«conexiones activas»`, `«puertos abiertos»`
+  - `/call security-firewall firewall_status {}`
+  - `/call security-firewall active_connections {"limit": 50}`
+  - `/call security-firewall manage_port_rule {"action": "block", "port": 8080, "protocol": "tcp"}`
+  - `/call security-firewall network_lockdown {"enabled": true}`
+
+#### 34. `os-snapshots` — Máquina del Tiempo y Puntos de Restauración del Sistema
+* **Herramientas API y Comandos:**
+  - **Nosotros:** `«listar snapshots»`, `«puntos de restauracion»`, `«crear snapshot»`
+  - `/call os-snapshots list_snapshots {}`
+  - `/call os-snapshots create_snapshot {"label": "Antes de actualizar kernel", "scope": "config"}`
+  - `/call os-snapshots restore_snapshot {"snapshot_id": "snap-baseline-cyber-obsidian", "dry_run": false}`
+  - `/call os-snapshots delete_snapshot {"snapshot_id": "snap-123"}`
+
+#### 35. `security-vault` — Bóveda Criptográfica Local, Auditor SSH y Generador CSPRNG
+* **Herramientas API y Comandos:**
+  - **Nosotros:** `«estado boveda»`, `«auditar llaves ssh»`, `«generar clave segura»`
+  - `/call security-vault vault_status {}`
+  - `/call security-vault store_secret {"label": "GitHub Token", "category": "api_token", "secret_value": "ghp_xxx"}`
+  - `/call security-vault list_secrets {"reveal_label": ""}`
+  - `/call security-vault generate_entropy_key {"length": 28, "include_symbols": true}`
+
+#### 36. `ai-model-manager` — Laboratorio de Modelos Locales (AI Studio) y Benchmark Neuronal
+* **Herramientas API y Comandos:**
+  - **Nosotros:** `«modelos de ia»`, `«benchmark de ia»`, `«velocidad de inferencia»`
+  - `/call ai-model-manager list_models {}`
+  - `/call ai-model-manager benchmark_inference {}`
+  - `/call ai-model-manager switch_active_model {"model_name": "qwen2.5-coder:1.5b"}`
+  - `/call ai-model-manager inspect_neural_memory {"add_alias_trigger": "modo código", "add_alias_target": "modo desarrollo"}`
+
+#### 37. `network-radar` — Radar de Red, Escáner de Dispositivos LAN y DNS Privado
+* **Herramientas API y Comandos:**
+  - **Nosotros:** `«dispositivos en mi red»`, `«escanear red local»`, `«activar dns seguro»`, `«radar de latencia»`
+  - `/call network-radar scan_lan_devices {}`
+  - `/call network-radar dns_privacy_status {}`
+  - `/call network-radar set_secure_dns {"provider": "quad9", "adblock_hosts": true}`
+  - `/call network-radar latency_radar {}`
+
+#### 38. `os-optimizer` — Analizador de Arranque (`systemd-analyze`) y Limpiador Profundo
+* **Herramientas API y Comandos:**
+  - **Nosotros:** `«analizar tiempo de arranque»`, `«limpiar sistema a fondo»`, `«espacio recuperable»`
+  - `/call os-optimizer analyze_boot_time {}`
+  - `/call os-optimizer scan_junk_data {}`
+  - `/call os-optimizer deep_clean_system {"targets": ["user_cache", "journal_logs", "pacman_cache", "tmp_files"]}`
+  - `/call os-optimizer optimize_services {"action": "list"}`
+
+#### 39. `os-clipboard` — Portapapeles Inteligente e Historial Semántico
+* **Herramientas API y Comandos:**
+  - **Nosotros:** `«historial del portapapeles»`, `«que he copiado»`, `«limpiar portapapeles»`
+  - `/call os-clipboard clipboard_history {"limit": 20}`
+  - `/call os-clipboard copy_to_clipboard {"text": "aria-daemon telemetry"}`
+  - `/call os-clipboard transform_clipboard {"operation": "format_json"}`
+  - `/call os-clipboard clear_clipboard {}`
 

@@ -1,0 +1,79 @@
+{
+  "id": "os-clipboard",
+  "name": "AriaOS Neural Clipboard & Smart Transformer",
+  "version": "0.1.0",
+  "description": "Persistent clipboard ring-buffer with semantic classification (JSON, URL, shell command, code, path) and 1-click formatting/transformation.",
+  "tier": "os_ipc",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dependencies": ["wl-clipboard", "xclip"],
+  "tools": [
+    {
+      "name": "clipboard_history",
+      "description": "Retrieve recent clipboard entries with semantic classification (JSON, URL, shell command, code, path, text).",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50,
+            "default": 20
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "copy_to_clipboard",
+      "description": "Copy text to the OS clipboard and save it in AriaOS persistent clipboard history.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": ["text"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "transform_clipboard",
+      "description": "Transform the latest clipboard content (format_json, extract_urls, base64_encode, base64_decode, sha256_hash, uppercase, lowercase).",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "operation": {
+            "type": "string",
+            "enum": ["format_json", "extract_urls", "base64_encode", "base64_decode", "sha256_hash", "uppercase", "lowercase"]
+          },
+          "input_text": {
+            "type": "string",
+            "default": ""
+          }
+        },
+        "required": ["operation"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "clear_clipboard",
+      "description": "Wipe the system clipboard and clear AriaOS persistent clipboard history for privacy.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    }
+  ]
+}

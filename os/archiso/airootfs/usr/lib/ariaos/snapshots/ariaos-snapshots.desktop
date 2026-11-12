@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=AriaOS Time Machine (Snapshots)
+Comment=Instant system and configuration restore points
+Exec=/usr/bin/ariaos-snapshots
+Icon=system-reboot
+Terminal=false
+Categories=System;Utility;

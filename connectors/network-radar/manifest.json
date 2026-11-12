@@ -1,0 +1,66 @@
+{
+  "id": "network-radar",
+  "name": "AriaOS Network Radar, LAN Scanner & Private DNS",
+  "version": "0.1.0",
+  "description": "Local network neighbor discovery (ARP/NDP), encrypted/private DNS switching (Cloudflare, Quad9, Mullvad), and multi-endpoint latency radar.",
+  "tier": "os_ipc",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dependencies": ["iproute2", "networkmanager"],
+  "tools": [
+    {
+      "name": "scan_lan_devices",
+      "description": "Discover devices connected to the local LAN/Wi-Fi via ARP table (/proc/net/arp, ip neigh).",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "dns_privacy_status",
+      "description": "Inspect active DNS resolvers, anti-tracking profile, and encrypted DNS configuration.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "set_secure_dns",
+      "description": "Switch system DNS resolvers to a privacy-first or high-speed provider (cloudflare, quad9, mullvad, google, dhcp).",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string",
+            "enum": ["cloudflare", "quad9", "mullvad", "google", "dhcp"]
+          },
+          "adblock_hosts": {
+            "type": "boolean",
+            "default": true
+          }
+        },
+        "required": ["provider"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "latency_radar",
+      "description": "Measure network round-trip latency and jitter across major global DNS and cloud backbone nodes.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    }
+  ]
+}

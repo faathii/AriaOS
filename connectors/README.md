@@ -35,6 +35,12 @@ Each directory here represents **one application, system service, or tool domain
 | [`knowledge-notes-ebooks/`](knowledge-notes-ebooks/manifest.json) | `program_api` | `stdio` | Obsidian vault search/notes and Calibre library/conversion |
 | [`security-antivirus/`](security-antivirus/manifest.json) | `program_api` | `stdio` | 100% free ClamAV malware scanning, signature updates (`freshclam`), and reversible quarantine vault |
 | [`security-firewall/`](security-firewall/manifest.json) | `os_ipc` | `stdio` | Intelligent Firewall (`nftables`/`ufw`), live TCP/UDP socket monitor (`/proc/net/tcp`, `ss`), and emergency network lockdown |
+| [`os-snapshots/`](os-snapshots/manifest.json) | `os_ipc` | `stdio` | Time Machine system & configuration snapshots (Btrfs, Timeshift, AriaOS atomic backups) with 1-click rollback |
+| [`security-vault/`](security-vault/manifest.json) | `os_ipc` | `stdio` | Cryptographic secret vault (`PBKDF2-HMAC-SHA256`), SSH key permission auditor, and CSPRNG key generator |
+| [`ai-model-manager/`](ai-model-manager/manifest.json) | `os_ipc` | `stdio` | Local LLM Studio (`aria-core`, `qwen2.5`), CPU/GPU inference benchmark, and persistent neural memory editor |
+| [`network-radar/`](network-radar/manifest.json) | `os_ipc` | `stdio` | LAN device neighbor discovery (ARP/NDP), private DNS switcher (`Cloudflare`/`Quad9`/`Mullvad`), and latency radar |
+| [`os-optimizer/`](os-optimizer/manifest.json) | `os_ipc` | `stdio` | Kernel/systemd boot latency analyzer (`systemd-analyze`), cache/log scanner, and deep system cleaner |
+| [`os-clipboard/`](os-clipboard/manifest.json) | `os_ipc` | `stdio` | Neural clipboard history ring-buffer with semantic classification and 1-click JSON/Base64/SHA-256 transformation |
 | [`security-vault-crypto/`](security-vault-crypto/manifest.json) | `program_api` | `stdio` | KeePassXC `.kdbx` check, VeraCrypt volumes, Timeshift, Flameshot |
 | [`security-net-audit/`](security-net-audit/manifest.json) | `program_api` | `stdio` | Wireshark/tshark PCAP, ELF/PE headers (Ghidra/Cutter), Nmap & suite status |
 | [`dev-containers-vm/`](dev-containers-vm/manifest.json) | `program_api` | `stdio` | Docker/Podman/Portainer containers and VirtualBox/QEMU-KVM control |

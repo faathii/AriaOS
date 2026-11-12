@@ -1,0 +1,82 @@
+{
+  "id": "os-snapshots",
+  "name": "AriaOS Time Machine & System Snapshots",
+  "version": "0.1.0",
+  "description": "Instant system & configuration restore points (Btrfs subvolumes, Timeshift, and AriaOS atomic config snapshots) with 1-click rollback.",
+  "tier": "os_ipc",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dependencies": ["rsync", "btrfs-progs"],
+  "tools": [
+    {
+      "name": "list_snapshots",
+      "description": "List all available system and configuration restore points with timestamps, backend type, and size.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "create_snapshot",
+      "description": "Create a new system and user configuration restore point before critical changes or package updates.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "default": "Punto de restauración manual"
+          },
+          "scope": {
+            "type": "string",
+            "enum": ["config", "full_system"],
+            "default": "config"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "restore_snapshot",
+      "description": "Restore system or user configurations from a specific snapshot ID.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "snapshot_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "dry_run": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": ["snapshot_id"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "delete_snapshot",
+      "description": "Delete an existing snapshot by its ID to free storage space.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "snapshot_id": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": ["snapshot_id"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

@@ -108,10 +108,12 @@ def _launch_gui(client: AriaDaemonClient) -> int:
         from PyQt6.QtGui import QIcon, QKeySequence, QShortcut
         from PyQt6.QtWidgets import (
             QApplication,
+            QHBoxLayout,
             QLabel,
             QLineEdit,
             QListWidget,
             QMessageBox,
+            QPushButton,
             QTextEdit,
             QVBoxLayout,
             QWidget,

@@ -46,6 +46,12 @@ for flag in "$@"; do
 done
 
 if [ "${#REPO_SELECTED[@]}" -gt 0 ]; then
+  # Ensure [multilib] repository is enabled for packages like Steam
+  if ! grep -q "^\[multilib\]" /etc/pacman.conf; then
+    echo "Enabling [multilib] repository in /etc/pacman.conf..."
+    sudo sed -i '/^#\[multilib\]/{s/^#//;n;s/^#//}' /etc/pacman.conf
+    sudo pacman -Sy
+  fi
   sudo pacman -S --needed --noconfirm "${REPO_SELECTED[@]}"
   for grp in docker libvirt wireshark vboxusers; do
     if getent group "$grp" >/dev/null 2>&1; then

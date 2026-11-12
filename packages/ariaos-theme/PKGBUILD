@@ -1,0 +1,26 @@
+# Maintainer: AriaOS Contributors <https://github.com/faathii/AriaOS>
+pkgname=ariaos-theme
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="AriaOS Plymouth animated boot splash, wallpaper, SDDM theme, and system logos"
+arch=('any')
+url="https://github.com/faathii/AriaOS"
+license=('GPL-3.0-or-later')
+depends=('plymouth' 'sddm')
+
+package() {
+  local root_dir
+  root_dir="$(cd "${startdir}/../.." && pwd)"
+  install -Dm644 "${root_dir}/assets/branding/ariaos-wallpaper.jpg" \
+    "${pkgdir}/usr/share/wallpapers/AriaOS/contents/images/2816x1536.jpg"
+  install -Dm644 "${root_dir}/os/archiso/airootfs/usr/share/wallpapers/AriaOS/metadata.json" \
+    "${pkgdir}/usr/share/wallpapers/AriaOS/metadata.json"
+  install -Dm644 "${root_dir}/assets/branding/ariaos-logo.png" \
+    "${pkgdir}/usr/share/icons/hicolor/512x512/apps/ariaos-logo.png"
+  install -Dm644 "${root_dir}/assets/branding/ariaos-logo.png" \
+    "${pkgdir}/usr/share/pixmaps/ariaos-logo.png"
+  install -Dm644 "${root_dir}/assets/branding/ariaos-boot-logo.png" \
+    "${pkgdir}/usr/share/plymouth/themes/ariaos/logo.png"
+  install -Dm755 "${root_dir}/os/archiso/airootfs/usr/bin/ariaos-apply-branding" \
+    "${pkgdir}/usr/bin/ariaos-apply-branding"
+}

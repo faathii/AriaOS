@@ -1,0 +1,51 @@
+# Expanded Official Arch & Multilib App Suite for AriaOS
+# Installed onto target systems via `ariaos-install-apps --all` (keeps Live ISO compact).
+
+# --- Creative, Photo & Video ---
+inkscape
+darktable
+rawtherapee
+handbrake
+handbrake-cli
+pitivi
+shotcut
+
+# --- Knowledge, Notes & E-Books ---
+obsidian
+calibre
+
+# --- Security, Encryption, Pentesting & Reverse Engineering ---
+keepassxc
+veracrypt
+flameshot
+wireshark-qt
+wireshark-cli
+nmap
+ghidra
+cutter
+rizin
+metasploit
+hashcat
+john
+timeshift
+
+# --- Containers, VMs & Databases ---
+docker
+podman
+virtualbox
+qemu-full
+libvirt
+virt-manager
+dbeaver
+
+# --- Networking, Comms & Gaming ---
+qbittorrent
+syncthing
+telegram-desktop
+element-desktop
+signal-desktop
+discord
+steam
+lutris
+retroarch
+gnome-tweaks

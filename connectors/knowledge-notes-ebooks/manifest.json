@@ -1,0 +1,74 @@
+{
+  "id": "knowledge-notes-ebooks",
+  "name": "Knowledge & E-Books Connector (Obsidian & Calibre)",
+  "version": "0.1.0",
+  "description": "Search, read, and create Obsidian Markdown notes and list or convert Calibre library e-books.",
+  "tier": "program_api",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dependencies": ["obsidian", "calibre"],
+  "tools": [
+    {
+      "name": "search_obsidian_vault",
+      "description": "Search Markdown notes inside an Obsidian vault by filename or content substring.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "vault_dir": { "type": "string" },
+          "query": { "type": "string" },
+          "limit": { "type": "integer", "minimum": 1, "maximum": 100, "default": 25 }
+        },
+        "required": ["vault_dir", "query"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "create_obsidian_note",
+      "description": "Create a new Markdown note inside an Obsidian vault without overwriting existing notes.",
+      "risk_level": "write",
+      "reversible": false,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "vault_dir": { "type": "string" },
+          "relative_path": { "type": "string", "description": "Note relative path ending in .md" },
+          "content": { "type": "string" }
+        },
+        "required": ["vault_dir", "relative_path", "content"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "calibre_list_books",
+      "description": "List books in a Calibre library via calibredb JSON output.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "library_dir": { "type": "string" },
+          "search": { "type": "string" },
+          "limit": { "type": "integer", "minimum": 1, "maximum": 100, "default": 25 }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "calibre_convert_ebook",
+      "description": "Convert an e-book (EPUB, MOBI, AZW3, PDF) via Calibre ebook-convert without overwriting.",
+      "risk_level": "write",
+      "reversible": false,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "input_path": { "type": "string" },
+          "output_path": { "type": "string" }
+        },
+        "required": ["input_path", "output_path"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

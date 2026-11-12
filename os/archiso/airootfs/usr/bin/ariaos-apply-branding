@@ -32,3 +32,4 @@ fi
 
 mkdir -p "$(dirname "${MARKER}")"
 date -Iseconds > "${MARKER}"
+

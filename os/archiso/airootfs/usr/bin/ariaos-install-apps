@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# AriaOS Ecosystem Suite Installer
+# Installs curated Arch official/multilib/AUR app suites and enables their services.
+
+usage() {
+  cat <<'EOF'
+Usage: ariaos-install-apps [--all | --creative | --knowledge | --security | --dev | --gaming | --comms | --aur | --portainer]
+EOF
+}
+
+CREATIVE_PKGS=(inkscape darktable rawtherapee handbrake handbrake-cli pitivi shotcut)
+KNOWLEDGE_PKGS=(obsidian calibre)
+SECURITY_PKGS=(keepassxc veracrypt flameshot wireshark-qt wireshark-cli nmap ghidra cutter rizin metasploit hashcat john timeshift)
+DEV_PKGS=(docker podman virtualbox qemu-full libvirt virt-manager dbeaver)
+GAMING_PKGS=(steam lutris retroarch)
+COMMS_PKGS=(qbittorrent syncthing telegram-desktop element-desktop signal-desktop discord gnome-tweaks)
+AUR_PKGS=(brave-bin vscodium-bin stacer-bin burpsuite postman-bin insomnia-bin mysql-workbench spotify heroic-games-launcher-bin stremio freetube-bin pcsx2 rpcs3-bin duckstation-gpl ventoy-bin)
+
+if [ "$#" -eq 0 ]; then
+  usage
+  exit 1
+fi
+
+REPO_SELECTED=()
+DO_AUR=0
+DO_PORTAINER=0
+
+for flag in "$@"; do
+  case "$flag" in
+    --creative) REPO_SELECTED+=("${CREATIVE_PKGS[@]}") ;;
+    --knowledge) REPO_SELECTED+=("${KNOWLEDGE_PKGS[@]}") ;;
+    --security) REPO_SELECTED+=("${SECURITY_PKGS[@]}") ;;
+    --dev) REPO_SELECTED+=("${DEV_PKGS[@]}") ;;
+    --gaming) REPO_SELECTED+=("${GAMING_PKGS[@]}") ;;
+    --comms) REPO_SELECTED+=("${COMMS_PKGS[@]}") ;;
+    --aur) DO_AUR=1 ;;
+    --portainer) DO_PORTAINER=1 ;;
+    --all)
+      REPO_SELECTED+=("${CREATIVE_PKGS[@]}" "${KNOWLEDGE_PKGS[@]}" "${SECURITY_PKGS[@]}" "${DEV_PKGS[@]}" "${GAMING_PKGS[@]}" "${COMMS_PKGS[@]}")
+      DO_AUR=1
+      ;;
+    *) usage; exit 2 ;;
+  esac
+done
+
+if [ "${#REPO_SELECTED[@]}" -gt 0 ]; then
+  sudo pacman -S --needed --noconfirm "${REPO_SELECTED[@]}"
+  for grp in docker libvirt wireshark vboxusers; do
+    if getent group "$grp" >/dev/null 2>&1; then
+      sudo usermod -aG "$grp" "${USER}" || true
+    fi
+  done
+  if systemctl list-unit-files | grep -q '^docker\.service'; then
+    sudo systemctl enable --now docker.service || true
+  fi
+  if systemctl list-unit-files | grep -q '^libvirtd\.service'; then
+    sudo systemctl enable --now libvirtd.service || true
+  fi
+fi
+
+if [ "${DO_AUR}" -eq 1 ]; then
+  if ! command -v yay >/dev/null 2>&1; then
+    echo "Installing AUR helper 'yay'..."
+    sudo pacman -S --needed --noconfirm base-devel git
+    tmp_dir="$(mktemp -d)"
+    git clone https://aur.archlinux.org/yay-bin.git "${tmp_dir}/yay-bin"
+    (cd "${tmp_dir}/yay-bin" && makepkg -si --noconfirm)
+    rm -rf "${tmp_dir}"
+  fi
+  yay -S --needed --noconfirm "${AUR_PKGS[@]}"
+fi
+
+if [ "${DO_PORTAINER}" -eq 1 ]; then
+  docker volume create portainer_data >/dev/null
+  docker run -d -p 9443:9443 --name portainer --restart=always \
+    -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data \
+    portainer/portainer-ce:latest
+fi

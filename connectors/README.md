@@ -27,6 +27,14 @@ Each directory here represents **one application, system service, or tool domain
 | [`creative-blender/`](creative-blender/README.md) | `program_api` | `stdio` | `.blend` scene inspection via `bpy` and headless frame rendering |
 | [`creative-audacity/`](creative-audacity/README.md) | `program_api` | `stdio` | Audacity `mod-script-pipe` FIFO status and command bridge |
 | [`creative-kdenlive/`](creative-kdenlive/README.md) | `program_api` | `stdio` | `.kdenlive` MLT timeline inspector and headless `melt` render |
+| [`creative-design-photo/`](creative-design-photo/manifest.json) | `program_api` | `stdio` | Inkscape SVG inspection/export and Darktable/RawTherapee RAW export |
+| [`creative-video-transcode/`](creative-video-transcode/manifest.json) | `program_api` | `stdio` | HandBrakeCLI transcoding and Shotcut/Pitivi project inspection |
+| [`knowledge-notes-ebooks/`](knowledge-notes-ebooks/manifest.json) | `program_api` | `stdio` | Obsidian vault search/notes and Calibre library/conversion |
+| [`security-vault-crypto/`](security-vault-crypto/manifest.json) | `program_api` | `stdio` | KeePassXC `.kdbx` check, VeraCrypt volumes, Timeshift, Flameshot |
+| [`security-net-audit/`](security-net-audit/manifest.json) | `program_api` | `stdio` | Wireshark/tshark PCAP, ELF/PE headers (Ghidra/Cutter), Nmap & suite status |
+| [`dev-containers-vm/`](dev-containers-vm/manifest.json) | `program_api` | `stdio` | Docker/Podman/Portainer containers and VirtualBox/QEMU-KVM control |
+| [`dev-api-databases/`](dev-api-databases/manifest.json) | `program_api` | `stdio` | DBeaver/MySQL Workbench connections, HTTP preview, Postman/Insomnia |
+| [`net-sync-comms-gaming/`](net-sync-comms-gaming/manifest.json) | `program_api` | `stdio` | Syncthing, qBittorrent APIs and Steam/Lutris/Emulators/Comms launcher |
 
 ## Adding a New Connector
 

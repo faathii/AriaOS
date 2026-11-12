@@ -1,0 +1,62 @@
+{
+  "id": "security-vault-crypto",
+  "name": "Vault, Encryption & Snapshot Connector (KeePassXC, VeraCrypt, Timeshift, Flameshot)",
+  "version": "0.1.0",
+  "description": "Inspect VeraCrypt mounted volumes, Timeshift system snapshots, KeePassXC vault paths, and capture screenshots via Flameshot.",
+  "tier": "program_api",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dependencies": ["keepassxc", "veracrypt", "timeshift", "flameshot"],
+  "tools": [
+    {
+      "name": "keepassxc_check_db",
+      "description": "Validate a KeePassXC .kdbx database file header without opening secrets.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string" }
+        },
+        "required": ["path"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "veracrypt_list_volumes",
+      "description": "List currently mounted VeraCrypt volumes via veracrypt CLI.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "timeshift_list_snapshots",
+      "description": "List Timeshift system snapshots via timeshift CLI.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "flameshot_capture",
+      "description": "Take a desktop screenshot via Flameshot GUI or full-screen save without overwriting.",
+      "risk_level": "write",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "mode": { "type": "string", "enum": ["gui", "full"], "default": "gui" },
+          "output_path": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    }
+  ]
+}

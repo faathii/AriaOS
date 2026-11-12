@@ -25,6 +25,7 @@ file_permissions=(
   ["/usr/bin/aria-command-bar"]="0:0:755"
   ["/usr/bin/aria-daemon"]="0:0:755"
   ["/usr/bin/ariaos-apply-branding"]="0:0:755"
+  ["/usr/bin/ariaos-install-apps"]="0:0:755"
   ["/usr/local/bin/choose-mirror"]="0:0:755"
   ["/usr/local/bin/Installation_guide"]="0:0:755"
   ["/usr/local/bin/livecd-sound"]="0:0:755"

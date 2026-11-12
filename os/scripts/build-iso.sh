@@ -89,7 +89,8 @@ sed -i 's/\r$//' \
   "${STAGE_DIR}/airootfs/etc/shadow" \
   "${STAGE_DIR}/airootfs/etc/xdg/kscreenlockerrc" \
   "${STAGE_DIR}/airootfs/usr/bin/aria-command-bar" \
-  "${STAGE_DIR}/airootfs/usr/bin/ariaos-apply-branding"
+  "${STAGE_DIR}/airootfs/usr/bin/ariaos-apply-branding" \
+  "${STAGE_DIR}/airootfs/usr/bin/ariaos-install-apps"
 
 echo "[3/4] Enabling systemd units inside airootfs..."
 WANTS_DIR="${STAGE_DIR}/airootfs/etc/systemd/system/multi-user.target.wants"

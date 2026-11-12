@@ -1,0 +1,20 @@
+# Maintainer: AriaOS Contributors <https://github.com/faathii/AriaOS>
+pkgname=ariaos-app-integrations
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="AriaOS ecosystem app suite installer and native API integration configs"
+arch=('any')
+url="https://github.com/faathii/AriaOS"
+license=('GPL-3.0-or-later')
+depends=('ariaos-core' 'bash')
+
+package() {
+  local root_dir
+  root_dir="$(cd "${startdir}/../.." && pwd)"
+  install -Dm755 "${root_dir}/os/archiso/airootfs/usr/bin/ariaos-install-apps" \
+    "${pkgdir}/usr/bin/ariaos-install-apps"
+  install -Dm644 "${root_dir}/os/archiso/packages.full.x86_64" \
+    "${pkgdir}/usr/share/ariaos/packages.full.x86_64"
+  install -Dm644 "${root_dir}/os/archiso/packages.aur" \
+    "${pkgdir}/usr/share/ariaos/packages.aur"
+}

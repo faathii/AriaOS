@@ -1,0 +1,72 @@
+{
+  "id": "creative-design-photo",
+  "name": "Vector & RAW Photo Connector (Inkscape, Darktable, RawTherapee)",
+  "version": "0.1.0",
+  "description": "Inspect SVG graphics and export vector or RAW photos headlessly via Inkscape, Darktable, and RawTherapee.",
+  "tier": "program_api",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dependencies": ["inkscape", "darktable", "rawtherapee"],
+  "tools": [
+    {
+      "name": "inspect_svg",
+      "description": "Inspect SVG dimensions, viewBox, and Inkscape layers.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string" }
+        },
+        "required": ["path"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "inkscape_export",
+      "description": "Export an SVG file to PNG, PDF, EPS, or plain SVG via Inkscape CLI without overwriting.",
+      "risk_level": "write",
+      "reversible": false,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "input_path": { "type": "string" },
+          "output_path": { "type": "string" },
+          "dpi": { "type": "integer", "minimum": 36, "maximum": 1200, "default": 150 }
+        },
+        "required": ["input_path", "output_path"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "darktable_export",
+      "description": "Develop and export a RAW photo via darktable-cli without overwriting.",
+      "risk_level": "write",
+      "reversible": false,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "input_path": { "type": "string" },
+          "output_path": { "type": "string" }
+        },
+        "required": ["input_path", "output_path"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "rawtherapee_export",
+      "description": "Convert a RAW photo via rawtherapee-cli without overwriting.",
+      "risk_level": "write",
+      "reversible": false,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "input_path": { "type": "string" },
+          "output_path": { "type": "string" }
+        },
+        "required": ["input_path", "output_path"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

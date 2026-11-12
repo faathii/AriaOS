@@ -1,0 +1,57 @@
+{
+  "id": "creative-video-transcode",
+  "name": "Video Transcode & Editors Connector (HandBrake, Shotcut, Pitivi)",
+  "version": "0.1.0",
+  "description": "Inspect Shotcut/Pitivi project timelines, transcode videos with HandBrakeCLI, and launch video editors.",
+  "tier": "program_api",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dependencies": ["handbrake-cli", "shotcut", "pitivi"],
+  "tools": [
+    {
+      "name": "inspect_video_project",
+      "description": "Inspect Shotcut (.mlt) or Pitivi (.xges) XML project tracks and media resources.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string" }
+        },
+        "required": ["path"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "handbrake_transcode",
+      "description": "Transcode a video using HandBrakeCLI without overwriting existing outputs.",
+      "risk_level": "write",
+      "reversible": false,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "input_path": { "type": "string" },
+          "output_path": { "type": "string" },
+          "preset": { "type": "string", "default": "Fast 1080p30" }
+        },
+        "required": ["input_path", "output_path"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "launch_video_app",
+      "description": "Launch Shotcut, Pitivi, or HandBrake GUI.",
+      "risk_level": "write",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "app": { "type": "string", "enum": ["shotcut", "pitivi", "ghb"] },
+          "project_path": { "type": "string" }
+        },
+        "required": ["app"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

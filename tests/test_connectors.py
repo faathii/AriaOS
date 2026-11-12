@@ -511,6 +511,113 @@ class TestStdioConnectors(unittest.TestCase):
             self.assertEqual(vsc_res[0]["result"]["id"], "dev-vscodium")
             self.assertEqual(vsc_res[1]["error"]["code"], -32602)
 
+    def test_expanded_ecosystem_connectors(self) -> None:
+        def call(req_id: int, name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
+            return {
+                "jsonrpc": "2.0",
+                "id": req_id,
+                "method": "tools/call",
+                "params": {"name": name, "arguments": arguments},
+            }
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+
+            # 1. creative-design-photo: inspect_svg
+            svg_path = root / "logo.svg"
+            svg_path.write_text(
+                '<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="512" height="512" viewBox="0 0 512 512"><g id="g1" inkscape:label="Emblem"/></svg>',
+                encoding="utf-8",
+            )
+            cdp_res = _rpc_session(
+                CONNECTORS_DIR / "creative-design-photo" / "connector.py",
+                [
+                    call(1, "inspect_svg", {"path": str(svg_path)}),
+                    call(2, "inkscape_export", {"input_path": str(svg_path), "output_path": str(root / "out.exe")}),
+                ],
+            )
+            self.assertEqual(cdp_res[0]["result"]["data"]["width"], "512")
+            self.assertEqual(cdp_res[0]["result"]["data"]["layers"][0]["label"], "Emblem")
+            self.assertEqual(cdp_res[1]["error"]["code"], -32602)
+
+            # 2. creative-video-transcode: .mlt inspection
+            mlt_path = root / "shotcut.mlt"
+            mlt_path.write_text(
+                '<mlt><profile width="1280" height="720"/><producer id="p1"><property name="resource">intro.mp4</property></producer></mlt>',
+                encoding="utf-8",
+            )
+            vt_res = _rpc_session(
+                CONNECTORS_DIR / "creative-video-transcode" / "connector.py",
+                [call(1, "inspect_video_project", {"path": str(mlt_path)})],
+            )
+            self.assertEqual(vt_res[0]["result"]["data"]["format"], "shotcut-mlt")
+            self.assertEqual(vt_res[0]["result"]["data"]["sources"], ["intro.mp4"])
+
+            # 3. knowledge-notes-ebooks: Obsidian vault create + search + traversal guard
+            vault = root / "vault"
+            vault.mkdir()
+            ob_res = _rpc_session(
+                CONNECTORS_DIR / "knowledge-notes-ebooks" / "connector.py",
+                [
+                    call(1, "create_obsidian_note", {"vault_dir": str(vault), "relative_path": "Aria/Welcome.md", "content": "# AriaOS Vault\nLocal AI ready."}),
+                    call(2, "search_obsidian_vault", {"vault_dir": str(vault), "query": "AriaOS"}),
+                    call(3, "create_obsidian_note", {"vault_dir": str(vault), "relative_path": "../escape.md", "content": "bad"}),
+                ],
+            )
+            self.assertTrue(ob_res[0]["result"]["data"]["created"])
+            self.assertEqual(ob_res[1]["result"]["data"]["count"], 1)
+            self.assertEqual(ob_res[2]["error"]["code"], -32602)
+
+            # 4. security-vault-crypto: .kdbx signature check
+            kdbx_path = root / "vault.kdbx"
+            kdbx_path.write_bytes(b"\x03\xd9\xa2\x9a\x67\xfb\x4b\xb5\x00\x00\x04\x00")
+            svc_res = _rpc_session(
+                CONNECTORS_DIR / "security-vault-crypto" / "connector.py",
+                [call(1, "keepassxc_check_db", {"path": str(kdbx_path)})],
+            )
+            self.assertTrue(svc_res[0]["result"]["data"]["valid_kdbx_signature"])
+
+            # 5. security-net-audit: ELF header check + nmap target guard
+            elf_path = root / "sample.bin"
+            elf_path.write_bytes(b"\x7fELF\x02\x01\x01" + b"\x00" * 32)
+            sna_res = _rpc_session(
+                CONNECTORS_DIR / "security-net-audit" / "connector.py",
+                [
+                    call(1, "inspect_binary", {"path": str(elf_path)}),
+                    call(2, "nmap_scan", {"target": "127.0.0.1;rm -rf /"}),
+                ],
+            )
+            self.assertEqual(sna_res[0]["result"]["data"]["format"], "ELF")
+            self.assertEqual(sna_res[0]["result"]["data"]["bitness"], "64-bit")
+            self.assertEqual(sna_res[1]["error"]["code"], -32602)
+
+            # 6. dev-containers-vm, dev-api-databases, net-sync-comms-gaming
+            dcv_res = _rpc_session(
+                CONNECTORS_DIR / "dev-containers-vm" / "connector.py",
+                [call(1, "vm_list", {}), call(2, "vm_power", {"hypervisor": "virtualbox", "name": "bad;vm", "action": "start"})],
+            )
+            self.assertIn("virtualbox", dcv_res[0]["result"]["data"])
+            self.assertEqual(dcv_res[1]["error"]["code"], -32602)
+
+            db_json = root / "data-sources.json"
+            db_json.write_text(
+                json.dumps({"connections": {"pg1": {"name": "AriaDB", "provider": "postgresql", "configuration": {"host": "localhost", "port": "5432", "database": "aria"}}}}),
+                encoding="utf-8",
+            )
+            dad_res = _rpc_session(
+                CONNECTORS_DIR / "dev-api-databases" / "connector.py",
+                [call(1, "list_db_connections", {"config_path": str(db_json)}), call(2, "http_get_preview", {"url": "file:///etc/passwd"})],
+            )
+            self.assertEqual(dad_res[0]["result"]["data"]["connections"][0]["name"], "AriaDB")
+            self.assertEqual(dad_res[1]["error"]["code"], -32602)
+
+            nscg_res = _rpc_session(
+                CONNECTORS_DIR / "net-sync-comms-gaming" / "connector.py",
+                [call(1, "ecosystem_apps_status", {}), call(2, "launch_ecosystem_app", {"app": "not-an-app"})],
+            )
+            self.assertIn("steam", nscg_res[0]["result"]["data"]["installed"])
+            self.assertEqual(nscg_res[1]["error"]["code"], -32602)
+
 
 if __name__ == "__main__":
     unittest.main()

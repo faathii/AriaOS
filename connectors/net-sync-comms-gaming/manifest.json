@@ -1,0 +1,71 @@
+{
+  "id": "net-sync-comms-gaming",
+  "name": "Sync, Comms, Streaming & Gaming Connector",
+  "version": "0.1.0",
+  "description": "Query Syncthing/qBittorrent local APIs and launch Steam, Lutris, Heroic, RetroArch, PCSX2, RPCS3, DuckStation, Telegram, Element, Signal, Discord, Spotify, Stremio, FreeTube, Ventoy, and Stacer.",
+  "tier": "program_api",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dependencies": ["syncthing", "qbittorrent", "steam", "lutris", "retroarch"],
+  "tools": [
+    {
+      "name": "ecosystem_apps_status",
+      "description": "Check installed gaming, emulator, communication, sync, and system utility binaries.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "syncthing_status",
+      "description": "Query Syncthing local REST API status on 127.0.0.1:8384.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "port": { "type": "integer", "minimum": 1024, "maximum": 65535, "default": 8384 },
+          "api_key": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "qbittorrent_torrents",
+      "description": "List torrents via qBittorrent local WebUI API v2.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "port": { "type": "integer", "minimum": 1024, "maximum": 65535, "default": 8080 }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "launch_ecosystem_app",
+      "description": "Launch an installed gaming, emulator, comms, streaming, or utility app safely.",
+      "risk_level": "write",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "app": {
+            "type": "string",
+            "enum": [
+              "steam", "heroic", "lutris", "retroarch", "pcsx2", "rpcs3", "duckstation",
+              "stremio", "freetube", "spotify", "telegram-desktop", "element-desktop",
+              "signal-desktop", "discord", "qbittorrent", "syncthing", "ventoy", "stacer", "gnome-tweaks"
+            ]
+          }
+        },
+        "required": ["app"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

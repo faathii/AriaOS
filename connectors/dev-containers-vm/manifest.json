@@ -1,0 +1,68 @@
+{
+  "id": "dev-containers-vm",
+  "name": "Containers & VMs Connector (Docker, Podman, Portainer, VirtualBox, QEMU/KVM)",
+  "version": "0.1.0",
+  "description": "List and inspect Docker/Podman/Portainer containers and control VirtualBox or QEMU/KVM virtual machines.",
+  "tier": "program_api",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dependencies": ["docker", "podman", "virtualbox", "libvirt"],
+  "tools": [
+    {
+      "name": "container_list",
+      "description": "List Docker or Podman containers (including Portainer instances).",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "runtime": { "type": "string", "enum": ["auto", "docker", "podman"], "default": "auto" }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "container_logs",
+      "description": "Read recent log lines from a Docker or Podman container.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "container": { "type": "string" },
+          "runtime": { "type": "string", "enum": ["auto", "docker", "podman"], "default": "auto" },
+          "tail": { "type": "integer", "minimum": 1, "maximum": 300, "default": 50 }
+        },
+        "required": ["container"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "vm_list",
+      "description": "List VirtualBox and QEMU/KVM (libvirt) virtual machines.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "vm_power",
+      "description": "Start or gracefully power off a VirtualBox or libvirt VM (requires explicit approval).",
+      "risk_level": "privileged",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "hypervisor": { "type": "string", "enum": ["virtualbox", "libvirt"] },
+          "name": { "type": "string" },
+          "action": { "type": "string", "enum": ["start", "shutdown"] }
+        },
+        "required": ["hypervisor", "name", "action"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

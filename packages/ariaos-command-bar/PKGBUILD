@@ -1,0 +1,20 @@
+# Maintainer: AriaOS Contributors <https://github.com/faathii/AriaOS>
+pkgname=ariaos-command-bar
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="AriaOS floating KDE Plasma 6 Command Bar connected to aria-daemon"
+arch=('any')
+url="https://github.com/faathii/AriaOS"
+license=('GPL-3.0-or-later')
+depends=('ariaos-core' 'python' 'python-pyqt6' 'qt6-wayland')
+
+package() {
+  local root_dir
+  root_dir="$(cd "${startdir}/../.." && pwd)"
+  install -d "${pkgdir}/usr/lib/ariaos/command-bar"
+  cp -a "${root_dir}/ui/command-bar/." "${pkgdir}/usr/lib/ariaos/command-bar/"
+  install -Dm755 "${root_dir}/os/archiso/airootfs/usr/bin/aria-command-bar" \
+    "${pkgdir}/usr/bin/aria-command-bar"
+  install -Dm644 "${root_dir}/ui/command-bar/ariaos-command-bar.desktop" \
+    "${pkgdir}/usr/share/applications/ariaos-command-bar.desktop"
+}

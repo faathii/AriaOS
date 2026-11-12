@@ -1,0 +1,54 @@
+{
+  "id": "dev-api-databases",
+  "name": "API & Databases Connector (Postman, Insomnia, DBeaver, MySQL Workbench)",
+  "version": "0.1.0",
+  "description": "Inspect DBeaver/MySQL Workbench connections (without secrets), probe read-only HTTP endpoints, and launch API/DB clients.",
+  "tier": "program_api",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dependencies": ["dbeaver", "postman", "insomnia", "mysql-workbench"],
+  "tools": [
+    {
+      "name": "http_get_preview",
+      "description": "Perform a read-only HTTP/HTTPS GET request to inspect REST API status and response body.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "url": { "type": "string" },
+          "max_chars": { "type": "integer", "minimum": 100, "maximum": 10000, "default": 2000 }
+        },
+        "required": ["url"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "list_db_connections",
+      "description": "List saved DBeaver or MySQL Workbench connection names and hosts without passwords.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "config_path": { "type": "string", "description": "Optional DBeaver data-sources.json or MySQL Workbench connections.xml path." }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "launch_dev_client",
+      "description": "Launch DBeaver, MySQL Workbench, Postman, or Insomnia.",
+      "risk_level": "write",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "app": { "type": "string", "enum": ["dbeaver", "mysql-workbench", "postman", "insomnia"] }
+        },
+        "required": ["app"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

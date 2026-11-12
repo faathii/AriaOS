@@ -64,6 +64,17 @@ if [ -f "${REPO_ROOT}/assets/branding/ariaos-boot-logo.png" ]; then
   install -Dm644 "${REPO_ROOT}/assets/branding/ariaos-boot-logo.png" \
     "${STAGE_DIR}/airootfs/usr/share/plymouth/themes/ariaos/logo.png"
 fi
+if [ -f "${REPO_ROOT}/assets/branding/ariaos-inicio.mp4" ]; then
+  install -Dm644 "${REPO_ROOT}/assets/branding/ariaos-inicio.mp4" \
+    "${STAGE_DIR}/airootfs/usr/share/ariaos/ariaos-inicio.mp4"
+  if command -v ffmpeg >/dev/null 2>&1; then
+    echo "  Extracting Plymouth boot animation frames from ariaos-inicio.mp4..."
+    FRAMES_DIR="${STAGE_DIR}/airootfs/usr/share/plymouth/themes/ariaos/frames"
+    mkdir -p "${FRAMES_DIR}"
+    ffmpeg -v error -y -i "${REPO_ROOT}/assets/branding/ariaos-inicio.mp4" \
+      -vf "fps=12,scale=768:432" -frames:v 120 "${FRAMES_DIR}/frame-%04d.png"
+  fi
+fi
 
 # Strip any CRLF line endings if staged from a Windows working tree
 find "${STAGE_DIR}" -maxdepth 6 -type f \( -name "*.sh" -o -name "*.service" -o -name "*.conf" -o -name "*.desktop" -o -name "*.py" -o -name "*.cfg" -o -name "*.plymouth" -o -name "*.script" -o -name "*.user" \) -exec sed -i 's/\r$//' {} +

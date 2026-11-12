@@ -1,23 +1,86 @@
-# AriaOS Plymouth Boot Splash Script
+# AriaOS Plymouth Animated Boot Splash Script
+# Plays the pre-extracted frame sequence from assets/branding/ariaos-inicio.mp4,
+# with a clean fallback to static logo.png if frames are absent.
 
-Window.SetBackgroundTopColor(0.11, 0.13, 0.17);
-Window.SetBackgroundBottomColor(0.08, 0.10, 0.13);
+Window.SetBackgroundTopColor(0.02, 0.03, 0.05);
+Window.SetBackgroundBottomColor(0.02, 0.03, 0.05);
 
-logo.image = Image("logo.png");
-logo.sprite = Sprite(logo.image);
-logo.sprite.SetX(Window.GetWidth() / 2 - logo.image.GetWidth() / 2);
-logo.sprite.SetY(Window.GetHeight() / 2 - logo.image.GetHeight() / 2 - 20);
-logo.sprite.SetOpacity(1);
+TOTAL_FRAMES = 120;
+TICKS_PER_FRAME = 4;
 
-progress_msg = Image.Text("Starting AriaOS...", 0.72, 0.85, 1.0, 1, "Sans 12");
-progress_sprite = Sprite(progress_msg);
-progress_sprite.SetX(Window.GetWidth() / 2 - progress_msg.GetWidth() / 2);
-progress_sprite.SetY(Window.GetHeight() / 2 + logo.image.GetHeight() / 2 + 12);
+fun pad4(n) {
+    if (n < 10) return "000" + n;
+    if (n < 100) return "00" + n;
+    if (n < 1000) return "0" + n;
+    return "" + n;
+}
+
+probe_img = Image("frames/frame-0001.png");
+has_frames = probe_img && probe_img.GetWidth() > 0;
+
+if (has_frames) {
+    frames[1] = probe_img;
+    for (i = 2; i <= TOTAL_FRAMES; i++) {
+        frames[i] = Image("frames/frame-" + pad4(i) + ".png");
+    }
+    first_w = probe_img.GetWidth();
+    first_h = probe_img.GetHeight();
+} else {
+    fallback_img = Image("logo.png");
+    first_w = fallback_img.GetWidth();
+    first_h = fallback_img.GetHeight();
+}
+
+screen_w = Window.GetWidth();
+screen_h = Window.GetHeight();
+scale_x = screen_w / first_w;
+scale_y = screen_h / first_h;
+scale = scale_x;
+if (scale_y < scale_x) scale = scale_y;
+if (scale <= 0) scale = 1;
+
+disp_w = Math.Int(first_w * scale);
+disp_h = Math.Int(first_h * scale);
+pos_x = Math.Int((screen_w - disp_w) / 2);
+pos_y = Math.Int((screen_h - disp_h) / 2);
+
+splash_sprite = Sprite();
+splash_sprite.SetPosition(pos_x, pos_y, 10);
+
+if (!has_frames && fallback_img) {
+    splash_sprite.SetImage(fallback_img.Scale(disp_w, disp_h));
+}
+
+tick = 0;
+
+fun refresh_callback() {
+    if (!has_frames) return;
+    idx = Math.Int(tick / TICKS_PER_FRAME) + 1;
+    if (idx > TOTAL_FRAMES) {
+        idx = TOTAL_FRAMES;
+    } else {
+        tick++;
+    }
+    img = frames[idx];
+    if (img) {
+        splash_sprite.SetImage(img.Scale(disp_w, disp_h));
+    }
+}
+
+Plymouth.SetRefreshFunction(refresh_callback);
+
+status_sprite = Sprite();
 
 fun message_callback(text) {
-    msg_img = Image.Text(text, 0.72, 0.85, 1.0, 1, "Sans 12");
-    progress_sprite.SetImage(msg_img);
-    progress_sprite.SetX(Window.GetWidth() / 2 - msg_img.GetWidth() / 2);
+    msg_img = Image.Text(text, 0.72, 0.85, 1.0, 1, "Sans 11");
+    if (msg_img) {
+        status_sprite.SetImage(msg_img);
+        status_sprite.SetPosition(
+            Math.Int(screen_w / 2 - msg_img.GetWidth() / 2),
+            Math.Int(screen_h - msg_img.GetHeight() - 28),
+            20
+        );
+    }
 }
 
 Plymouth.SetMessageFunction(message_callback);

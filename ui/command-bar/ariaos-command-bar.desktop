@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=AriaOS Command Bar
+GenericName=OS AI Command Launcher
+Comment=Launch AriaOS floating AI command bar connected to aria-daemon
+Exec=/usr/bin/aria-command-bar
+Icon=ariaos-logo
+Terminal=false
+Categories=System;Utility;KDE;
+Keywords=aria;ai;assistant;command;launcher;
+StartupNotify=false
+

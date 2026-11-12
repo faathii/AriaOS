@@ -40,6 +40,8 @@ zsh
 
 # --- Desktop Environment (KDE Plasma) ---
 plasma-meta
+plymouth
+qt6-wayland
 sddm
 konsole
 dolphin
@@ -47,8 +49,10 @@ ark
 kate
 discover
 okular
+poppler
 kcalc
 kinfocenter
+python-pyqt6
 
 # --- AI Layer (ariaOS-Core) ---
 ollama

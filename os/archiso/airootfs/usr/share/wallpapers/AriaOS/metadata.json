@@ -1,0 +1,12 @@
+{
+  "KPlugin": {
+    "Authors": [
+      {
+        "Name": "AriaOS"
+      }
+    ],
+    "Id": "AriaOS",
+    "License": "GPL-3.0-or-later",
+    "Name": "AriaOS"
+  }
+}

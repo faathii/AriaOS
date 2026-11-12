@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=AriaOS
+Description=AriaOS Native AI Boot Splash
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/ariaos
+ScriptFile=/usr/share/plymouth/themes/ariaos/ariaos.script

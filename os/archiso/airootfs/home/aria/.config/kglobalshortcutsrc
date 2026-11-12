@@ -1,0 +1,3 @@
+[services][ariaos-command-bar.desktop]
+_launch=Alt+Space,none,Launch AriaOS Command Bar
+

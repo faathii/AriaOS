@@ -1,0 +1,8 @@
+NAME="AriaOS"
+PRETTY_NAME="AriaOS Linux"
+ID=ariaos
+ID_LIKE=arch
+BUILD_ID=rolling
+ANSI_COLOR="38;2;56;189;248"
+HOME_URL="https://github.com/faathii/AriaOS"
+LOGO=ariaos-logo

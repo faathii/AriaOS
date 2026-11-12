@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# Apply default AriaOS KDE Plasma wallpaper and Kickoff menu icon once per user.
+MARKER="${XDG_CONFIG_HOME:-$HOME/.config}/.ariaos-branded-v1"
+[ -f "${MARKER}" ] && exit 0
+
+WALLPAPER="/usr/share/wallpapers/AriaOS/contents/images/2816x1536.jpg"
+
+# Wait briefly for plasmashell D-Bus service on first login
+for _ in $(seq 1 20); do
+  if qdbus6 org.kde.plasmashell /PlasmaShell >/dev/null 2>&1; then
+    break
+  fi
+  sleep 1
+done
+
+if [ -f "${WALLPAPER}" ] && command -v plasma-apply-wallpaperimage >/dev/null 2>&1; then
+  plasma-apply-wallpaperimage "${WALLPAPER}" >/dev/null 2>&1 || true
+fi
+
+if command -v qdbus6 >/dev/null 2>&1; then
+  qdbus6 org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript '
+    for (const p of panels()) {
+      for (const w of p.widgets()) {
+        if (w.type === "org.kde.plasma.kickoff" || w.type === "org.kde.plasma.kicker") {
+          w.currentConfigGroup = ["General"];
+          w.writeConfig("icon", "ariaos-logo");
+        }
+      }
+    }
+  ' >/dev/null 2>&1 || true
+fi
+
+mkdir -p "$(dirname "${MARKER}")"
+date -Iseconds > "${MARKER}"

@@ -8,6 +8,7 @@ use serde_json::{json, Value};
 pub fn serve_socket(connectors: Vec<RegisteredConnector>, model: Option<String>) -> Result<(), String> {
     use std::fs;
     use std::io::{BufRead, BufReader, Write};
+    use std::os::unix::fs::PermissionsExt;
     use std::os::unix::net::UnixListener;
 
     let socket_path = resolve_socket_path();
@@ -20,6 +21,7 @@ pub fn serve_socket(connectors: Vec<RegisteredConnector>, model: Option<String>)
 
     let listener = UnixListener::bind(&socket_path)
         .map_err(|e| format!("Failed to bind {}: {e}", socket_path.display()))?;
+    let _ = fs::set_permissions(&socket_path, fs::Permissions::from_mode(0o666));
     println!("aria-daemon listening on {}", socket_path.display());
 
     for stream in listener.incoming() {
@@ -81,15 +83,18 @@ fn handle_ipc_request(
             let conn_id = req.get("connector").and_then(|v| v.as_str()).unwrap_or("");
             let tool = req.get("tool").and_then(|v| v.as_str()).unwrap_or("");
             let args = req.get("arguments").cloned().unwrap_or_else(|| json!({}));
+            let approved = req.get("approved").and_then(|v| v.as_bool()).unwrap_or(false);
 
             let Some((conn, spec)) = find_tool(connectors, conn_id, tool) else {
                 return json!({"ok": false, "error": "Unknown connector or tool"});
             };
-            if !check_approval(conn_id, tool, spec.risk_level, &args, ApprovalMode::ReadOnly) {
+            let is_allowed = approved || check_approval(conn_id, tool, spec.risk_level, &args, ApprovalMode::ReadOnly);
+            if !is_allowed {
                 audit_log(conn_id, tool, spec.risk_level, "confirmation_required", &args);
                 return json!({
                     "ok": false,
                     "error": "Tool requires interactive confirmation",
+                    "requires_confirmation": true,
                     "risk_level": spec.risk_level.as_str()
                 });
             }

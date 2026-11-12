@@ -1,0 +1,23 @@
+# AriaOS Plymouth Boot Splash Script
+
+Window.SetBackgroundTopColor(0.11, 0.13, 0.17);
+Window.SetBackgroundBottomColor(0.08, 0.10, 0.13);
+
+logo.image = Image("logo.png");
+logo.sprite = Sprite(logo.image);
+logo.sprite.SetX(Window.GetWidth() / 2 - logo.image.GetWidth() / 2);
+logo.sprite.SetY(Window.GetHeight() / 2 - logo.image.GetHeight() / 2 - 20);
+logo.sprite.SetOpacity(1);
+
+progress_msg = Image.Text("Starting AriaOS...", 0.72, 0.85, 1.0, 1, "Sans 12");
+progress_sprite = Sprite(progress_msg);
+progress_sprite.SetX(Window.GetWidth() / 2 - progress_msg.GetWidth() / 2);
+progress_sprite.SetY(Window.GetHeight() / 2 + logo.image.GetHeight() / 2 + 12);
+
+fun message_callback(text) {
+    msg_img = Image.Text(text, 0.72, 0.85, 1.0, 1, "Sans 12");
+    progress_sprite.SetImage(msg_img);
+    progress_sprite.SetX(Window.GetWidth() / 2 - msg_img.GetWidth() / 2);
+}
+
+Plymouth.SetMessageFunction(message_callback);

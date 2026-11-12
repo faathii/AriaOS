@@ -5,6 +5,7 @@ arch-install-scripts
 archinstall
 base
 btrfs-progs
+brightnessctl
 dosfstools
 e2fsprogs
 edk2-shell
@@ -13,6 +14,7 @@ exfatprogs
 gptfdisk
 grub
 intel-ucode
+iproute2
 linux
 linux-firmware
 livecd-sounds
@@ -21,9 +23,13 @@ mkinitcpio
 mkinitcpio-archiso
 mtools
 networkmanager
+nftables
 ntfsprogs
 openssh
 pciutils
+pipewire
+pipewire-alsa
+pipewire-pulse
 polkit
 python
 qemu-guest-agent
@@ -37,10 +43,13 @@ systemd
 systemd-resolvconf
 usbutils
 virtualbox-guest-utils
+wireplumber
+wl-clipboard
+xclip
 xdg-utils
 zsh
 
-# --- Desktop Environment (KDE Plasma) ---
+# --- Desktop Environment (KDE Plasma 6 Cyber Obsidian) ---
 plasma-meta
 plymouth
 qt6-wayland
@@ -68,28 +77,14 @@ clamav
 # --- AI Layer (ariaOS-Core) ---
 ollama
 
-# --- Productivity & Browsing ---
-libreoffice-fresh
-thunderbird
+# --- Essential Browsing & Media ---
 firefox
-filezilla
-
-# --- Multimedia & Creation ---
 vlc
-elisa
-kamoso
-obs-studio
-gimp
-krita
-blender
-audacity
-kdenlive
 ffmpeg
 imagemagick
 
 # --- Utilities & System ---
 gparted
-bleachbit
 
 # --- Real-Time Monitoring & Hardware Diagnostics ---
 plasma-systemmonitor
@@ -107,5 +102,7 @@ fd
 fzf
 tmux
 
-# Note: AUR packages (e.g. brave-bin, vscodium-bin, yay) should be built into
-# a local pacman repo referenced in pacman.conf before running mkarchiso.
+# Note: Heavy optional suites (Blender, GIMP, Krita, Kdenlive, OBS, LibreOffice,
+# Thunderbird, VSCodium, Docker, VirtualBox, Steam, Pentesting) are installed
+# on-demand via `ariaos-store` or `ariaos-install-apps` to keep the Live ISO
+# ultra-fast (~1.9 GB) and responsive on 8 GB RAM machines.

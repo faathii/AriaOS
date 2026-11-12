@@ -1,3 +1,14 @@
 [services][ariaos-command-bar.desktop]
-_launch=Alt+Space,none,Launch AriaOS Command Bar
+_launch=Alt+Space,none,Launch AriaOS Neural HUD
 
+[services][ariaos-monitor.desktop]
+_launch=Ctrl+Shift+Esc,none,Launch AriaOS Kernel & GPU Monitor
+
+[services][ariaos-clipboard.desktop]
+_launch=Meta+V,none,Launch AriaOS Neural Clipboard
+
+[services][ariaos-settings.desktop]
+_launch=Meta+I,none,Launch AriaOS Control Center
+
+[services][ariaos-firewall.desktop]
+_launch=Meta+F,none,Launch AriaOS Intelligent Firewall

@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# AriaOS Direct Neural Terminal Wrapper (`aria <comando>` o `aria` interactivo)
+set -euo pipefail
+
+if [ $# -eq 0 ]; then
+  exec /usr/bin/aria-daemon chat --yes
+fi
+
+case "$1" in
+  heal|kernel|optimize|memory|catalog|list|call|serve|-h|--help|help)
+    exec /usr/bin/aria-daemon "$@"
+    ;;
+  *)
+    exec /usr/bin/aria-daemon ask "$*" --yes
+    ;;
+esac

@@ -6,3 +6,4 @@ Exec=/usr/bin/ariaos-snapshots
 Icon=system-reboot
 Terminal=false
 Categories=System;Utility;
+

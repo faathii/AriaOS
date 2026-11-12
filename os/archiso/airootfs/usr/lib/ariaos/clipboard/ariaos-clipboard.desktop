@@ -6,3 +6,4 @@ Exec=/usr/bin/ariaos-clipboard
 Icon=edit-paste
 Terminal=false
 Categories=System;Utility;
+

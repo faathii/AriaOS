@@ -6,3 +6,4 @@ Exec=/usr/bin/ariaos-netradar
 Icon=preferences-system-network
 Terminal=false
 Categories=System;Network;
+

@@ -955,7 +955,7 @@ fn execute_domain_api_reflex(
             }
         }
     }
-    if matches_any(lower, &["snapshots timeshift", "copias timeshift", "puntos de restauracion"]) {
+    if matches_any(lower, &["snapshots timeshift", "copias timeshift"]) {
         mem.record_habit("timeshift_list");
         if let Some((conn, _)) = find_tool(connectors, "security-vault-crypto", "timeshift_list_snapshots") {
             if let Ok(res) = call_stdio_tool(conn, "timeshift_list_snapshots", json!({})) {
@@ -1050,9 +1050,7 @@ fn execute_domain_api_reflex(
     if matches_any(lower, &["estado audacity", "pipe audacity"]) {
         mem.record_habit("audacity_pipe");
         if let Some((conn, _)) = find_tool(connectors, "creative-audacity", "pipe_status") {
-            if let Ok(res) = call_stdio_tool(conn, "creative-audacity", json!({}))
-                .or_else(|_| call_stdio_tool(conn, "pipe_status", json!({})))
-            {
+            if let Ok(res) = call_stdio_tool(conn, "pipe_status", json!({})) {
                 return Some(format!(
                     "🎙️ **Estado del Puente FIFO de Audacity (`creative-audacity.pipe_status`):**\n```json\n{}\n```",
                     serde_json::to_string_pretty(&res).unwrap_or_default()

@@ -6,3 +6,4 @@ Exec=/usr/bin/ariaos-optimizer
 Icon=utilities-system-monitor
 Terminal=false
 Categories=System;Utility;
+

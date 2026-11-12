@@ -14,7 +14,8 @@ use std::fs;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct LearnedRule {
     pub trigger: String,
     #[serde(alias = "action")]
@@ -23,13 +24,14 @@ pub struct LearnedRule {
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct NeuralMemory {
     pub rules: Vec<LearnedRule>,
     pub command_habits: HashMap<String, u64>,
     pub total_interactions: u64,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppCatalogEntry {
     pub id: String,
     pub name: String,

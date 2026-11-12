@@ -120,6 +120,7 @@ pub fn parse_qualified_tool_name(qualified: &str) -> Option<(&str, &str)> {
 }
 
 /// Convert runnable stdio connectors into Ollama tool definitions.
+#[allow(dead_code)]
 pub fn ollama_tools_payload(connectors: &[RegisteredConnector]) -> Vec<Value> {
     let mut tools = Vec::new();
     for conn in connectors {

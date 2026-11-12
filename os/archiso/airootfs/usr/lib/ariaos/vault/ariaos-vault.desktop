@@ -6,3 +6,4 @@ Exec=/usr/bin/ariaos-vault
 Icon=dialog-password
 Terminal=false
 Categories=System;Security;Utility;
+

@@ -1,0 +1,18 @@
+[Desktop Entry]
+Type=Application
+Name=Configuración de la IA de AriaOS
+Name[en]=AriaOS AI Settings
+Name[fr]=Paramètres IA d'AriaOS
+Name[de]=AriaOS KI-Einstellungen
+Name[it]=Impostazioni IA di AriaOS
+Name[pt]=Configurações de IA do AriaOS
+Name[zh_CN]=AriaOS 人工智能设置
+Name[ja]=AriaOS AI 設定
+Comment=Configura el modelo de IA, idioma, políticas de seguridad y auditoría de AriaOS
+Comment[en]=Configure AriaOS AI models, language, security policies, and audit logs
+Icon=ariaos-logo
+Exec=/usr/bin/ariaos-settings
+Categories=Settings;System;Utility;
+Terminal=false
+StartupNotify=true
+

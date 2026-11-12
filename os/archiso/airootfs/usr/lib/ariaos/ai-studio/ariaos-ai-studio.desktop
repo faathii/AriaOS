@@ -6,3 +6,4 @@ Exec=/usr/bin/ariaos-ai-studio
 Icon=preferences-system
 Terminal=false
 Categories=System;Development;
+

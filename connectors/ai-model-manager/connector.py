@@ -129,7 +129,9 @@ def list_models(_args: Dict[str, Any]) -> Dict[str, Any]:
         try:
             mem = json.loads(mem_file.read_text(encoding="utf-8"))
             mem_stats["interactions"] = int(mem.get("total_interactions", 0))
-            mem_stats["aliases"] = len(mem.get("learned_aliases", {}))
+            rules_cnt = len(mem.get("rules", []))
+            aliases_cnt = len(mem.get("learned_aliases", {}))
+            mem_stats["aliases"] = max(rules_cnt, aliases_cnt)
         except Exception:
             pass
 
@@ -186,10 +188,9 @@ def inspect_neural_memory(args: Dict[str, Any]) -> Dict[str, Any]:
     mem_file = _memory_path()
     mem: Dict[str, Any] = {
         "total_interactions": 1,
-        "command_weights": {},
+        "command_habits": {},
+        "rules": [],
         "learned_aliases": {},
-        "preferred_apps": {},
-        "recent_contexts": [],
     }
     if mem_file.exists():
         try:
@@ -199,9 +200,17 @@ def inspect_neural_memory(args: Dict[str, Any]) -> Dict[str, Any]:
         except Exception:
             pass
 
+    rules: List[Dict[str, Any]] = mem.setdefault("rules", [])
+    aliases: Dict[str, str] = mem.setdefault("learned_aliases", {})
+    for r in rules:
+        if isinstance(r, dict) and r.get("trigger") and r.get("target_prompt"):
+            aliases[str(r["trigger"])] = str(r["target_prompt"])
+
     if trigger and target:
-        aliases = mem.setdefault("learned_aliases", {})
         aliases[trigger] = target
+        rules = [r for r in rules if r.get("trigger") != trigger]
+        rules.insert(0, {"trigger": trigger, "target_prompt": target, "hits": 1})
+        mem["rules"] = rules
         try:
             mem_file.write_text(json.dumps(mem, indent=2, ensure_ascii=False), encoding="utf-8")
         except OSError:
@@ -209,11 +218,12 @@ def inspect_neural_memory(args: Dict[str, Any]) -> Dict[str, Any]:
 
     return {
         "total_interactions": mem.get("total_interactions", 0),
-        "learned_aliases": mem.get("learned_aliases", {}),
-        "command_weights": mem.get("command_weights", {}),
-        "recent_contexts": mem.get("recent_contexts", [])[-10:],
+        "learned_aliases": aliases,
+        "rules": rules,
+        "command_weights": mem.get("command_habits", {}),
     }
 
 
 if __name__ == "__main__":
     server.run_stdio()
+

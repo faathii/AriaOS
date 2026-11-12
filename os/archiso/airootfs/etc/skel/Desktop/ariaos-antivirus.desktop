@@ -15,4 +15,3 @@ Categories=System;Security;Utility;
 Keywords=antivirus;virus;clam;clamav;malware;seguridad;scan;analizar;proteger;security;
 Terminal=false
 StartupNotify=true
-

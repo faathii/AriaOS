@@ -205,3 +205,4 @@ def clear_clipboard(_args: Dict[str, Any]) -> Dict[str, Any]:
 
 if __name__ == "__main__":
     server.run_stdio()
+

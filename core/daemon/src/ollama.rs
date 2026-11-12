@@ -1,6 +1,4 @@
-use crate::manifest::{
-    find_tool, ollama_tools_payload, parse_qualified_tool_name, RegisteredConnector,
-};
+use crate::manifest::{find_tool, parse_qualified_tool_name, RegisteredConnector};
 use crate::policy::{audit_log, check_approval, ApprovalMode};
 use crate::rpc::call_stdio_tool;
 use serde_json::{json, Value};
@@ -73,6 +71,14 @@ impl OllamaClient {
             .unwrap_or_else(|| "http://127.0.0.1:11434".to_string());
         let model = model_override
             .or_else(|| env::var("ARIAOS_MODEL").ok())
+            .or_else(|| {
+                env::var("HOME")
+                    .ok()
+                    .map(|h| std::path::PathBuf::from(h).join(".local/share/ariaos/ai_studio_config.json"))
+                    .and_then(|p| std::fs::read_to_string(p).ok())
+                    .and_then(|raw| serde_json::from_str::<Value>(&raw).ok())
+                    .and_then(|j| j.get("active_model")?.as_str().map(String::from))
+            })
             .or_else(|| load_config_value("model").and_then(|v| v.as_str().map(String::from)))
             .unwrap_or_else(|| "aria-core".to_string());
         let num_ctx = load_config_value("num_ctx")
@@ -256,6 +262,11 @@ pub fn filter_tools_for_prompt(connectors: &[RegisteredConnector], prompt: &str)
             || (id == "os-kernel" && kernel_match)
             || (id == "os-power-modes" && (power_match || kernel_match || system_match))
             || (id == "os-automation" && automation_match)
+            || (id == "os-snapshots" && (system_match || storage_match || security_match))
+            || (id == "os-optimizer" && (system_match || kernel_match || packages_match))
+            || (id == "os-clipboard" && (desktop_match || files_match))
+            || (id == "ai-model-manager" && (automation_match || system_match))
+            || (id == "network-radar" && (browser_match || security_match || system_match))
             || (id == "os-storage" && storage_match)
             || (id == "security-antivirus" && av_match)
             || (id == "os-files" && files_match)

@@ -1,0 +1,59 @@
+# AriaCupertino - Minimalist macOS Dark Obsidian Openbox Theme
+# Window borders
+border.width: 1
+border.color: #262a36
+window.active.border.color: #323846
+window.inactive.border.color: #1e222c
+
+# Titlebar geometry & font
+padding.width: 10
+padding.height: 6
+window.handle.width: 0
+
+# Active Titlebar (Clean deep obsidian gradient)
+window.active.title.bg: Flat Gradient Vertical
+window.active.title.bg.color: #1d212c
+window.active.title.bg.colorTo: #151821
+window.active.label.bg: Parentrelative
+window.active.label.text.color: #f0f3f6
+window.active.label.text.justify: Center
+
+# Inactive Titlebar
+window.inactive.title.bg: Flat Solid
+window.inactive.title.bg.color: #13161e
+window.inactive.label.bg: Parentrelative
+window.inactive.label.text.color: #6e7681
+window.inactive.label.text.justify: Center
+
+# Traffic Lights (macOS buttons)
+# Close: Red (#ff5f56), Minimize: Yellow (#ffbd2e), Maximize: Green (#27c93f)
+window.active.button.close.unpressed.image.color: #ff5f56
+window.active.button.close.pressed.image.color: #d94138
+window.active.button.close.hover.image.color: #ff7b73
+
+window.active.button.iconify.unpressed.image.color: #ffbd2e
+window.active.button.iconify.pressed.image.color: #d69817
+window.active.button.iconify.hover.image.color: #ffd066
+
+window.active.button.max.unpressed.image.color: #27c93f
+window.active.button.max.pressed.image.color: #1ea332
+window.active.button.max.hover.image.color: #4ee062
+
+# Inactive buttons (muted slate gray)
+window.inactive.button.close.unpressed.image.color: #484f58
+window.inactive.button.iconify.unpressed.image.color: #484f58
+window.inactive.button.max.unpressed.image.color: #484f58
+
+# Menu styling (Minimalist Dark)
+menu.border.width: 1
+menu.border.color: #30363d
+menu.title.bg: Flat Solid
+menu.title.bg.color: #161b22
+menu.title.text.color: #f0f6fc
+menu.title.text.justify: Center
+menu.items.bg: Flat Solid
+menu.items.bg.color: #161b22
+menu.items.text.color: #c9d1d9
+menu.items.active.bg: Flat Solid
+menu.items.active.bg.color: #2f81f7
+menu.items.active.text.color: #ffffff

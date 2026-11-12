@@ -1,24 +1,14 @@
 #!/usr/bin/env bash
-# AriaOS Cyber Obsidian Desktop Environment Enforcer
-# Replaces stock KDE plasmashell and plasma-welcome with AriaOS native Cyber Shell.
+# AriaOS Native Desktop Branding & Theme Enforcer
+# Ensures AriaOS Dark Obsidian theme and Openbox configurations are applied.
 
-# 1. Immediately eliminate stock KDE Welcome Center & stock plasmashell
-rm -f /etc/xdg/autostart/org.kde.plasma-welcome.desktop 2>/dev/null || true
-systemctl --user stop plasma-plasmashell.service 2>/dev/null || true
-systemctl --user mask plasma-plasmashell.service 2>/dev/null || true
-killall -9 plasmashell plasma-welcome 2>/dev/null || true
+THEME_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/openbox"
+mkdir -p "${THEME_DIR}"
 
-# 2. Apply AriaOS Cyber Obsidian Color Scheme for all Qt/KDE applications
-if command -v plasma-apply-colorscheme >/dev/null 2>&1; then
-  plasma-apply-colorscheme AriaOSCyber >/dev/null 2>&1 || true
+if [ ! -f "${THEME_DIR}/rc.xml" ] && [ -f /etc/xdg/openbox/rc.xml ]; then
+  cp -f /etc/xdg/openbox/rc.xml "${THEME_DIR}/rc.xml"
 fi
 
-# 3. Reload KWin to ensure AriaCyberObsidian Aurorae window decorations are active
-if command -v qdbus6 >/dev/null 2>&1; then
-  qdbus6 org.kde.KWin /KWin reconfigure >/dev/null 2>&1 || true
-fi
-
-# 4. Ensure AriaOS Custom Desktop Shell (ariaos-shell) is running
-if ! pgrep -f "/usr/lib/ariaos/shell/aria_shell.py" >/dev/null 2>&1; then
-  nohup /usr/bin/ariaos-shell >/dev/null 2>&1 &
+if [ -f /usr/share/wallpapers/AriaOS/contents/images/2816x1536.jpg ] && command -v feh >/dev/null 2>&1; then
+  feh --bg-fill /usr/share/wallpapers/AriaOS/contents/images/2816x1536.jpg 2>/dev/null || true
 fi

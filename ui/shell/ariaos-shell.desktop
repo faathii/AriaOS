@@ -7,3 +7,4 @@ Exec=/usr/bin/ariaos-shell
 Terminal=false
 Categories=System;Core;
 StartupNotify=false
+

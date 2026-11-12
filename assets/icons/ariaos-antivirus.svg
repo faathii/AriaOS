@@ -1,28 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
   <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0b111e"/>
-      <stop offset="100%" stop-color="#05080f"/>
+    <linearGradient id="squircle_bg_ariaos-antivirus" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1f2e27"/>
+      <stop offset="100%" stop-color="#131f1a"/>
     </linearGradient>
-    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#00ff88"/>
-      <stop offset="100%" stop-color="#00b4d8"/>
+    <linearGradient id="inner_bevel" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.14"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.25"/>
     </linearGradient>
-    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="1.8" result="blur"/>
-      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-    </filter>
   </defs>
-  <!-- Outer Cyber Octagon/Rounded Base -->
-  <rect x="4" y="4" width="56" height="56" rx="14" fill="url(#bg)" stroke="url(#accent)" stroke-width="2.2"/>
-  <rect x="8" y="8" width="48" height="48" rx="10" fill="none" stroke="#00ff88" stroke-width="0.6" stroke-opacity="0.35"/>
-  <!-- Corner HUD Accents -->
-  <path d="M 10 16 L 10 11 L 15 11" fill="none" stroke="#00ff88" stroke-width="1.5" stroke-linecap="round"/>
-  <path d="M 54 16 L 54 11 L 49 11" fill="none" stroke="#00b4d8" stroke-width="1.5" stroke-linecap="round"/>
-  <path d="M 10 48 L 10 53 L 15 53" fill="none" stroke="#00b4d8" stroke-width="1.5" stroke-linecap="round"/>
-  <path d="M 54 48 L 54 53 L 49 53" fill="none" stroke="#00ff88" stroke-width="1.5" stroke-linecap="round"/>
-  <g filter="url(#glow)">
-    <path d="M 32 13 L 47 19 L 47 32 C 47 42 32 50 32 50 C 32 50 17 42 17 32 L 17 19 Z" fill="none" stroke="url(#accent)" stroke-width="2.6" stroke-linejoin="round"/>
-        <polyline points="24,32 30,38 41,25" fill="none" stroke="#00ff88" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
-  </g>
+  <!-- macOS Squircle Body -->
+  <rect x="5" y="5" width="54" height="54" rx="13" fill="url(#squircle_bg_ariaos-antivirus)"/>
+  <rect x="5.5" y="5.5" width="53" height="53" rx="12.5" fill="none" stroke="url(#inner_bevel)" stroke-width="1"/>
+  <!-- Centered Clean Glyph -->
+  <path d="M 32 17 L 46 22 C 46 33 32 44 32 47 C 32 44 18 33 18 22 Z" fill="#2d453a" stroke="#4ade80" stroke-width="2"/>
+        <polyline points="25,31 30,36 39,26" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

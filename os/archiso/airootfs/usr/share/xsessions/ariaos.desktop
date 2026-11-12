@@ -2,7 +2,7 @@
 Type=XSession
 Exec=/usr/bin/startariaos
 TryExec=/usr/bin/startariaos
-DesktopNames=AriaOS;KDE
-Name=AriaOS Cyber Desktop (AriaDE)
-Name[es]=Escritorio AriaOS Cyber Obsidian (Nativo)
-Comment=Entorno de escritorio futurista propio de AriaOS con IA integrada
+DesktopNames=AriaOS
+Name=AriaOS Desktop (AriaDE)
+Name[es]=AriaOS Desktop (AriaDE)
+Comment=Entorno de Escritorio Nativo Minimalista y Profesional de AriaOS

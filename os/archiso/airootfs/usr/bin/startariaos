@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# AriaOS Cyber Obsidian Native Desktop Session Launcher (AriaDE)
-# Launches KWin compositor + AriaOS Custom Shell without stock KDE plasmashell bloat.
+# AriaOS Native Desktop Session Launcher (AriaDE)
+# Completely independent from KDE Plasma. Runs Picom + Openbox + AriaOS Native Shell.
 
-export XDG_CURRENT_DESKTOP="AriaOS:KDE"
+export XDG_CURRENT_DESKTOP="AriaOS"
 export XDG_SESSION_DESKTOP="ariaos"
 export XDG_SESSION_TYPE="x11"
 export QT_QPA_PLATFORM="xcb"
@@ -27,34 +27,26 @@ fi
 # Disable screen blanking in live session
 if command -v xset >/dev/null 2>&1; then
   xset s off -dpms 2>/dev/null || true
+  xsetroot -solid "#0c0f17" 2>/dev/null || true
 fi
 
-# Prevent stock plasma-welcome or plasmashell from interfering
-rm -f /etc/xdg/autostart/org.kde.plasma-welcome.desktop 2>/dev/null || true
-killall -9 plasmashell plasma-welcome 2>/dev/null || true
-
-# Apply AriaOS Cyber color scheme for Qt/KDE apps
-if command -v plasma-apply-colorscheme >/dev/null 2>&1; then
-  plasma-apply-colorscheme AriaOSCyber >/dev/null 2>&1 || true
+# Start Picom compositor (rounded corners, soft drop shadows, vsync)
+if command -v picom >/dev/null 2>&1; then
+  picom -b --config /etc/xdg/picom.conf 2>/dev/null || true
 fi
 
-# Start KWin Window Manager & Compositor with AriaOS Cyber Obsidian decorations
-if command -v kwin_x11 >/dev/null 2>&1; then
-  kwin_x11 --replace >/dev/null 2>&1 &
+# Start Openbox Window Manager with AriaCupertino theme
+if command -v openbox >/dev/null 2>&1; then
+  openbox --config-file /etc/xdg/openbox/rc.xml &
 fi
 
-# Start Polkit authentication agent if installed
-for agent in /usr/lib/polkit-kde-authentication-agent-1 /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1; do
+# Start Polkit agent if available
+for agent in /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 /usr/lib/polkit-kde-authentication-agent-1; do
   if [ -x "${agent}" ]; then
     "${agent}" >/dev/null 2>&1 &
     break
   fi
 done
 
-# Launch AriaOS Welcome / Onboarding assistant in background on first session
-if [ -x /usr/bin/ariaos-welcome ]; then
-  /usr/bin/ariaos-welcome --autostart >/dev/null 2>&1 &
-fi
-
-# Start the custom AriaOS Cyber Obsidian Desktop Shell as the primary session leader
+# Start the AriaOS Native Desktop Shell as the primary session process
 exec /usr/bin/ariaos-shell

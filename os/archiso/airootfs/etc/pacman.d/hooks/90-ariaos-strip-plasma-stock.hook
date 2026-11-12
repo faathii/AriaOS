@@ -12,3 +12,4 @@ When = PostTransaction
 Depends = sh
 Depends = coreutils
 Exec = /bin/sh -c "rm -f /etc/xdg/autostart/org.kde.plasma-welcome.desktop /usr/bin/plasma-welcome /usr/share/applications/org.kde.plasma-welcome.desktop; if [ -f /usr/bin/ariaos-shell ]; then cp -f /usr/bin/ariaos-shell /usr/bin/plasmashell && chmod 755 /usr/bin/plasmashell; fi"
+

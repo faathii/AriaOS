@@ -1,6 +1,13 @@
 # AI Subsystem & Daemon (`aria-daemon`)
 
-`aria-daemon` (written in Rust under `core/daemon/`) is the core system broker that connects user prompts, local LLM inference (Ollama), security policies, and all external connectors.
+`aria-daemon` (written in Rust under `core/daemon/`) **is the OS-level brain of AriaOS**. Running natively as a `systemd` system service (`root`), it spans every layer—from the Linux kernel and hardware telemetry (`os-kernel`) through system services and ClamAV quarantine (`/var/lib/ariaos/quarantine`) all the way up to KDE Plasma desktop applications (`os-files` / Dolphin) bridged seamlessly into the active graphical user session via `core/sdk/python/aria_sdk/session.py`.
+
+## Multi-Layer OS Bridge (`core/sdk/python/aria_sdk/session.py`)
+
+Because `aria-daemon` operates at kernel/OS privilege while user applications live in a KDE Plasma Wayland/XDG session:
+- **Trash & User Files**: `os-files` resolves the owner of the target path (or active desktop user via `/run/user/<uid>`) and writes FreeDesktop `.trashinfo` items directly into the user's Dolphin Trash (`~aria/.local/share/Trash`) with aligned ownership.
+- **Desktop Launchers**: GUI actions such as `open_in_dolphin` inspect active Plasma/KWin process environments (`WAYLAND_DISPLAY`, `DISPLAY`, `DBUS_SESSION_BUS_ADDRESS`, `XDG_RUNTIME_DIR`) and spawn into the desktop session UID cleanly.
+- **OS Quarantine Vault**: `security-antivirus` stores isolated samples in `/var/lib/ariaos/quarantine` (`0700 root:root`, payloads `0400`) so untrusted user programs cannot read or execute quarantined malware, while Dolphin right-click actions (`ariaos-av-scan`) communicate directly with `aria-daemon` over `/run/ariaos/agent.sock`.
 
 ## How a Request Flows
 
@@ -38,5 +45,5 @@ aria-daemon chat [--model <name>]                # Interactive terminal session
 Requests are single-line JSON objects sent to `/run/ariaos/agent.sock`:
 
 - `{"action": "list_tools"}` -> returns registered connectors and tool schemas.
-- `{"action": "ask", "prompt": "..."}` -> runs an Ollama turn in `ReadOnly` mode.
+- `{"action": "ask", "prompt": "...", "approved_tools": ["<connector>.<tool>"]}` -> runs an Ollama turn across all OS layers; executes `read` tools autonomously and returns `requires_confirmation: true` + `pending_call` whenever a `write` or `privileged` action requires explicit user approval from the Command Bar.
 - `{"action": "call", "connector": "...", "tool": "...", "arguments": {...}, "approved": false}` -> executes a specific tool directly; returns `requires_confirmation: true` for `write`/`privileged` tools when `approved` is `false`.

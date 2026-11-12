@@ -1,0 +1,92 @@
+{
+  "id": "os-kernel",
+  "name": "Linux Kernel, Drivers & Hardware Layer",
+  "version": "0.1.0",
+  "description": "Direct kernel-layer visibility and control for AriaOS: live kernel/PSI/thermal telemetry, dmesg ring buffer diagnostics, PCI/USB/network topology, sysctl inspection/tuning, and kernel module (modprobe) management.",
+  "tier": "os_ipc",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dependencies": ["util-linux", "pciutils", "usbutils", "kmod", "procps-ng", "iproute2"],
+  "tools": [
+    {
+      "name": "kernel_telemetry",
+      "description": "Read Linux kernel version, cmdline, Pressure Stall Information (CPU/mem/IO), thermal zones, and loaded modules count.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "dmesg_inspect",
+      "description": "Inspect recent Linux kernel ring buffer logs (dmesg) filtered by severity or line limit.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "level": { "type": "string", "description": "Optional dmesg level filter (e.g. err, warn, emerg,crit,err)." },
+          "lines": { "type": "integer", "minimum": 1, "maximum": 300, "default": 50 }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "hardware_pci_usb",
+      "description": "Enumerate physical PCI devices (GPU, NVMe, NIC), USB devices, and kernel network interfaces/routes.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "sysctl_read",
+      "description": "Read one or more live Linux kernel sysctl parameters (e.g. vm.swappiness, kernel.ostype).",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "key": { "type": "string", "description": "Sysctl key path (e.g. vm.swappiness)." }
+        },
+        "required": ["key"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "sysctl_write",
+      "description": "Modify a live Linux kernel sysctl parameter at runtime.",
+      "risk_level": "privileged",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "key": { "type": "string", "description": "Sysctl key path (e.g. vm.swappiness)." },
+          "value": { "type": "string", "description": "New value to apply cleanly via sysctl -w." }
+        },
+        "required": ["key", "value"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "kernel_module_manage",
+      "description": "Load or unload a Linux kernel module/driver using modprobe.",
+      "risk_level": "privileged",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "module": { "type": "string", "description": "Kernel module name (e.g. vfio_pci, loop, wireguard)." },
+          "action": { "type": "string", "enum": ["load", "unload"] }
+        },
+        "required": ["module", "action"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

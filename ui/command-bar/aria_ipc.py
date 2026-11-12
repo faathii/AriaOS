@@ -96,5 +96,8 @@ class AriaDaemonClient:
             }
         )
 
-    def ask(self, prompt: str) -> dict[str, Any]:
-        return self.request({"action": "ask", "prompt": prompt})
+    def ask(self, prompt: str, approved_tools: list[str] | None = None) -> dict[str, Any]:
+        payload: dict[str, Any] = {"action": "ask", "prompt": prompt}
+        if approved_tools:
+            payload["approved_tools"] = approved_tools
+        return self.request(payload)

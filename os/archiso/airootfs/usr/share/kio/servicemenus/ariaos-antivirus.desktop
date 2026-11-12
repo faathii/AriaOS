@@ -9,3 +9,4 @@ Name=Analizar con Antivirus AriaOS (ClamAV)
 Name[en]=Scan with AriaOS Antivirus (ClamAV)
 Icon=security-high
 Exec=/usr/bin/ariaos-av-scan %F
+

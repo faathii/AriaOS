@@ -19,7 +19,13 @@ from urllib.parse import quote
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT / "core" / "sdk" / "python"))
 
-from aria_sdk import ConnectorError, ConnectorServer  # noqa: E402
+from aria_sdk import (  # noqa: E402
+    ConnectorError,
+    ConnectorServer,
+    chown_for_context,
+    launch_in_desktop_session,
+    resolve_desktop_context,
+)
 
 CATEGORY_MAP: Dict[str, str] = {
     ".pdf": "Documents",
@@ -267,12 +273,6 @@ def file_info(args: Dict[str, Any]) -> Dict[str, Any]:
     return result
 
 
-def _xdg_trash_root() -> Path:
-    data_home = os.environ.get("XDG_DATA_HOME")
-    base = Path(data_home).expanduser() if data_home else Path.home() / ".local" / "share"
-    return base / "Trash"
-
-
 def _unique_trash_name(files_dir: Path, info_dir: Path, name: str) -> str:
     candidate = name
     idx = 2
@@ -288,16 +288,18 @@ def _unique_trash_name(files_dir: Path, info_dir: Path, name: str) -> str:
 def move_to_trash(args: Dict[str, Any]) -> Dict[str, Any]:
     """Move a file or directory safely to FreeDesktop/Dolphin Trash with .trashinfo metadata."""
     target = _require_path(args.get("path"))
-    home = Path.home().resolve()
-    forbidden = {target.anchor, str(home), "/etc", "/usr", "/bin", "/boot", "/var", "/home"}
+    ctx = resolve_desktop_context(target)
+    forbidden = {target.anchor, str(Path.home().resolve()), str(ctx.home.resolve()), "/etc", "/usr", "/bin", "/boot", "/var", "/home"}
     if str(target) in forbidden or target.parent == target:
         raise ConnectorError(f"Refusing to trash protected path: {target}", code=-32602)
 
-    trash_root = _xdg_trash_root()
+    trash_root = ctx.xdg_data_home / "Trash"
     files_dir = trash_root / "files"
     info_dir = trash_root / "info"
     files_dir.mkdir(parents=True, exist_ok=True)
     info_dir.mkdir(parents=True, exist_ok=True)
+    for d in (trash_root, files_dir, info_dir):
+        chown_for_context(d, ctx)
 
     trash_name = _unique_trash_name(files_dir, info_dir, target.name)
     trashed_path = files_dir / trash_name
@@ -310,9 +312,12 @@ def move_to_trash(args: Dict[str, Any]) -> Dict[str, Any]:
     )
     info_path.write_text(info_content, encoding="utf-8")
     shutil.move(str(target), str(trashed_path))
+    chown_for_context(info_path, ctx)
+    chown_for_context(trashed_path, ctx)
 
     return {
         "trashed": True,
+        "owner": ctx.username,
         "original_path": str(target),
         "trash_path": str(trashed_path),
         "trashinfo_path": str(info_path),
@@ -321,7 +326,7 @@ def move_to_trash(args: Dict[str, Any]) -> Dict[str, Any]:
 
 @server.tool("open_in_dolphin")
 def open_in_dolphin(args: Dict[str, Any]) -> Dict[str, Any]:
-    """Open a directory or select a file in KDE Dolphin."""
+    """Open a directory or select a file in KDE Dolphin (bridged into the active desktop session)."""
     target = _require_path(args.get("path"))
     select_file = bool(args.get("select_file", True))
     dolphin_bin = shutil.which("dolphin")
@@ -331,14 +336,16 @@ def open_in_dolphin(args: Dict[str, Any]) -> Dict[str, Any]:
             "path": str(target),
             "reason": "dolphin binary not found on PATH",
         }
+    ctx = resolve_desktop_context(target)
     cmd = [dolphin_bin, "--select", str(target)] if (select_file and target.is_file()) else [dolphin_bin, str(target)]
-    proc = subprocess.Popen(
-        cmd,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-        start_new_session=True,
-    )
-    return {"launched": True, "pid": proc.pid, "command": cmd, "path": str(target)}
+    proc = launch_in_desktop_session(cmd, ctx)
+    return {
+        "launched": True,
+        "pid": proc.pid,
+        "session_user": ctx.username,
+        "command": cmd,
+        "path": str(target),
+    }
 
 
 if __name__ == "__main__":

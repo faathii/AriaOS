@@ -9,6 +9,33 @@ import subprocess
 import sys
 from pathlib import Path
 
+IPC_DIR = Path("/usr/lib/ariaos/command-bar")
+if IPC_DIR.exists() and str(IPC_DIR) not in sys.path:
+    sys.path.insert(0, str(IPC_DIR))
+
+
+def _call_files(tool: str, args: dict, approved: bool = False) -> dict:
+    try:
+        from aria_ipc import AriaDaemonClient  # type: ignore
+
+        client = AriaDaemonClient(timeout=120.0)
+        if client.socket_path.exists():
+            resp = client.call_tool("os-files", tool, args, approved=approved)
+            if not resp.get("ok"):
+                raise RuntimeError(resp.get("error", "aria-daemon call failed"))
+            return resp["result"]
+    except ImportError:
+        pass
+
+    proc = subprocess.run(
+        ["aria-daemon", "call", "os-files", tool, json.dumps(args), "--yes"],
+        text=True,
+        capture_output=True,
+    )
+    if proc.returncode != 0:
+        raise RuntimeError((proc.stderr or proc.stdout).strip())
+    return json.loads(proc.stdout)
+
 
 def _show_message(title: str, text: str) -> None:
     if shutil.which("kdialog"):
@@ -28,15 +55,11 @@ def main(argv: list[str]) -> int:
     target = str(Path(argv[1]).expanduser().resolve())
 
     if action == "organize":
-        proc = subprocess.run(
-            ["aria-daemon", "call", "os-files", "organize_directory", json.dumps({"path": target, "apply": False}), "--yes"],
-            text=True,
-            capture_output=True,
-        )
-        if proc.returncode != 0:
-            _show_message("AriaOS Gestor de Archivos", proc.stderr or proc.stdout)
-            return proc.returncode
-        data = json.loads(proc.stdout)
+        try:
+            data = _call_files("organize_directory", {"path": target, "apply": False}, approved=True)
+        except Exception as exc:
+            _show_message("AriaOS Gestor de Archivos", str(exc))
+            return 1
         moves = data.get("moves", [])
         if not moves:
             _show_message("AriaOS Organizador IA", f"No hay archivos pendientes de organizar en:\n{target}")
@@ -46,25 +69,18 @@ def main(argv: list[str]) -> int:
         prompt = f"Vista previa en {target} ({len(moves)} archivos):\n\n{preview}{extra}\n\n¿Aplicar esta organización ahora?"
         if shutil.which("kdialog"):
             if subprocess.run(["kdialog", "--yesno", prompt, "--title", "AriaOS Organizador IA"]).returncode == 0:
-                subprocess.run(
-                    ["aria-daemon", "call", "os-files", "organize_directory", json.dumps({"path": target, "apply": True}), "--yes"],
-                    check=False,
-                )
+                _call_files("organize_directory", {"path": target, "apply": True}, approved=True)
                 _show_message("AriaOS Organizador IA", f"Carpeta organizada correctamente ({len(moves)} archivo(s) movidos).")
         else:
             print(prompt)
         return 0
 
     if action == "duplicates":
-        proc = subprocess.run(
-            ["aria-daemon", "call", "os-files", "find_duplicates", json.dumps({"path": target, "recursive": True}), "--yes"],
-            text=True,
-            capture_output=True,
-        )
-        if proc.returncode != 0:
-            _show_message("AriaOS Buscador de Duplicados", proc.stderr or proc.stdout)
-            return proc.returncode
-        groups = json.loads(proc.stdout).get("duplicate_groups", [])
+        try:
+            groups = _call_files("find_duplicates", {"path": target, "recursive": True}).get("duplicate_groups", [])
+        except Exception as exc:
+            _show_message("AriaOS Buscador de Duplicados", str(exc))
+            return 1
         if not groups:
             _show_message("AriaOS Buscador de Duplicados", f"No se encontraron archivos duplicados en:\n{target}")
             return 0
@@ -82,3 +98,4 @@ def main(argv: list[str]) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv[1:]))
+

@@ -29,6 +29,9 @@ def _quarantine_dir() -> Path:
     override = os.environ.get("ARIAOS_QUARANTINE_DIR")
     if override:
         return Path(override).expanduser()
+    # When running as the OS daemon (root), isolate malware inside a system vault inaccessible to normal apps.
+    if hasattr(os, "geteuid") and os.geteuid() == 0:
+        return Path("/var/lib/ariaos/quarantine")
     data_home = os.environ.get("XDG_DATA_HOME")
     base = Path(data_home).expanduser() if data_home else Path.home() / ".local" / "share"
     return base / "ariaos" / "quarantine"
@@ -246,11 +249,17 @@ def av_quarantine_file(args: Dict[str, Any]) -> Dict[str, Any]:
     qdir = _quarantine_dir()
     vault_dir = qdir / "vault"
     vault_dir.mkdir(parents=True, exist_ok=True)
+    for d in (qdir, vault_dir):
+        try:
+            os.chmod(d, 0o700)
+        except OSError:
+            pass
 
     q_id = f"{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}-{uuid.uuid4().hex[:8]}"
     vault_file = vault_dir / q_id
     digest = _sha256(target)
-    size = target.stat().st_size
+    st = target.stat()
+    size = st.st_size
 
     shutil.move(str(target), str(vault_file))
     try:
@@ -264,6 +273,8 @@ def av_quarantine_file(args: Dict[str, Any]) -> Dict[str, Any]:
         "filename": target.name,
         "size_bytes": size,
         "sha256": digest,
+        "uid": getattr(st, "st_uid", None),
+        "gid": getattr(st, "st_gid", None),
         "reason": reason,
         "quarantined_utc": datetime.now(timezone.utc).isoformat(),
     }
@@ -300,6 +311,11 @@ def av_restore_file(args: Dict[str, Any]) -> Dict[str, Any]:
     except OSError:
         pass
     shutil.move(str(vault_file), str(orig_path))
+    if hasattr(os, "chown") and match.get("uid") is not None and match.get("gid") is not None:
+        try:
+            os.chown(orig_path, int(match["uid"]), int(match["gid"]))
+        except OSError:
+            pass
 
     remaining = [item for item in items if item.get("id") != q_id]
     _save_manifest(qdir, remaining)
@@ -308,3 +324,4 @@ def av_restore_file(args: Dict[str, Any]) -> Dict[str, Any]:
 
 if __name__ == "__main__":
     server.run_stdio()
+

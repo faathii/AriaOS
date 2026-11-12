@@ -718,6 +718,34 @@ class TestStdioConnectors(unittest.TestCase):
             self.assertTrue(suspect.exists())
             self.assertEqual(restore_res[1]["result"]["data"]["count"], 0)
 
+    def test_os_kernel_layer_connector(self) -> None:
+        kernel_script = CONNECTORS_DIR / "os-kernel" / "connector.py"
+        k_res = _rpc_session(
+            kernel_script,
+            [
+                {"jsonrpc": "2.0", "id": 1, "method": "aria/info", "params": {}},
+                {"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": "kernel_telemetry", "arguments": {}}},
+                {"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "hardware_pci_usb", "arguments": {}}},
+                {
+                    "jsonrpc": "2.0",
+                    "id": 4,
+                    "method": "tools/call",
+                    "params": {"name": "sysctl_read", "arguments": {"key": "bad;cmd"}},
+                },
+                {
+                    "jsonrpc": "2.0",
+                    "id": 5,
+                    "method": "tools/call",
+                    "params": {"name": "kernel_module_manage", "arguments": {"module": "bad;mod", "action": "load"}},
+                },
+            ],
+        )
+        self.assertEqual(k_res[0]["result"]["id"], "os-kernel")
+        self.assertTrue(k_res[1]["result"]["data"]["system"])
+        self.assertIn("pci_devices", k_res[2]["result"]["data"])
+        self.assertEqual(k_res[3]["error"]["code"], -32602)
+        self.assertEqual(k_res[4]["error"]["code"], -32602)
+
 
 if __name__ == "__main__":
     unittest.main()

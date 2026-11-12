@@ -8,13 +8,27 @@ use std::env;
 use std::time::Duration;
 
 const SYSTEM_PROMPT: &str = "\
-You are Aria, the OS-native AI agent embedded inside AriaOS (Arch Linux + KDE Plasma). \
-You control the computer through structured tools exposed by system and application connectors. \
+You ARE Aria, the OS itself inside AriaOS (Arch Linux kernel + systemd + KDE Plasma 6). \
+You operate natively across every layer of the computer:
+- Kernel & Hardware: os-kernel (telemetry, dmesg, PCI/USB, sysctl, kernel modules), os-storage (disks/archives)
+- Core System & Security: os-system (systemd/processes), os-packages (pacman), security-antivirus (ClamAV + quarantine), security-vault-crypto, security-net-audit
+- File Manager & Desktop Apps: os-files (Dolphin, search, XDG Trash, duplicates, organize), os-desktop, office, media, creative, dev & gaming connectors
 Rules:\n\
-1. Call all read-only tools (risk=read) you need immediately—even multiple tools in sequence—without asking the user for permission first; aria-daemon automatically enforces confirmation prompts for write and privileged tools.\n\
-2. Never guess or fabricate system metrics, file counts, or tool outputs. Always call the appropriate tool first.\n\
+1. Call all read-only tools (risk=read) you need immediately—even multiple tools in sequence—without asking first; aria-daemon enforces confirmation prompts for write and privileged tools.\n\
+2. Never guess or fabricate system metrics, kernel state, malware scan outputs, or file counts. Always call the appropriate tool first.\n\
 3. When organizing files, prefer dry-run (apply=false) first unless the user explicitly asks to apply changes.\n\
 4. Respond concisely in the user's language based strictly on observed tool results.";
+
+#[derive(Debug, Clone)]
+pub enum AgentTurnOutcome {
+    Answered(String),
+    NeedsConfirmation {
+        connector: String,
+        tool: String,
+        risk_level: String,
+        arguments: Value,
+    },
+}
 
 pub struct OllamaClient {
     pub base_url: String,
@@ -78,6 +92,27 @@ pub fn run_agent_turn(
     user_prompt: &str,
     mode: ApprovalMode,
 ) -> Result<String, String> {
+    match run_agent_turn_with_approvals(client, connectors, history, user_prompt, mode, &[])? {
+        AgentTurnOutcome::Answered(text) => Ok(text),
+        AgentTurnOutcome::NeedsConfirmation {
+            connector,
+            tool,
+            risk_level,
+            ..
+        } => Ok(format!(
+            "Confirmation required ({risk_level}) for {connector}.{tool}."
+        )),
+    }
+}
+
+pub fn run_agent_turn_with_approvals(
+    client: &OllamaClient,
+    connectors: &[RegisteredConnector],
+    history: &mut Vec<Value>,
+    user_prompt: &str,
+    mode: ApprovalMode,
+    approved_tools: &[String],
+) -> Result<AgentTurnOutcome, String> {
     history.push(json!({
         "role": "user",
         "content": user_prompt
@@ -107,7 +142,7 @@ pub fn run_agent_turn(
                 .and_then(|v| v.as_str())
                 .unwrap_or("")
                 .to_string();
-            return Ok(content);
+            return Ok(AgentTurnOutcome::Answered(content));
         }
 
         for call in tool_calls {
@@ -118,11 +153,15 @@ pub fn run_agent_turn(
                 .cloned()
                 .unwrap_or_else(|| json!({}));
 
-            let tool_output = execute_tool_call(connectors, qualified, args, mode);
-            history.push(json!({
-                "role": "tool",
-                "content": tool_output.to_string()
-            }));
+            match execute_tool_call(connectors, qualified, args, mode, approved_tools) {
+                Ok(tool_output) => {
+                    history.push(json!({
+                        "role": "tool",
+                        "content": tool_output.to_string()
+                    }));
+                }
+                Err(pending) => return Ok(pending),
+            }
         }
     }
 
@@ -134,33 +173,48 @@ fn execute_tool_call(
     qualified_name: &str,
     args: Value,
     mode: ApprovalMode,
-) -> Value {
+    approved_tools: &[String],
+) -> Result<Value, AgentTurnOutcome> {
     let Some((connector_id, tool_name)) = parse_qualified_tool_name(qualified_name) else {
-        return json!({"ok": false, "error": format!("Invalid tool identifier: {qualified_name}")});
+        return Ok(json!({"ok": false, "error": format!("Invalid tool identifier: {qualified_name}")}));
     };
 
     let Some((conn, spec)) = find_tool(connectors, connector_id, tool_name) else {
-        return json!({"ok": false, "error": format!("Unknown tool: {qualified_name}")});
+        return Ok(json!({"ok": false, "error": format!("Unknown tool: {qualified_name}")}));
     };
 
     eprintln!("[aria-daemon] -> calling {connector_id}.{tool_name} args={args}");
 
-    if !check_approval(connector_id, tool_name, spec.risk_level, &args, mode) {
+    let dot_name = format!("{connector_id}.{tool_name}");
+    let explicitly_approved = approved_tools
+        .iter()
+        .any(|t| t == qualified_name || t == &dot_name);
+
+    if !explicitly_approved && !check_approval(connector_id, tool_name, spec.risk_level, &args, mode) {
+        if mode == ApprovalMode::ReadOnly {
+            audit_log(connector_id, tool_name, spec.risk_level, "confirmation_required", &args);
+            return Err(AgentTurnOutcome::NeedsConfirmation {
+                connector: connector_id.to_string(),
+                tool: tool_name.to_string(),
+                risk_level: spec.risk_level.as_str().to_string(),
+                arguments: args,
+            });
+        }
         audit_log(connector_id, tool_name, spec.risk_level, "denied", &args);
-        return json!({
+        return Ok(json!({
             "ok": false,
             "error": "Execution denied by user/policy"
-        });
+        }));
     }
 
     match call_stdio_tool(conn, tool_name, args.clone()) {
         Ok(result) => {
             audit_log(connector_id, tool_name, spec.risk_level, "ok", &args);
-            result
+            Ok(result)
         }
         Err(err) => {
             audit_log(connector_id, tool_name, spec.risk_level, "error", &args);
-            json!({"ok": false, "error": err})
+            Ok(json!({"ok": false, "error": err}))
         }
     }
 }

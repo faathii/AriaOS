@@ -7,6 +7,7 @@ Each directory here represents **one application, system service, or tool domain
 | Directory | Tier | Transport | Purpose |
 | :--- | :--- | :--- | :--- |
 | [`_template/`](_template/README.md) | — | `stdio` | Starter template for adding new programs |
+| [`os-kernel/`](os-kernel/manifest.json) | `os_ipc` | `stdio` | Linux Kernel telemetry, PSI/thermal sensors, `dmesg`, `lspci`/`lsusb`/IP, `sysctl`, and `modprobe` |
 | [`os-files/`](os-files/manifest.json) | `program_api` | `stdio` | KDE Dolphin integration, search, metadata, duplicates, XDG Trash, and safe folder organization |
 | [`os-system/`](os-system/README.md) | `os_ipc` | `stdio` | `systemd` services, hardware health, CPU/RAM/disk, top processes (`KInfoCenter`) |
 | [`os-desktop/`](os-desktop/README.md) | `os_ipc` | `stdio` | KDE Plasma / KWin session info, notifications, application launcher |

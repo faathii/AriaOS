@@ -1,5 +1,5 @@
 use crate::manifest::{find_tool, RegisteredConnector};
-use crate::ollama::{initial_history, run_agent_turn, OllamaClient};
+use crate::ollama::{initial_history, run_agent_turn_with_approvals, AgentTurnOutcome, OllamaClient};
 use crate::policy::{audit_log, check_approval, ApprovalMode};
 use crate::rpc::call_stdio_tool;
 use serde_json::{json, Value};
@@ -114,10 +114,42 @@ fn handle_ipc_request(
             if prompt.is_empty() {
                 return json!({"ok": false, "error": "Missing 'prompt'"});
             }
+            let approved_tools: Vec<String> = req
+                .get("approved_tools")
+                .and_then(|v| v.as_array())
+                .map(|arr| {
+                    arr.iter()
+                        .filter_map(|x| x.as_str().map(String::from))
+                        .collect()
+                })
+                .unwrap_or_default();
             let client = OllamaClient::from_env(model);
             let mut history = initial_history();
-            match run_agent_turn(&client, connectors, &mut history, prompt, ApprovalMode::ReadOnly) {
-                Ok(answer) => json!({"ok": true, "answer": answer}),
+            match run_agent_turn_with_approvals(
+                &client,
+                connectors,
+                &mut history,
+                prompt,
+                ApprovalMode::ReadOnly,
+                &approved_tools,
+            ) {
+                Ok(AgentTurnOutcome::Answered(answer)) => json!({"ok": true, "answer": answer}),
+                Ok(AgentTurnOutcome::NeedsConfirmation {
+                    connector,
+                    tool,
+                    risk_level,
+                    arguments,
+                }) => json!({
+                    "ok": false,
+                    "error": "Tool requires interactive confirmation",
+                    "requires_confirmation": true,
+                    "risk_level": risk_level,
+                    "pending_call": {
+                        "connector": connector,
+                        "tool": tool,
+                        "arguments": arguments
+                    }
+                }),
                 Err(err) => json!({"ok": false, "error": err}),
             }
         }

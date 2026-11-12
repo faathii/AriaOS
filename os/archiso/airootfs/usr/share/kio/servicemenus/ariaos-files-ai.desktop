@@ -22,3 +22,4 @@ Name=Abrir barra IA de AriaOS
 Name[en]=Open AriaOS AI Command Bar
 Icon=ariaos-logo
 Exec=/usr/bin/aria-command-bar
+

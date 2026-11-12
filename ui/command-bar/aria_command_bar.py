@@ -56,7 +56,20 @@ def _run_cli(client: AriaDaemonClient, prompt: str | None) -> int:
                             approved=True,
                         )
             else:
-                resp = client.ask(intent["prompt"])
+                approved_tools: list[str] = []
+                resp = client.ask(intent["prompt"], approved_tools=approved_tools)
+                while not resp.get("ok") and resp.get("requires_confirmation") and resp.get("pending_call"):
+                    pc = resp["pending_call"]
+                    risk = resp.get("risk_level", "write")
+                    tool_key = f"{pc['connector']}.{pc['tool']}"
+                    ans = input(
+                        f"Allow {risk} action {tool_key} "
+                        f"with {json.dumps(pc.get('arguments', {}))}? [y/N]: "
+                    ).strip().lower()
+                    if ans not in {"y", "yes", "s", "si"}:
+                        break
+                    approved_tools.append(tool_key)
+                    resp = client.ask(intent["prompt"], approved_tools=approved_tools)
             print(json.dumps(resp, indent=2, ensure_ascii=False))
         except Exception as exc:
             print(f"Daemon error: {exc}", file=sys.stderr)
@@ -92,10 +105,16 @@ def _launch_gui(client: AriaDaemonClient) -> int:
     class DaemonWorker(QThread):
         finished_payload = pyqtSignal(dict, dict)
 
-        def __init__(self, intent: dict[str, Any], approved: bool = False) -> None:
+        def __init__(
+            self,
+            intent: dict[str, Any],
+            approved: bool = False,
+            approved_tools: list[str] | None = None,
+        ) -> None:
             super().__init__()
             self.intent = intent
             self.approved = approved
+            self.approved_tools = list(approved_tools or [])
 
         def run(self) -> None:
             try:
@@ -110,7 +129,7 @@ def _launch_gui(client: AriaDaemonClient) -> int:
                         approved=self.approved,
                     )
                 else:
-                    resp = client.ask(self.intent["prompt"])
+                    resp = client.ask(self.intent["prompt"], approved_tools=self.approved_tools)
             except Exception as exc:
                 resp = {"ok": False, "error": str(exc)}
             self.finished_payload.emit(self.intent, resp)
@@ -228,10 +247,15 @@ def _launch_gui(client: AriaDaemonClient) -> int:
                 return
             self._run_worker(intent, approved=False)
 
-        def _run_worker(self, intent: dict[str, Any], approved: bool) -> None:
+        def _run_worker(
+            self,
+            intent: dict[str, Any],
+            approved: bool = False,
+            approved_tools: list[str] | None = None,
+        ) -> None:
             self.input.setEnabled(False)
             self.status_label.setText("Running via aria-daemon...")
-            self._worker = DaemonWorker(intent, approved=approved)
+            self._worker = DaemonWorker(intent, approved=approved, approved_tools=approved_tools)
             self._worker.finished_payload.connect(self._on_result)
             self._worker.start()
 
@@ -241,17 +265,30 @@ def _launch_gui(client: AriaDaemonClient) -> int:
 
             if not resp.get("ok") and resp.get("requires_confirmation"):
                 risk = resp.get("risk_level", "write")
+                pc = resp.get("pending_call")
+                if pc:
+                    tool_key = f"{pc['connector']}.{pc['tool']}"
+                    tool_args = pc.get("arguments", {})
+                else:
+                    tool_key = f"{intent['connector']}.{intent['tool']}"
+                    tool_args = intent["arguments"]
                 reply = QMessageBox.question(
                     self,
                     "AriaOS Permission Request",
                     f"Approve {risk.upper()} action?\n\n"
-                    f"Tool: {intent['connector']}.{intent['tool']}\n"
-                    f"Arguments: {json.dumps(intent['arguments'], indent=2)}",
+                    f"Tool: {tool_key}\n"
+                    f"Arguments: {json.dumps(tool_args, indent=2)}",
                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel,
                     QMessageBox.StandardButton.Cancel,
                 )
                 if reply == QMessageBox.StandardButton.Yes:
-                    self._run_worker(intent, approved=True)
+                    if pc:
+                        approved_list = list(intent.get("approved_tools", []))
+                        approved_list.append(tool_key)
+                        intent["approved_tools"] = approved_list
+                        self._run_worker(intent, approved_tools=approved_list)
+                    else:
+                        self._run_worker(intent, approved=True)
                     return
                 self.output.setPlainText("Action cancelled by user.")
                 self.status_label.setText("Cancelled")

@@ -19,3 +19,4 @@ PreviewSize=96
 
 [PreviewSettings]
 Plugins=audiothumbnail,comicbookthumbnail,djvuthumbnail,ebookthumbnail,exrthumbnail,ffmpegthumbs,imagethumbnail,jpegthumbnail,kraorathumbnail,opendocumentthumbnail,rawthumbnail,svgthumbnail,windowsexethumbnail,windowsimagethumbnail
+

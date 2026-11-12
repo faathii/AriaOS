@@ -1,11 +1,12 @@
 # Connectors Catalog
 
-AriaOS currently ships **29 active connectors** under `connectors/`. All connectors use zero-dependency Python 3 + `aria_sdk` over `stdio` JSON-RPC 2.0.
+AriaOS currently ships **30 active connectors** under `connectors/`. All connectors use zero-dependency Python 3 + `aria_sdk` over `stdio` JSON-RPC 2.0.
 
 ## System & OS Core
 
 | Connector ID | Target Stack / API | Tools |
 | :--- | :--- | :--- |
+| `os-kernel` | Linux Kernel (`/proc`, `/sys`, `dmesg`, `sysctl`, `modprobe`, `lspci`/`lsusb`/`ip`) | `kernel_telemetry`, `dmesg_inspect`, `hardware_pci_usb`, `sysctl_read`, `sysctl_write`, `kernel_module_manage` |
 | `os-files` | KDE Dolphin / XDG Trash / `fd` / `rg` / SHA-256 | `scan_directory`, `search_files`, `file_info`, `find_duplicates`, `organize_directory`, `move_to_trash`, `open_in_dolphin` |
 | `os-system` | `systemd`, `/proc`, `journalctl`, KInfoCenter | `system_health_summary`, `list_top_processes`, `service_status`, `restart_service` |
 | `os-desktop` | KDE Plasma, `notify-send`, `gtk-launch`/`kioclient` | `desktop_environment_info`, `send_notification`, `launch_application` |

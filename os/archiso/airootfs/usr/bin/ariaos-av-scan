@@ -9,6 +9,10 @@ import subprocess
 import sys
 from pathlib import Path
 
+IPC_DIR = Path("/usr/lib/ariaos/command-bar")
+if IPC_DIR.exists() and str(IPC_DIR) not in sys.path:
+    sys.path.insert(0, str(IPC_DIR))
+
 
 def _notify(title: str, body: str, urgency: str = "normal") -> None:
     if shutil.which("notify-send"):
@@ -30,7 +34,19 @@ def _kdialog(kind: str, text: str) -> int:
     return proc.returncode
 
 
-def _call_av(tool: str, args: dict) -> dict:
+def _call_av(tool: str, args: dict, approved: bool = False) -> dict:
+    try:
+        from aria_ipc import AriaDaemonClient  # type: ignore
+
+        client = AriaDaemonClient(timeout=300.0)
+        if client.socket_path.exists():
+            resp = client.call_tool("security-antivirus", tool, args, approved=approved)
+            if not resp.get("ok"):
+                raise RuntimeError(resp.get("error", "aria-daemon call failed"))
+            return resp["result"]
+    except ImportError:
+        pass
+
     proc = subprocess.run(
         ["aria-daemon", "call", "security-antivirus", tool, json.dumps(args), "--yes"],
         text=True,
@@ -84,7 +100,7 @@ def main(argv: list[str]) -> int:
         quarantined = 0
         for threat in all_threats:
             try:
-                _call_av("av_quarantine_file", {"path": threat["path"], "reason": threat["signature"]})
+                _call_av("av_quarantine_file", {"path": threat["path"], "reason": threat["signature"]}, approved=True)
                 quarantined += 1
             except Exception as exc:
                 print(f"No se pudo aislar {threat['path']}: {exc}", file=sys.stderr)
@@ -94,3 +110,4 @@ def main(argv: list[str]) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv[1:]))
+

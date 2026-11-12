@@ -23,6 +23,7 @@ mtools
 networkmanager
 ntfsprogs
 openssh
+pciutils
 polkit
 python
 qemu-guest-agent
@@ -34,6 +35,7 @@ sudo
 syslinux
 systemd
 systemd-resolvconf
+usbutils
 virtualbox-guest-utils
 xdg-utils
 zsh

@@ -1,0 +1,90 @@
+{
+  "id": "security-antivirus",
+  "name": "AriaOS Free Antivirus (ClamAV Engine & Quarantine)",
+  "version": "0.1.0",
+  "description": "100% free, open-source ClamAV antivirus engine integrated with AriaOS: checks signature databases and daemon status, scans files or folders, updates signatures with freshclam, and manages an isolated, reversible quarantine vault.",
+  "tier": "program_api",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
+  "dependencies": ["clamav"],
+  "tools": [
+    {
+      "name": "av_status",
+      "description": "Inspect ClamAV engine binaries, signature database freshness, systemd services, and quarantine count.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "av_scan_path",
+      "description": "Scan a file or directory for malware using ClamAV (clamdscan if running, otherwise clamscan).",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string", "description": "File or directory to scan." },
+          "recursive": { "type": "boolean", "default": true },
+          "max_filesize_mb": { "type": "integer", "minimum": 1, "maximum": 4096, "default": 200 }
+        },
+        "required": ["path"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "av_update_signatures",
+      "description": "Update free ClamAV malware signature databases via freshclam.",
+      "risk_level": "privileged",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "av_quarantine_list",
+      "description": "List all files currently isolated in the AriaOS antivirus quarantine vault.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "av_quarantine_file",
+      "description": "Isolate a suspicious or infected file into the reversible AriaOS quarantine vault without deleting it.",
+      "risk_level": "write",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string", "description": "File path to isolate in quarantine." },
+          "reason": { "type": "string", "description": "Detected threat name or reason for isolation.", "default": "Manual or ClamAV detection" }
+        },
+        "required": ["path"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "av_restore_file",
+      "description": "Restore a quarantined file back to its original path (fails safely if a file already exists there).",
+      "risk_level": "privileged",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "quarantine_id": { "type": "string", "description": "Unique ID from av_quarantine_list." }
+        },
+        "required": ["quarantine_id"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

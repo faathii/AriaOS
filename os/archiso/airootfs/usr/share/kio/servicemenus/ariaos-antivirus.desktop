@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Service
+MimeType=all/allfiles;inode/directory;
+Actions=AriaScanClamAV;
+X-KDE-Priority=TopLevel
+
+[Desktop Action AriaScanClamAV]
+Name=Analizar con Antivirus AriaOS (ClamAV)
+Name[en]=Scan with AriaOS Antivirus (ClamAV)
+Icon=security-high
+Exec=/usr/bin/ariaos-av-scan %F

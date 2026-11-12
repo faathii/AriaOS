@@ -1,12 +1,12 @@
 # Connectors Catalog
 
-AriaOS currently ships **28 active connectors** under `connectors/`. All connectors use zero-dependency Python 3 + `aria_sdk` over `stdio` JSON-RPC 2.0.
+AriaOS currently ships **29 active connectors** under `connectors/`. All connectors use zero-dependency Python 3 + `aria_sdk` over `stdio` JSON-RPC 2.0.
 
 ## System & OS Core
 
 | Connector ID | Target Stack / API | Tools |
 | :--- | :--- | :--- |
-| `os-files` | Dolphin / `fd` / SHA-256 | `scan_directory`, `find_duplicates`, `organize_directory` |
+| `os-files` | KDE Dolphin / XDG Trash / `fd` / `rg` / SHA-256 | `scan_directory`, `search_files`, `file_info`, `find_duplicates`, `organize_directory`, `move_to_trash`, `open_in_dolphin` |
 | `os-system` | `systemd`, `/proc`, `journalctl`, KInfoCenter | `system_health_summary`, `list_top_processes`, `service_status`, `restart_service` |
 | `os-desktop` | KDE Plasma, `notify-send`, `gtk-launch`/`kioclient` | `desktop_environment_info`, `send_notification`, `launch_application` |
 | `os-packages` | `pacman`, `checkupdates`, `paccache` | `list_installed_packages`, `search_packages`, `check_system_updates`, `clean_package_cache`, `install_package` |
@@ -42,6 +42,7 @@ AriaOS currently ships **28 active connectors** under `connectors/`. All connect
 | Connector ID | Target Programs / API | Tools |
 | :--- | :--- | :--- |
 | `knowledge-notes-ebooks` | Obsidian Vaults (Markdown), Calibre (`calibredb`, `ebook-convert`) | `search_obsidian_vault`, `create_obsidian_note`, `calibre_list_books`, `calibre_convert_ebook` |
+| `security-antivirus` | ClamAV (`clamdscan`, `clamscan`, `freshclam`, Quarantine Vault) | `av_status`, `av_scan_path`, `av_update_signatures`, `av_quarantine_list`, `av_quarantine_file`, `av_restore_file` |
 | `security-vault-crypto` | KeePassXC (`.kdbx`), VeraCrypt, Timeshift, Flameshot | `keepassxc_check_db`, `veracrypt_list_volumes`, `timeshift_list_snapshots`, `flameshot_capture` |
 | `security-net-audit` | Wireshark (`tshark`), Ghidra/Cutter/rizin, Nmap, Burp, Metasploit, Hashcat, John | `security_suite_status`, `inspect_binary`, `inspect_pcap`, `nmap_scan` |
 | `dev-git` | Git CLI (`git status`, `log`, `diff`, `commit`) | `repo_status`, `repo_log`, `repo_diff`, `stage_and_commit` |

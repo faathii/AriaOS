@@ -1,12 +1,12 @@
 {
   "id": "os-files",
-  "name": "OS File Organizer & Inspector",
-  "version": "0.1.0",
-  "description": "Scans directories, detects duplicate files, and safely organizes files by category without overwriting existing data.",
+  "name": "Dolphin File Manager & OS File Organizer",
+  "version": "0.2.0",
+  "description": "Controls AriaOS's KDE Dolphin file manager and filesystem: searches files/content, inspects metadata, finds duplicates, safely organizes directories, moves items to XDG Trash, and opens folders in Dolphin.",
   "tier": "program_api",
   "transport": "stdio",
   "entrypoint": ["python3", "connector.py"],
-  "dependencies": ["ripgrep", "fd"],
+  "dependencies": ["dolphin", "ripgrep", "fd", "kio-extras"],
   "tools": [
     {
       "name": "scan_directory",
@@ -18,6 +18,38 @@
         "properties": {
           "path": { "type": "string", "description": "Target directory path." },
           "recursive": { "type": "boolean", "default": false }
+        },
+        "required": ["path"]
+      }
+    },
+    {
+      "name": "search_files",
+      "description": "Search files or directories by name glob/substring, minimum size, or text content.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string", "description": "Root directory to search." },
+          "query": { "type": "string", "description": "Optional filename glob (e.g. '*.pdf') or case-insensitive substring." },
+          "text_query": { "type": "string", "description": "Optional text content substring to match inside small text/code files." },
+          "min_size_bytes": { "type": "integer", "minimum": 0 },
+          "recursive": { "type": "boolean", "default": true },
+          "limit": { "type": "integer", "minimum": 1, "maximum": 500, "default": 50 }
+        },
+        "required": ["path"]
+      }
+    },
+    {
+      "name": "file_info",
+      "description": "Inspect file or directory metadata: type, MIME type, size, permissions, modified time, and optional SHA-256.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string", "description": "File or directory path." },
+          "include_hash": { "type": "boolean", "default": false }
         },
         "required": ["path"]
       }
@@ -46,6 +78,33 @@
         "properties": {
           "path": { "type": "string", "description": "Directory to organize." },
           "apply": { "type": "boolean", "default": false, "description": "Set true to execute moves; false returns a dry-run plan." }
+        },
+        "required": ["path"]
+      }
+    },
+    {
+      "name": "move_to_trash",
+      "description": "Safely move a file or directory to the FreeDesktop/Dolphin Trash (~/.local/share/Trash) so it can be restored.",
+      "risk_level": "write",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string", "description": "File or directory to move to Trash." }
+        },
+        "required": ["path"]
+      }
+    },
+    {
+      "name": "open_in_dolphin",
+      "description": "Open a directory or select a specific file inside KDE Dolphin file manager.",
+      "risk_level": "write",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string", "description": "File or folder path to open in Dolphin." },
+          "select_file": { "type": "boolean", "default": true }
         },
         "required": ["path"]
       }

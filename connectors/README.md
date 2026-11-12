@@ -7,7 +7,7 @@ Each directory here represents **one application, system service, or tool domain
 | Directory | Tier | Transport | Purpose |
 | :--- | :--- | :--- | :--- |
 | [`_template/`](_template/README.md) | — | `stdio` | Starter template for adding new programs |
-| [`os-files/`](os-files/manifest.json) | `program_api` | `stdio` | File inspection, smart organization, duplicate detection (Dolphin / `fd` / `rg`) |
+| [`os-files/`](os-files/manifest.json) | `program_api` | `stdio` | KDE Dolphin integration, search, metadata, duplicates, XDG Trash, and safe folder organization |
 | [`os-system/`](os-system/README.md) | `os_ipc` | `stdio` | `systemd` services, hardware health, CPU/RAM/disk, top processes (`KInfoCenter`) |
 | [`os-desktop/`](os-desktop/README.md) | `os_ipc` | `stdio` | KDE Plasma / KWin session info, notifications, application launcher |
 | [`os-packages/`](os-packages/README.md) | `program_api` | `stdio` | `pacman` package search/install, update checks, and safe `paccache` cleanup |
@@ -30,6 +30,7 @@ Each directory here represents **one application, system service, or tool domain
 | [`creative-design-photo/`](creative-design-photo/manifest.json) | `program_api` | `stdio` | Inkscape SVG inspection/export and Darktable/RawTherapee RAW export |
 | [`creative-video-transcode/`](creative-video-transcode/manifest.json) | `program_api` | `stdio` | HandBrakeCLI transcoding and Shotcut/Pitivi project inspection |
 | [`knowledge-notes-ebooks/`](knowledge-notes-ebooks/manifest.json) | `program_api` | `stdio` | Obsidian vault search/notes and Calibre library/conversion |
+| [`security-antivirus/`](security-antivirus/manifest.json) | `program_api` | `stdio` | 100% free ClamAV malware scanning, signature updates (`freshclam`), and reversible quarantine vault |
 | [`security-vault-crypto/`](security-vault-crypto/manifest.json) | `program_api` | `stdio` | KeePassXC `.kdbx` check, VeraCrypt volumes, Timeshift, Flameshot |
 | [`security-net-audit/`](security-net-audit/manifest.json) | `program_api` | `stdio` | Wireshark/tshark PCAP, ELF/PE headers (Ghidra/Cutter), Nmap & suite status |
 | [`dev-containers-vm/`](dev-containers-vm/manifest.json) | `program_api` | `stdio` | Docker/Podman/Portainer containers and VirtualBox/QEMU-KVM control |

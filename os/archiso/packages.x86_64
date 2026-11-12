@@ -45,6 +45,12 @@ qt6-wayland
 sddm
 konsole
 dolphin
+dolphin-plugins
+kio-extras
+kio-admin
+ffmpegthumbs
+kdegraphics-thumbnailers
+kimageformats
 ark
 kate
 discover
@@ -53,6 +59,9 @@ poppler
 kcalc
 kinfocenter
 python-pyqt6
+
+# --- Antivirus & Core Security ---
+clamav
 
 # --- AI Layer (ariaOS-Core) ---
 ollama

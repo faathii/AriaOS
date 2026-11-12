@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -10,7 +11,7 @@ import tempfile
 import unittest
 import zipfile
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CONNECTORS_DIR = REPO_ROOT / "connectors"
@@ -24,8 +25,16 @@ VALID_TRANSPORTS = {"stdio", "unix_socket", "dbus"}
 VALID_RISK_LEVELS = {"read", "write", "privileged"}
 
 
-def _rpc_session(script_path: Path, requests: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def _rpc_session(
+    script_path: Path,
+    requests: List[Dict[str, Any]],
+    env_overrides: Optional[Dict[str, str]] = None,
+) -> List[Dict[str, Any]]:
     payload = "\n".join(json.dumps(req) for req in requests) + "\n"
+    env = None
+    if env_overrides:
+        env = os.environ.copy()
+        env.update(env_overrides)
     proc = subprocess.run(
         [sys.executable, str(script_path)],
         input=payload,
@@ -33,6 +42,7 @@ def _rpc_session(script_path: Path, requests: List[Dict[str, Any]]) -> List[Dict
         capture_output=True,
         check=True,
         timeout=10,
+        env=env,
     )
     return [json.loads(line) for line in proc.stdout.splitlines() if line.strip()]
 
@@ -617,6 +627,96 @@ class TestStdioConnectors(unittest.TestCase):
             )
             self.assertIn("steam", nscg_res[0]["result"]["data"]["installed"])
             self.assertEqual(nscg_res[1]["error"]["code"], -32602)
+
+    def test_dolphin_files_and_free_antivirus_quarantine(self) -> None:
+        files_script = CONNECTORS_DIR / "os-files" / "connector.py"
+        av_script = CONNECTORS_DIR / "security-antivirus" / "connector.py"
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            xdg_data = root / "xdg_data"
+            qdir = root / "quarantine"
+            sample = root / "report.txt"
+            sample.write_text("AriaOS secret benchmark report", encoding="utf-8")
+
+            f_res = _rpc_session(
+                files_script,
+                [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "tools/call",
+                        "params": {
+                            "name": "search_files",
+                            "arguments": {"path": str(root), "query": "*.txt", "text_query": "benchmark"},
+                        },
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 2,
+                        "method": "tools/call",
+                        "params": {
+                            "name": "file_info",
+                            "arguments": {"path": str(sample), "include_hash": True},
+                        },
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 3,
+                        "method": "tools/call",
+                        "params": {
+                            "name": "move_to_trash",
+                            "arguments": {"path": str(sample)},
+                        },
+                    },
+                ],
+                env_overrides={"XDG_DATA_HOME": str(xdg_data)},
+            )
+            self.assertEqual(f_res[0]["result"]["data"]["count"], 1)
+            self.assertIn("sha256", f_res[1]["result"]["data"])
+            trash_data = f_res[2]["result"]["data"]
+            self.assertTrue(trash_data["trashed"])
+            self.assertFalse(sample.exists())
+            self.assertTrue(Path(trash_data["trash_path"]).exists())
+            self.assertTrue(Path(trash_data["trashinfo_path"]).exists())
+
+            suspect = root / "suspect.bin"
+            suspect.write_bytes(b"eicar-like-payload-test")
+            av_res = _rpc_session(
+                av_script,
+                [
+                    {"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name": "av_status", "arguments": {}}},
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 2,
+                        "method": "tools/call",
+                        "params": {"name": "av_quarantine_file", "arguments": {"path": str(suspect), "reason": "Test.Threat"}},
+                    },
+                    {"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "av_quarantine_list", "arguments": {}}},
+                ],
+                env_overrides={"ARIAOS_QUARANTINE_DIR": str(qdir)},
+            )
+            self.assertEqual(av_res[0]["result"]["data"]["engine"], "ClamAV (GPLv2, 100% Free)")
+            q_id = av_res[1]["result"]["data"]["record"]["id"]
+            self.assertFalse(suspect.exists())
+            self.assertEqual(av_res[2]["result"]["data"]["count"], 1)
+
+            restore_res = _rpc_session(
+                av_script,
+                [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 4,
+                        "method": "tools/call",
+                        "params": {"name": "av_restore_file", "arguments": {"quarantine_id": q_id}},
+                    },
+                    {"jsonrpc": "2.0", "id": 5, "method": "tools/call", "params": {"name": "av_quarantine_list", "arguments": {}}},
+                ],
+                env_overrides={"ARIAOS_QUARANTINE_DIR": str(qdir)},
+            )
+            self.assertTrue(restore_res[0]["result"]["data"]["restored"])
+            self.assertTrue(suspect.exists())
+            self.assertEqual(restore_res[1]["result"]["data"]["count"], 0)
 
 
 if __name__ == "__main__":

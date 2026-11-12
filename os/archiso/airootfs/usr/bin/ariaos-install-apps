@@ -12,7 +12,7 @@ EOF
 
 CREATIVE_PKGS=(inkscape darktable rawtherapee handbrake handbrake-cli pitivi shotcut)
 KNOWLEDGE_PKGS=(obsidian calibre)
-SECURITY_PKGS=(keepassxc veracrypt flameshot wireshark-qt wireshark-cli nmap ghidra cutter rizin metasploit hashcat john timeshift)
+SECURITY_PKGS=(clamav keepassxc veracrypt flameshot wireshark-qt wireshark-cli nmap ghidra cutter rizin metasploit hashcat john timeshift)
 DEV_PKGS=(docker podman virtualbox qemu-full libvirt virt-manager dbeaver)
 GAMING_PKGS=(steam lutris retroarch)
 COMMS_PKGS=(qbittorrent syncthing telegram-desktop element-desktop signal-desktop discord gnome-tweaks)

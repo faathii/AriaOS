@@ -88,8 +88,12 @@ sed -i 's/\r$//' \
   "${STAGE_DIR}/airootfs/etc/group" \
   "${STAGE_DIR}/airootfs/etc/shadow" \
   "${STAGE_DIR}/airootfs/etc/xdg/kscreenlockerrc" \
+  "${STAGE_DIR}/airootfs/home/aria/.config/dolphinrc" \
+  "${STAGE_DIR}/airootfs/etc/skel/.config/dolphinrc" \
   "${STAGE_DIR}/airootfs/usr/bin/aria-command-bar" \
   "${STAGE_DIR}/airootfs/usr/bin/ariaos-apply-branding" \
+  "${STAGE_DIR}/airootfs/usr/bin/ariaos-av-scan" \
+  "${STAGE_DIR}/airootfs/usr/bin/ariaos-file-action" \
   "${STAGE_DIR}/airootfs/usr/bin/ariaos-install-apps"
 
 echo "[3/4] Enabling systemd units inside airootfs..."
@@ -98,6 +102,8 @@ mkdir -p "${WANTS_DIR}"
 ln -sf "/etc/systemd/system/aria-daemon.service" "${WANTS_DIR}/aria-daemon.service"
 ln -sf "/usr/lib/systemd/system/ollama.service" "${WANTS_DIR}/ollama.service"
 ln -sf "/usr/lib/systemd/system/NetworkManager.service" "${WANTS_DIR}/NetworkManager.service"
+ln -sf "/usr/lib/systemd/system/clamav-freshclam.service" "${WANTS_DIR}/clamav-freshclam.service"
+ln -sf "/usr/lib/systemd/system/clamav-daemon.service" "${WANTS_DIR}/clamav-daemon.service"
 ln -sf "/usr/lib/systemd/system/sddm.service" "${STAGE_DIR}/airootfs/etc/systemd/system/display-manager.service"
 
 echo "[4/4] Running mkarchiso..."

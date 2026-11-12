@@ -1,0 +1,24 @@
+[Desktop Entry]
+Type=Service
+MimeType=inode/directory;
+Actions=AriaOrganizePreview;AriaFindDuplicates;AriaAskFiles;
+X-KDE-Submenu=AriaOS Gestor IA
+X-KDE-Submenu[en]=AriaOS AI File Actions
+
+[Desktop Action AriaOrganizePreview]
+Name=Organizar carpeta (vista previa segura)
+Name[en]=Organize folder (safe dry-run)
+Icon=view-sort-ascending
+Exec=/usr/bin/ariaos-file-action organize %f
+
+[Desktop Action AriaFindDuplicates]
+Name=Buscar archivos duplicados (SHA-256)
+Name[en]=Find duplicate files (SHA-256)
+Icon=edit-duplicate
+Exec=/usr/bin/ariaos-file-action duplicates %f
+
+[Desktop Action AriaAskFiles]
+Name=Abrir barra IA de AriaOS
+Name[en]=Open AriaOS AI Command Bar
+Icon=ariaos-logo
+Exec=/usr/bin/aria-command-bar

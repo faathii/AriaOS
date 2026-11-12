@@ -11,7 +11,18 @@ AriaOS is built directly from Arch Linux (`archiso` releng base) paired with **K
 - **Systemd Services Enabled by Default**:
   - `aria-daemon.service` (`/usr/bin/aria-daemon`, creates `/run/ariaos/`)
   - `ollama.service` (configured with drop-in `override.conf` binding `127.0.0.1:11434`)
+  - `clamav-freshclam.service` & `clamav-daemon.service` (guarded by `wait-for-db.conf` so resident `clamd` activates automatically once free ClamAV signatures are downloaded)
   - `NetworkManager.service` & `sddm.service`
+
+## File Manager (KDE Dolphin) & Built-In Free Antivirus (ClamAV)
+
+- **KDE Dolphin Enhanced Suite**:
+  - Live ISO installs `dolphin`, `dolphin-plugins`, `kio-extras`, `kio-admin`, `ffmpegthumbs`, `kdegraphics-thumbnailers`, and `kimageformats` for SFTP/SMB/MTP shares, inline renaming, status-bar free space (`dolphinrc`), and rich video/RAW/PDF/archive previews.
+  - Right-click KIO Service Menus (`/usr/share/kio/servicemenus/ariaos-files-ai.desktop`) expose **Organize folder (safe dry-run)**, **Find duplicates (SHA-256)**, and **AriaOS AI Command Bar** directly inside Dolphin (`ariaos-file-action`).
+- **100% Free Open-Source Antivirus (`clamav` + `security-antivirus`)**:
+  - Zero-cost, GPLv2 ClamAV engine preinstalled in the base system (`clamscan`, `clamdscan`, `freshclam`, `clamonacc`).
+  - Right-click any file or folder in Dolphin via **Scan with AriaOS Antivirus (ClamAV)** (`/usr/share/kio/servicemenus/ariaos-antivirus.desktop` -> `ariaos-av-scan`), with desktop notifications and one-click isolation into `~/.local/share/ariaos/quarantine/`.
+  - Controlled naturally via the AI connector `security-antivirus` (scan paths, inspect status/DB freshness, update definitions, and safely quarantine or restore files).
 
 ## Visual Branding Pipeline (`AriaOS.jpeg` & `ariaos-inicio.mp4`)
 

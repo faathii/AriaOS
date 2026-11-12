@@ -1,0 +1,96 @@
+#!/usr/bin/env python3
+"""AriaOS Dolphin & CLI Antivirus Scanner (ClamAV + Quarantine integration)."""
+
+from __future__ import annotations
+
+import json
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+
+def _notify(title: str, body: str, urgency: str = "normal") -> None:
+    if shutil.which("notify-send"):
+        subprocess.run(
+            ["notify-send", "-u", urgency, "-a", "AriaOS Antivirus", "-i", "security-high", title, body],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+
+
+def _kdialog(kind: str, text: str) -> int:
+    if not shutil.which("kdialog"):
+        return 1
+    proc = subprocess.run(
+        ["kdialog", f"--{kind}", text, "--title", "AriaOS Antivirus (ClamAV)"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    return proc.returncode
+
+
+def _call_av(tool: str, args: dict) -> dict:
+    proc = subprocess.run(
+        ["aria-daemon", "call", "security-antivirus", tool, json.dumps(args), "--yes"],
+        text=True,
+        capture_output=True,
+    )
+    if proc.returncode != 0:
+        raise RuntimeError((proc.stderr or proc.stdout).strip())
+    return json.loads(proc.stdout)
+
+
+def main(argv: list[str]) -> int:
+    targets = [Path(p).expanduser().resolve() for p in argv if p.strip()]
+    if not targets:
+        print("Usage: ariaos-av-scan <path> [path ...]", file=sys.stderr)
+        return 2
+
+    all_threats = []
+    errors = []
+    for target in targets:
+        _notify("AriaOS Antivirus", f"Analizando {target.name} con ClamAV...")
+        try:
+            res = _call_av("av_scan_path", {"path": str(target), "recursive": True})
+        except Exception as exc:
+            errors.append(f"{target}: {exc}")
+            continue
+        if not res.get("scanned", False):
+            errors.append(f"{target}: {res.get('error', 'Error desconocido')}")
+            continue
+        for item in res.get("threats", []):
+            all_threats.append(item)
+
+    if errors and not all_threats:
+        msg = "\n".join(errors)
+        _notify("AriaOS Antivirus - Aviso", msg, urgency="normal")
+        _kdialog("sorry", msg)
+        print(msg, file=sys.stderr)
+        return 1
+
+    if not all_threats:
+        summary = f"Analisis completado sin amenazas ({len(targets)} elemento(s) analizado(s))."
+        _notify("AriaOS Antivirus - Limpio", summary)
+        print(summary)
+        return 0
+
+    threat_lines = "\n".join(f"- {t['path']} ({t['signature']})" for t in all_threats)
+    alert_msg = f"Se detectaron {len(all_threats)} amenaza(s):\n\n{threat_lines}\n\n¿Deseas aislarlas en la Cuarentena segura de AriaOS?"
+    _notify("AriaOS Antivirus - Amenaza detectada", f"{len(all_threats)} amenaza(s) encontrada(s).", urgency="critical")
+    print(alert_msg)
+
+    if _kdialog("yesno", alert_msg) == 0:
+        quarantined = 0
+        for threat in all_threats:
+            try:
+                _call_av("av_quarantine_file", {"path": threat["path"], "reason": threat["signature"]})
+                quarantined += 1
+            except Exception as exc:
+                print(f"No se pudo aislar {threat['path']}: {exc}", file=sys.stderr)
+        _notify("AriaOS Antivirus", f"{quarantined} archivo(s) aislado(s) en cuarentena.")
+    return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv[1:]))

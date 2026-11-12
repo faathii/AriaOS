@@ -1,13 +1,20 @@
-"""AriaOS `os-files` connector: inspect, deduplicate, and safely organize directories."""
+"""AriaOS `os-files` connector: KDE Dolphin integration, search, inspection, XDG Trash, and organization."""
 
 from __future__ import annotations
 
+import fnmatch
 import hashlib
+import mimetypes
+import os
 import shutil
+import stat
+import subprocess
 import sys
 from collections import defaultdict
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List
+from urllib.parse import quote
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT / "core" / "sdk" / "python"))
@@ -53,14 +60,23 @@ CATEGORY_MAP: Dict[str, str] = {
     ".yml": "Code",
 }
 
-server = ConnectorServer(connector_id="os-files", version="0.1.0")
+MAX_CONTENT_SCAN_BYTES = 2 * 1024 * 1024
+
+server = ConnectorServer(connector_id="os-files", version="0.2.0")
 
 
-def _require_dir(raw_path: Any) -> Path:
+def _require_path(raw_path: Any) -> Path:
     if not isinstance(raw_path, str) or not raw_path.strip():
         raise ConnectorError("Parameter 'path' must be a non-empty string", code=-32602)
     target = Path(raw_path).expanduser().resolve()
-    if not target.exists() or not target.is_dir():
+    if not target.exists():
+        raise ConnectorError(f"Path does not exist: {target}", code=-32602)
+    return target
+
+
+def _require_dir(raw_path: Any) -> Path:
+    target = _require_path(raw_path)
+    if not target.is_dir():
         raise ConnectorError(f"Directory does not exist: {target}", code=-32602)
     return target
 
@@ -164,6 +180,165 @@ def organize_directory(args: Dict[str, Any]) -> Dict[str, Any]:
         "moves": planned_moves,
         "skipped": skipped,
     }
+
+
+def _matches_name(name: str, query: str) -> bool:
+    if any(ch in query for ch in "*?["):
+        return fnmatch.fnmatch(name.lower(), query.lower())
+    return query.lower() in name.lower()
+
+
+def _contains_text(file_path: Path, text_query: str) -> bool:
+    try:
+        if file_path.stat().st_size > MAX_CONTENT_SCAN_BYTES:
+            return False
+        raw = file_path.read_bytes()
+    except OSError:
+        return False
+    if b"\x00" in raw[:4096]:
+        return False
+    return text_query.lower() in raw.decode("utf-8", errors="ignore").lower()
+
+
+@server.tool("search_files")
+def search_files(args: Dict[str, Any]) -> Dict[str, Any]:
+    """Search files/directories by filename pattern, minimum size, or UTF-8 text content."""
+    root = _require_dir(args.get("path"))
+    query = args.get("query")
+    text_query = args.get("text_query")
+    min_size = int(args.get("min_size_bytes") or 0)
+    recursive = bool(args.get("recursive", True))
+    limit = max(1, min(int(args.get("limit") or 50), 500))
+
+    iterator = root.rglob("*") if recursive else root.iterdir()
+    matches: List[Dict[str, Any]] = []
+    for item in iterator:
+        if item.is_symlink():
+            continue
+        if query and not _matches_name(item.name, str(query)):
+            continue
+        is_file = item.is_file()
+        try:
+            size = item.stat().st_size if is_file else 0
+        except OSError:
+            continue
+        if min_size > 0 and (not is_file or size < min_size):
+            continue
+        if text_query:
+            if not is_file or not _contains_text(item, str(text_query)):
+                continue
+        matches.append(
+            {
+                "path": str(item),
+                "name": item.name,
+                "kind": "file" if is_file else "directory",
+                "size_bytes": size,
+            }
+        )
+        if len(matches) >= limit:
+            break
+
+    return {
+        "path": str(root),
+        "count": len(matches),
+        "truncated": len(matches) >= limit,
+        "matches": matches,
+    }
+
+
+@server.tool("file_info")
+def file_info(args: Dict[str, Any]) -> Dict[str, Any]:
+    """Return detailed file/directory metadata, MIME type, permissions, and optional SHA-256."""
+    target = _require_path(args.get("path"))
+    include_hash = bool(args.get("include_hash", False))
+    st = target.stat()
+    mime, _ = mimetypes.guess_type(str(target))
+    result: Dict[str, Any] = {
+        "path": str(target),
+        "name": target.name,
+        "kind": "directory" if target.is_dir() else "file",
+        "size_bytes": st.st_size,
+        "mime_type": "inode/directory" if target.is_dir() else (mime or "application/octet-stream"),
+        "permissions": stat.filemode(st.st_mode),
+        "modified_utc": datetime.fromtimestamp(st.st_mtime, tz=timezone.utc).isoformat(),
+    }
+    if include_hash and target.is_file():
+        result["sha256"] = _sha256(target)
+    return result
+
+
+def _xdg_trash_root() -> Path:
+    data_home = os.environ.get("XDG_DATA_HOME")
+    base = Path(data_home).expanduser() if data_home else Path.home() / ".local" / "share"
+    return base / "Trash"
+
+
+def _unique_trash_name(files_dir: Path, info_dir: Path, name: str) -> str:
+    candidate = name
+    idx = 2
+    while (files_dir / candidate).exists() or (info_dir / f"{candidate}.trashinfo").exists():
+        stem = Path(name).stem
+        suffix = Path(name).suffix
+        candidate = f"{stem}.{idx}{suffix}" if suffix else f"{name}.{idx}"
+        idx += 1
+    return candidate
+
+
+@server.tool("move_to_trash")
+def move_to_trash(args: Dict[str, Any]) -> Dict[str, Any]:
+    """Move a file or directory safely to FreeDesktop/Dolphin Trash with .trashinfo metadata."""
+    target = _require_path(args.get("path"))
+    home = Path.home().resolve()
+    forbidden = {target.anchor, str(home), "/etc", "/usr", "/bin", "/boot", "/var", "/home"}
+    if str(target) in forbidden or target.parent == target:
+        raise ConnectorError(f"Refusing to trash protected path: {target}", code=-32602)
+
+    trash_root = _xdg_trash_root()
+    files_dir = trash_root / "files"
+    info_dir = trash_root / "info"
+    files_dir.mkdir(parents=True, exist_ok=True)
+    info_dir.mkdir(parents=True, exist_ok=True)
+
+    trash_name = _unique_trash_name(files_dir, info_dir, target.name)
+    trashed_path = files_dir / trash_name
+    info_path = info_dir / f"{trash_name}.trashinfo"
+    deletion_date = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    info_content = (
+        "[Trash Info]\n"
+        f"Path={quote(str(target), safe='/')}\n"
+        f"DeletionDate={deletion_date}\n"
+    )
+    info_path.write_text(info_content, encoding="utf-8")
+    shutil.move(str(target), str(trashed_path))
+
+    return {
+        "trashed": True,
+        "original_path": str(target),
+        "trash_path": str(trashed_path),
+        "trashinfo_path": str(info_path),
+    }
+
+
+@server.tool("open_in_dolphin")
+def open_in_dolphin(args: Dict[str, Any]) -> Dict[str, Any]:
+    """Open a directory or select a file in KDE Dolphin."""
+    target = _require_path(args.get("path"))
+    select_file = bool(args.get("select_file", True))
+    dolphin_bin = shutil.which("dolphin")
+    if not dolphin_bin:
+        return {
+            "launched": False,
+            "path": str(target),
+            "reason": "dolphin binary not found on PATH",
+        }
+    cmd = [dolphin_bin, "--select", str(target)] if (select_file and target.is_file()) else [dolphin_bin, str(target)]
+    proc = subprocess.Popen(
+        cmd,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        start_new_session=True,
+    )
+    return {"launched": True, "pid": proc.pid, "command": cmd, "path": str(target)}
 
 
 if __name__ == "__main__":

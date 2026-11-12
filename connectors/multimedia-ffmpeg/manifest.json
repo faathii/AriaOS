@@ -2,27 +2,28 @@
   "id": "multimedia-ffmpeg",
   "name": "FFmpeg & ImageMagick Automation",
   "version": "0.1.0",
-  "description": "Converts, compresses, trims, and inspects video, audio, and image files on demand.",
+  "description": "Inspects, converts, compresses, and extracts media using ffprobe and ffmpeg.",
   "tier": "program_api",
   "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
   "dependencies": ["ffmpeg", "imagemagick"],
   "tools": [
     {
       "name": "inspect_media",
-      "description": "Inspect resolution, codecs, duration, and bitrate via ffprobe.",
+      "description": "Inspect resolution, codecs, duration, and bitrate of a media file via ffprobe.",
       "risk_level": "read",
       "reversible": true,
       "input_schema": {
         "type": "object",
         "properties": {
-          "path": { "type": "string" }
+          "path": { "type": "string", "description": "Input media file path." }
         },
         "required": ["path"]
       }
     },
     {
       "name": "convert_media",
-      "description": "Transcode or resize media into a new output file without overwriting the source.",
+      "description": "Transcode or convert a media file to a new output path without overwriting existing files.",
       "risk_level": "write",
       "reversible": true,
       "input_schema": {
@@ -30,11 +31,14 @@
         "properties": {
           "input_path": { "type": "string" },
           "output_path": { "type": "string" },
-          "preset": { "type": "string" }
+          "preset": {
+            "type": "string",
+            "enum": ["balanced", "fast", "audio_only"],
+            "default": "balanced"
+          }
         },
         "required": ["input_path", "output_path"]
       }
     }
   ]
 }
-

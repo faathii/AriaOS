@@ -170,6 +170,62 @@ class TestStdioConnectors(unittest.TestCase):
 
             self.assertEqual(apply_responses[1]["error"]["code"], -32601)
 
+    def test_os_system_and_desktop_and_ffmpeg_info(self) -> None:
+        system_script = CONNECTORS_DIR / "os-system" / "connector.py"
+        sys_res = _rpc_session(
+            system_script,
+            [
+                {"jsonrpc": "2.0", "id": 1, "method": "aria/info", "params": {}},
+                {
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "method": "tools/call",
+                    "params": {"name": "system_health_summary", "arguments": {}},
+                },
+                {
+                    "jsonrpc": "2.0",
+                    "id": 3,
+                    "method": "tools/call",
+                    "params": {"name": "service_status", "arguments": {"unit": "bad;unit"}},
+                },
+            ],
+        )
+        self.assertEqual(sys_res[0]["result"]["id"], "os-system")
+        self.assertGreater(sys_res[1]["result"]["data"]["disk"]["total_gb"], 0)
+        self.assertEqual(sys_res[2]["error"]["code"], -32602)
+
+        desktop_script = CONNECTORS_DIR / "os-desktop" / "connector.py"
+        desk_res = _rpc_session(
+            desktop_script,
+            [
+                {"jsonrpc": "2.0", "id": 1, "method": "aria/info", "params": {}},
+                {
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "method": "tools/call",
+                    "params": {"name": "desktop_environment_info", "arguments": {}},
+                },
+            ],
+        )
+        self.assertEqual(desk_res[0]["result"]["id"], "os-desktop")
+        self.assertIn("has_graphical_session", desk_res[1]["result"]["data"])
+
+        ffmpeg_script = CONNECTORS_DIR / "multimedia-ffmpeg" / "connector.py"
+        ff_res = _rpc_session(
+            ffmpeg_script,
+            [
+                {"jsonrpc": "2.0", "id": 1, "method": "aria/info", "params": {}},
+                {
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "method": "tools/call",
+                    "params": {"name": "inspect_media", "arguments": {"path": "/no/such/file.mp4"}},
+                },
+            ],
+        )
+        self.assertEqual(ff_res[0]["result"]["id"], "multimedia-ffmpeg")
+        self.assertEqual(ff_res[1]["error"]["code"], -32602)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -2,15 +2,15 @@
   "id": "os-system",
   "name": "OS System Health & Services",
   "version": "0.1.0",
-  "description": "Monitors system resources, systemd service health, and Arch package state via D-Bus and read-only system APIs.",
+  "description": "Monitors CPU, RAM, disk usage, top processes, and systemd service health on Arch Linux.",
   "tier": "os_ipc",
-  "transport": "dbus",
-  "dbus_service": "org.freedesktop.systemd1",
+  "transport": "stdio",
+  "entrypoint": ["python3", "connector.py"],
   "dependencies": ["systemd", "pacman"],
   "tools": [
     {
       "name": "system_health_summary",
-      "description": "Read CPU, memory, swap, disk usage, and failed systemd units.",
+      "description": "Read CPU load, memory, disk usage, uptime, and failed systemd units.",
       "risk_level": "read",
       "reversible": true,
       "input_schema": {
@@ -20,21 +20,43 @@
       }
     },
     {
-      "name": "service_status",
-      "description": "Inspect the status and recent journal logs of a systemd unit.",
+      "name": "list_top_processes",
+      "description": "List top running processes sorted by memory or CPU usage.",
       "risk_level": "read",
       "reversible": true,
       "input_schema": {
         "type": "object",
         "properties": {
-          "unit": { "type": "string", "description": "Systemd unit name (e.g. ollama.service)." }
+          "sort_by": {
+            "type": "string",
+            "enum": ["memory", "cpu"],
+            "default": "memory"
+          },
+          "limit": {
+            "type": "integer",
+            "default": 10
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "service_status",
+      "description": "Inspect the active state and recent journal logs of a systemd unit.",
+      "risk_level": "read",
+      "reversible": true,
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "unit": { "type": "string", "description": "Systemd unit name (e.g. ollama.service)." },
+          "lines": { "type": "integer", "default": 10 }
         },
         "required": ["unit"]
       }
     },
     {
       "name": "restart_service",
-      "description": "Restart a systemd service (requires explicit user confirmation and Polkit authorization).",
+      "description": "Restart a systemd service (requires explicit confirmation).",
       "risk_level": "privileged",
       "reversible": false,
       "input_schema": {
@@ -47,4 +69,3 @@
     }
   ]
 }
-

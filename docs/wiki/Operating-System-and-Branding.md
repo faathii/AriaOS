@@ -26,7 +26,22 @@ AriaOS is built directly from Arch Linux (`archiso` releng base) paired with **K
   - Live user desktop (`/home/aria/Desktop/`) and new user template (`/etc/skel/Desktop/`) include:
     - **Bienvenido a AriaOS** (`ariaos-welcome.desktop`)
     - **Barra IA de AriaOS** (`ariaos-command-bar.desktop`)
+    - **Configuración de la IA** (`ariaos-settings.desktop`)
     - **Instalar AriaOS en Disco** (`ariaos-installer.desktop`) launching guided `archinstall` in Konsole.
+
+## AI & Multi-Language Settings (`ariaos-settings`)
+
+AriaOS provides a dedicated graphical Control Panel (`/usr/bin/ariaos-settings`, `ui/settings/aria_settings.py`) with full internationalization across 8 languages:
+- **Supported Languages**: Spanish (`es`), English (`en`), French (`fr`), German (`de`), Italian (`it`), Portuguese (`pt`), Chinese Simplified (`zh`), and Japanese (`ja`).
+- **Control Tabs**:
+  1. **General & Language**: Live language selector (instantly updates UI labels across all screens and saves to `~/.config/ariaos/config.json`), global hotkey configuration (`Alt+Space`), and quick links to the Welcome Center.
+  2. **Model & Inference**: Local Ollama connectivity tester (`/api/tags`), local model detector, one-click background `ollama pull` runner with live progress bar, context window size (`num_ctx`: 4096 to 32768 tokens), and temperature slider (0.0 to 1.0).
+  3. **Security & Autonomy**: Approval mode policy selection:
+     - *Interactive* (default): Autonomous read operations, prompts for write/privileged actions.
+     - *Autonomous*: Auto-approves file and system write operations without interruption.
+     - *Read-Only*: Blocks all write and privileged actions strictly.
+     - Granular toggles for connector families (Core OS, Security, Dev, Creative, Office, Browser, Comms & Gaming).
+  4. **Audit & Privacy**: Visual table inspection of `/tmp/ariaos-audit.jsonl` (timestamps, connector, tool, risk level, arguments, approval status), with one-click export and clear functions.
 
 ## File Manager (KDE Dolphin) & Built-In Free Antivirus (ClamAV)
 

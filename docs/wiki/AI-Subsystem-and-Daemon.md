@@ -30,6 +30,45 @@ Because `aria-daemon` operates at kernel/OS privilege while user applications li
 4. **Connector Execution (`core/daemon/src/rpc.rs`)**:
    Spawns the connector entrypoint (e.g., `python3 connector.py`) inside the connector's root directory, sends a single JSON-RPC 2.0 `tools/call` request over `stdin`, and reads the JSON response from `stdout`.
 
+## Centralized Configuration & Multi-Language Engine
+
+AriaOS centralizes all AI runtime settings in a unified configuration file read synchronously by both the Rust daemon (`core/daemon/src/ollama.rs`) and Python desktop components (`aria_sdk.i18n`):
+
+- **Search Hierarchy**:
+  1. `$ARIAOS_CONFIG_PATH` (explicit environment override)
+  2. `~/.config/ariaos/config.json` (per-user preferences)
+  3. `/etc/ariaos/config.json` (system-wide template)
+
+- **Configuration Schema (`config.json`)**:
+  ```json
+  {
+    "language": "es",
+    "model": "qwen2.5:3b",
+    "ollama_url": "http://127.0.0.1:11434",
+    "num_ctx": 8192,
+    "temperature": 0.3,
+    "approval_mode": "interactive",
+    "hotkey": "Alt+Space",
+    "enabled_connector_groups": {
+      "core_os": true,
+      "security": true,
+      "development": true,
+      "creative": true,
+      "office": true,
+      "browser": true,
+      "comms_gaming": true
+    }
+  }
+  ```
+
+- **Dynamic Multi-Language System Prompt**:
+  When `initial_history()` initializes the Ollama conversation in `ollama.rs`, it appends:
+  ```
+  Language Directive: You have native multi-language support (English, Spanish, French, German, Italian, Portuguese, Chinese, Japanese). You must always respond fluently in the language matching the user's prompt (or the configured system language).
+  Configured system language: <language>.
+  ```
+  This ensures that whether a user speaks in Spanish, English, French, German, Italian, Portuguese, Chinese, or Japanese, the underlying OS AI responds naturally in their chosen language while preserving system command and path accuracy.
+
 ## CLI Subcommands
 
 ```bash

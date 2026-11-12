@@ -9,3 +9,4 @@ Exec=konsole --title "Instalador de AriaOS" -e sudo archinstall
 Categories=System;
 Terminal=false
 StartupNotify=true
+

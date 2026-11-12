@@ -12,3 +12,4 @@ else
   echo "Error: aria_welcome.py not found" >&2
   exit 1
 fi
+

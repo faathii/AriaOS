@@ -30,3 +30,4 @@ fi
 
 date -Iseconds > "${MARKER}"
 echo "AriaOS Onboarding complete."
+

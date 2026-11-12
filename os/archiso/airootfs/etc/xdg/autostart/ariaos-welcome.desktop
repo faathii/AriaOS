@@ -10,3 +10,4 @@ OnlyShowIn=KDE;
 Terminal=false
 StartupNotify=true
 X-KDE-autostart-phase=2
+

@@ -9,3 +9,4 @@ Exec=/usr/bin/aria-command-bar
 Categories=System;Utility;
 Terminal=false
 StartupNotify=true
+

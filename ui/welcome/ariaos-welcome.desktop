@@ -9,3 +9,4 @@ Exec=/usr/bin/ariaos-welcome
 Categories=System;Settings;Utility;
 Terminal=false
 StartupNotify=true
+

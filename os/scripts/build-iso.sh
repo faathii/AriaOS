@@ -48,6 +48,10 @@ mkdir -p "${STAGE_DIR}/airootfs/usr/lib/ariaos/welcome"
 cp -a "${REPO_ROOT}/ui/welcome/." "${STAGE_DIR}/airootfs/usr/lib/ariaos/welcome/"
 install -Dm644 "${REPO_ROOT}/ui/welcome/ariaos-welcome.desktop" \
   "${STAGE_DIR}/airootfs/usr/share/applications/ariaos-welcome.desktop"
+mkdir -p "${STAGE_DIR}/airootfs/usr/lib/ariaos/settings"
+cp -a "${REPO_ROOT}/ui/settings/." "${STAGE_DIR}/airootfs/usr/lib/ariaos/settings/"
+install -Dm644 "${REPO_ROOT}/ui/settings/ariaos-settings.desktop" \
+  "${STAGE_DIR}/airootfs/usr/share/applications/ariaos-settings.desktop"
 
 # Install AriaOS visual branding (boot splash, menu/system icon, wallpaper, face icon)
 if [ -f "${REPO_ROOT}/assets/branding/ariaos-wallpaper.jpg" ]; then
@@ -101,6 +105,7 @@ sed -i 's/\r$//' \
   "${STAGE_DIR}/airootfs/usr/bin/ariaos-file-action" \
   "${STAGE_DIR}/airootfs/usr/bin/ariaos-install-apps" \
   "${STAGE_DIR}/airootfs/usr/bin/ariaos-onboarding" \
+  "${STAGE_DIR}/airootfs/usr/bin/ariaos-settings" \
   "${STAGE_DIR}/airootfs/usr/bin/ariaos-welcome"
 
 echo "[3/4] Enabling systemd units inside airootfs..."

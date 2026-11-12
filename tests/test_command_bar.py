@@ -62,6 +62,54 @@ class TestCommandBar(unittest.TestCase):
         self.assertTrue(payload["ok"])
         self.assertEqual(payload["app"], "ariaos-welcome")
 
+    def test_settings_check_flag(self) -> None:
+        settings_py = REPO_ROOT / "ui" / "settings" / "aria_settings.py"
+        proc = subprocess.run(
+            [sys.executable, str(settings_py), "--check"],
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=10,
+        )
+        payload = json.loads(proc.stdout.strip())
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["app"], "ariaos-settings")
+
+    def test_i18n_languages_and_translations(self) -> None:
+        sdk_py = REPO_ROOT / "core" / "sdk" / "python"
+        sys.path.insert(0, str(sdk_py))
+        from aria_sdk.i18n import SUPPORTED_LANGUAGES, t, load_ariaos_config, save_ariaos_config
+
+        self.assertEqual(len(SUPPORTED_LANGUAGES), 8)
+        expected_langs = {"es", "en", "fr", "de", "it", "pt", "zh", "ja"}
+        self.assertEqual(set(SUPPORTED_LANGUAGES.keys()), expected_langs)
+
+        # Check translations exist for key strings across all languages
+        for lang in expected_langs:
+            txt = t("cmd_placeholder", lang=lang)
+            self.assertTrue(txt and len(txt) > 3, f"Missing placeholder for {lang}")
+            title = t("settings_title", lang=lang)
+            self.assertTrue(title and len(title) > 3, f"Missing title for {lang}")
+
+        # Check variable interpolation
+        res_es = t("permission_approve_prompt", lang="es", risk="write", tool="organize_directory", args="{}")
+        self.assertIn("organize_directory", res_es)
+        res_en = t("permission_approve_prompt", lang="en", risk="write", tool="organize_directory", args="{}")
+        self.assertIn("organize_directory", res_en)
+
+        # Test config save and load roundtrip
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            cfg_path = Path(tmp_dir) / "config.json"
+            cfg = load_ariaos_config(cfg_path)
+            self.assertEqual(cfg["language"], "es")
+            cfg["language"] = "fr"
+            cfg["model"] = "qwen2.5:7b"
+            save_ariaos_config(cfg, cfg_path)
+
+            loaded = load_ariaos_config(cfg_path)
+            self.assertEqual(loaded["language"], "fr")
+            self.assertEqual(loaded["model"], "qwen2.5:7b")
+
     @unittest.skipUnless(hasattr(socket, "AF_UNIX"), "AF_UNIX not available")
     def test_unix_socket_client_roundtrip(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

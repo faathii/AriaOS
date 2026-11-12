@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# AriaOS AI & Language Settings launcher
+
+if [ -f "/usr/lib/ariaos/settings/aria_settings.py" ]; then
+  exec python3 /usr/lib/ariaos/settings/aria_settings.py "$@"
+elif [ -f "$(dirname "$0")/../../ui/settings/aria_settings.py" ]; then
+  exec python3 "$(dirname "$0")/../../ui/settings/aria_settings.py" "$@"
+else
+  echo "Error: aria_settings.py not found" >&2
+  exit 1
+fi

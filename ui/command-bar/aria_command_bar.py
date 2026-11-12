@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any
@@ -13,7 +15,23 @@ HERE = Path(__file__).resolve().parent
 if str(HERE) not in sys.path:
     sys.path.insert(0, str(HERE))
 
+SDK_PATH = HERE.parents[1] / "core" / "sdk" / "python"
+if str(SDK_PATH) not in sys.path:
+    sys.path.insert(0, str(SDK_PATH))
+SYSTEM_SDK = Path("/usr/lib/ariaos/core/sdk/python")
+if SYSTEM_SDK.exists() and str(SYSTEM_SDK) not in sys.path:
+    sys.path.insert(0, str(SYSTEM_SDK))
+
 from aria_ipc import AriaDaemonClient, parse_command  # noqa: E402
+
+try:
+    from aria_sdk import get_current_language, t  # noqa: E402
+except ImportError:
+    def get_current_language() -> str:
+        return "es"
+
+    def t(key: str, _lang: str | None = None, **_kwargs: Any) -> str:
+        return key
 
 
 HELP_TEXT = (
@@ -138,6 +156,7 @@ def _launch_gui(client: AriaDaemonClient) -> int:
         def __init__(self) -> None:
             super().__init__()
             self._worker: DaemonWorker | None = None
+            self.lang = get_current_language()
             self.setWindowTitle("AriaOS Command Bar")
             self.setWindowIcon(QIcon.fromTheme("ariaos-logo"))
             self.setWindowFlags(
@@ -164,6 +183,18 @@ def _launch_gui(client: AriaDaemonClient) -> int:
                     font-size: 15px;
                     color: #ffffff;
                 }
+                QPushButton#btn_settings {
+                    background-color: #1b2234;
+                    border: 1px solid #334155;
+                    border-radius: 8px;
+                    font-size: 16px;
+                    color: #94a3b8;
+                }
+                QPushButton#btn_settings:hover {
+                    background-color: #2563eb;
+                    color: #ffffff;
+                    border-color: #3b82f6;
+                }
                 QTextEdit, QListWidget {
                     background-color: #0e121c;
                     border: 1px solid #263147;
@@ -182,10 +213,20 @@ def _launch_gui(client: AriaDaemonClient) -> int:
             layout.setContentsMargins(14, 14, 14, 14)
             layout.setSpacing(10)
 
+            input_bar = QHBoxLayout()
             self.input = QLineEdit()
-            self.input.setPlaceholderText("Ask AriaOS anything, or type /tools or /call <connector> <tool> {json}...")
+            self.input.setPlaceholderText(t("cmd_placeholder", self.lang))
             self.input.returnPressed.connect(self._on_submit)
-            layout.addWidget(self.input)
+            input_bar.addWidget(self.input)
+
+            self.btn_settings = QPushButton("⚙️")
+            self.btn_settings.setObjectName("btn_settings")
+            self.btn_settings.setFixedSize(42, 42)
+            self.btn_settings.setToolTip("AriaOS AI Settings")
+            self.btn_settings.clicked.connect(self._open_settings)
+            input_bar.addWidget(self.btn_settings)
+
+            layout.addLayout(input_bar)
 
             self.status_label = QLabel(f"Socket: {client.socket_path}  |  Press Esc to close")
             self.status_label.setObjectName("status")
@@ -272,12 +313,17 @@ def _launch_gui(client: AriaDaemonClient) -> int:
                 else:
                     tool_key = f"{intent['connector']}.{intent['tool']}"
                     tool_args = intent["arguments"]
+                prompt_text = t(
+                    "permission_approve_prompt",
+                    self.lang,
+                    risk=risk.upper(),
+                    tool=tool_key,
+                    args=json.dumps(tool_args, indent=2, ensure_ascii=False),
+                )
                 reply = QMessageBox.question(
                     self,
-                    "AriaOS Permission Request",
-                    f"Approve {risk.upper()} action?\n\n"
-                    f"Tool: {tool_key}\n"
-                    f"Arguments: {json.dumps(tool_args, indent=2)}",
+                    t("permission_request_title", self.lang),
+                    prompt_text,
                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel,
                     QMessageBox.StandardButton.Cancel,
                 )
@@ -299,6 +345,14 @@ def _launch_gui(client: AriaDaemonClient) -> int:
                 self.output.setPlainText(resp["answer"])
             else:
                 self.output.setPlainText(json.dumps(resp, indent=2, ensure_ascii=False))
+
+        def _open_settings(self) -> None:
+            if shutil.which("ariaos-settings"):
+                subprocess.Popen(["ariaos-settings"])
+            else:
+                settings_script = HERE.parent / "settings" / "aria_settings.py"
+                if settings_script.exists():
+                    subprocess.Popen([sys.executable, str(settings_script)])
 
     app = QApplication(sys.argv)
     window = AriaCommandBar()

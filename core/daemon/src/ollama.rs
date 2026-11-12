@@ -7,17 +7,38 @@ use serde_json::{json, Value};
 use std::env;
 use std::time::Duration;
 
-const SYSTEM_PROMPT: &str = "\
+const BASE_SYSTEM_PROMPT: &str = "\
 You ARE Aria, the OS itself inside AriaOS (Arch Linux kernel + systemd + KDE Plasma 6). \
 You operate natively across every layer of the computer:
 - Kernel & Hardware: os-kernel (telemetry, dmesg, PCI/USB, sysctl, kernel modules), os-storage (disks/archives)
 - Core System & Security: os-system (systemd/processes), os-packages (pacman), security-antivirus (ClamAV + quarantine), security-vault-crypto, security-net-audit
 - File Manager & Desktop Apps: os-files (Dolphin, search, XDG Trash, duplicates, organize), os-desktop, office, media, creative, dev & gaming connectors
+Language Directive: You have native multi-language support (English, Spanish, French, German, Italian, Portuguese, Chinese, Japanese). You must always respond fluently in the language matching the user's prompt (or the configured system language).
 Rules:\n\
 1. Call all read-only tools (risk=read) you need immediately—even multiple tools in sequence—without asking first; aria-daemon enforces confirmation prompts for write and privileged tools.\n\
 2. Never guess or fabricate system metrics, kernel state, malware scan outputs, or file counts. Always call the appropriate tool first.\n\
 3. When organizing files, prefer dry-run (apply=false) first unless the user explicitly asks to apply changes.\n\
 4. Respond concisely in the user's language based strictly on observed tool results.";
+
+fn load_config_value(key: &str) -> Option<Value> {
+    let candidates = [
+        env::var("ARIAOS_CONFIG_PATH").ok().map(std::path::PathBuf::from),
+        env::var("HOME").ok().map(|h| std::path::PathBuf::from(h).join(".config/ariaos/config.json")),
+        Some(std::path::PathBuf::from("/etc/ariaos/config.json")),
+    ];
+    for cand in candidates.into_iter().flatten() {
+        if cand.exists() {
+            if let Ok(raw) = std::fs::read_to_string(cand) {
+                if let Ok(json) = serde_json::from_str::<Value>(&raw) {
+                    if let Some(val) = json.get(key) {
+                        return Some(val.clone());
+                    }
+                }
+            }
+        }
+    }
+    None
+}
 
 #[derive(Debug, Clone)]
 pub enum AgentTurnOutcome {
@@ -33,16 +54,27 @@ pub enum AgentTurnOutcome {
 pub struct OllamaClient {
     pub base_url: String,
     pub model: String,
+    pub num_ctx: u64,
+    pub temperature: f64,
     agent: ureq::Agent,
 }
 
 impl OllamaClient {
     pub fn from_env(model_override: Option<String>) -> Self {
         let base_url = env::var("ARIAOS_OLLAMA_URL")
-            .unwrap_or_else(|_| "http://127.0.0.1:11434".to_string());
+            .ok()
+            .or_else(|| load_config_value("ollama_url").and_then(|v| v.as_str().map(String::from)))
+            .unwrap_or_else(|| "http://127.0.0.1:11434".to_string());
         let model = model_override
             .or_else(|| env::var("ARIAOS_MODEL").ok())
+            .or_else(|| load_config_value("model").and_then(|v| v.as_str().map(String::from)))
             .unwrap_or_else(|| "qwen2.5:3b".to_string());
+        let num_ctx = load_config_value("num_ctx")
+            .and_then(|v| v.as_u64())
+            .unwrap_or(8192);
+        let temperature = load_config_value("temperature")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(0.3);
         let agent = ureq::AgentBuilder::new()
             .timeout_connect(Duration::from_secs(5))
             .timeout_read(Duration::from_secs(180))
@@ -50,6 +82,8 @@ impl OllamaClient {
         Self {
             base_url,
             model,
+            num_ctx,
+            temperature,
             agent,
         }
     }
@@ -62,7 +96,8 @@ impl OllamaClient {
             "tools": tools,
             "stream": false,
             "options": {
-                "num_ctx": 8192
+                "num_ctx": self.num_ctx,
+                "temperature": self.temperature,
             }
         });
 
@@ -79,9 +114,15 @@ impl OllamaClient {
 }
 
 pub fn initial_history() -> Vec<Value> {
+    let configured_lang = load_config_value("language")
+        .and_then(|v| v.as_str().map(String::from))
+        .unwrap_or_else(|| "es".to_string());
+    let prompt = format!(
+        "{BASE_SYSTEM_PROMPT}\nConfigured system language: {configured_lang}."
+    );
     vec![json!({
         "role": "system",
-        "content": SYSTEM_PROMPT
+        "content": prompt
     })]
 }
 

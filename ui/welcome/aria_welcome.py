@@ -253,6 +253,10 @@ def main() -> int:
             btn_bar.clicked.connect(lambda: subprocess.Popen(["aria-command-bar"]))
             actions.addWidget(btn_bar)
 
+            btn_settings = QPushButton("⚙️ Configuración de la IA e Idioma")
+            btn_settings.clicked.connect(lambda: subprocess.Popen(["ariaos-settings"]))
+            actions.addWidget(btn_settings)
+
             btn_dolphin = QPushButton("Abrir Gestor de Archivos (Dolphin)")
             btn_dolphin.clicked.connect(lambda: subprocess.Popen(["dolphin"]))
             actions.addWidget(btn_dolphin)
@@ -346,3 +350,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

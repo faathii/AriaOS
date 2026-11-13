@@ -134,8 +134,6 @@ sed -i 's/\r$//' \
   "${STAGE_DIR}/airootfs/etc/xdg/kscreenlockerrc" \
   "${STAGE_DIR}/airootfs/home/aria/.bashrc" \
   "${STAGE_DIR}/airootfs/etc/skel/.bashrc" \
-  "${STAGE_DIR}/airootfs/home/aria/.config/dolphinrc" \
-  "${STAGE_DIR}/airootfs/etc/skel/.config/dolphinrc" \
   "${STAGE_DIR}/airootfs/usr/bin/aria" \
   "${STAGE_DIR}/airootfs/usr/bin/aria-command-bar" \
   "${STAGE_DIR}/airootfs/usr/bin/ariaos-apply-branding" \

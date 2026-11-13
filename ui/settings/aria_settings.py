@@ -174,22 +174,22 @@ def main() -> int:
         def _apply_style(self) -> None:
             self.setStyleSheet("""
                 QWidget {
-                    background-color: #070a12;
+                    background-color: #0d1117;
                     color: #e2e8f0;
                     font-family: "Noto Sans", sans-serif;
                     font-size: 13px;
                 }
                 QTabWidget::pane {
-                    border: 1px solid #1e293b;
+                    border: 1px solid #30363d;
                     background: #0b101e;
                     border-radius: 10px;
                     padding: 14px;
                 }
                 QTabBar::tab {
-                    background: #090d18;
+                    background: #161b22;
                     color: #94a3b8;
                     padding: 9px 18px;
-                    border: 1px solid #162238;
+                    border: 1px solid #30363d;
                     border-bottom: none;
                     border-top-left-radius: 8px;
                     border-top-right-radius: 8px;
@@ -197,59 +197,59 @@ def main() -> int:
                 }
                 QTabBar::tab:selected {
                     background: #0d1629;
-                    color: #00f0ff;
-                    border-color: #00f0ff;
+                    color: #3b82f6;
+                    border-color: #3b82f6;
                     font-weight: bold;
                 }
                 QLineEdit, QComboBox {
-                    background-color: #0d1526;
-                    border: 1px solid #1e3a5f;
+                    background-color: #21262d;
+                    border: 1px solid #30363d;
                     border-radius: 8px;
                     padding: 7px 11px;
                     color: #ffffff;
                 }
                 QLineEdit:focus, QComboBox:focus {
-                    border: 1.5px solid #00f0ff;
+                    border: 1.5px solid #3b82f6;
                 }
                 QPushButton {
-                    background-color: #0d1526;
+                    background-color: #21262d;
                     color: #e2e8f0;
-                    border: 1px solid #1e3a5f;
+                    border: 1px solid #30363d;
                     border-radius: 8px;
                     padding: 8px 15px;
                     font-weight: 500;
                 }
                 QPushButton:hover {
-                    background-color: #00f0ff;
-                    color: #070a12;
-                    border-color: #00f0ff;
+                    background-color: #3b82f6;
+                    color: #0d1117;
+                    border-color: #3b82f6;
                     font-weight: bold;
                 }
                 QPushButton#primary {
-                    background-color: #00b4d8;
-                    color: #070a12;
-                    border-color: #00f0ff;
+                    background-color: #3b82f6;
+                    color: #0d1117;
+                    border-color: #3b82f6;
                     font-weight: bold;
                 }
                 QPushButton#primary:hover {
-                    background-color: #00f0ff;
-                    color: #070a12;
+                    background-color: #3b82f6;
+                    color: #0d1117;
                 }
                 QFrame#kernel_card {
                     background-color: #090e1a;
-                    border: 1px solid #00f0ff;
+                    border: 1px solid #3b82f6;
                     border-radius: 10px;
                     padding: 12px;
                 }
                 QTableWidget {
-                    background-color: #090d18;
-                    border: 1px solid #162238;
+                    background-color: #161b22;
+                    border: 1px solid #30363d;
                     border-radius: 8px;
-                    gridline-color: #162238;
+                    gridline-color: #30363d;
                 }
                 QHeaderView::section {
-                    background-color: #0d1526;
-                    color: #00f0ff;
+                    background-color: #21262d;
+                    color: #3b82f6;
                     padding: 6px;
                     border: none;
                     font-weight: bold;
@@ -273,7 +273,7 @@ def main() -> int:
 
             title_box = QVBoxLayout()
             self.title_lbl = QLabel("ARIA OS // CENTRO DE CONTROL Y KERNEL NEURONAL")
-            self.title_lbl.setStyleSheet("font-size: 18px; font-weight: bold; color: #00f0ff; letter-spacing: 0.8px;")
+            self.title_lbl.setStyleSheet("font-size: 18px; font-weight: bold; color: #3b82f6; letter-spacing: 0.8px;")
             self.sub_lbl = QLabel("Gestión adaptativa de hardware (8GB+ / 16GB+), motor de IA en el kernel y seguridad")
             self.sub_lbl.setStyleSheet("color: #94a3b8; font-size: 12px;")
             title_box.addWidget(self.title_lbl)
@@ -294,7 +294,7 @@ def main() -> int:
             # Footer
             footer = QHBoxLayout()
             self.status_feedback = QLabel("")
-            self.status_feedback.setStyleSheet("color: #00f0ff; font-weight: bold;")
+            self.status_feedback.setStyleSheet("color: #3b82f6; font-weight: bold;")
             footer.addWidget(self.status_feedback)
             footer.addStretch()
 
@@ -426,7 +426,7 @@ def main() -> int:
             layout.setSpacing(12)
 
             sec_lbl = QLabel(t("approval_mode_label", self.current_lang))
-            sec_lbl.setStyleSheet("font-weight: bold; color: #00f0ff;")
+            sec_lbl.setStyleSheet("font-weight: bold; color: #3b82f6;")
             layout.addWidget(sec_lbl)
 
             self.radio_interactive = QRadioButton(t("mode_interactive", self.current_lang))
@@ -452,7 +452,7 @@ def main() -> int:
             layout.addSpacing(10)
 
             conn_lbl = QLabel(t("connector_groups_label", self.current_lang))
-            conn_lbl.setStyleSheet("font-weight: bold; color: #00f0ff;")
+            conn_lbl.setStyleSheet("font-weight: bold; color: #3b82f6;")
             layout.addWidget(conn_lbl)
 
             groups = self.cfg.get("enabled_connector_groups", {})
@@ -509,7 +509,7 @@ def main() -> int:
             psi = t_data.get("psi", {})
 
             self.lbl_hw_tier.setText(
-                f"🧠 <b>Perfil Adaptativo del Gobernador:</b> <span style='color:#00f0ff;'>{tier}</span> — "
+                f"🧠 <b>Perfil Adaptativo del Gobernador:</b> <span style='color:#3b82f6;'>{tier}</span> — "
                 f"Kernel <code>{t_data.get('kernel_version', 'Linux')}</code> ({t_data.get('cpu_cores', 1)} hilos)"
             )
             self.lbl_silicon.setText(

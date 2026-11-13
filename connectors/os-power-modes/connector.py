@@ -40,7 +40,7 @@ WORK_MODES: Dict[str, Dict[str, Any]] = {
         "vfs_cache_pressure": 60,
         "drop_caches": True,
         "brightness_pct": 85,
-        "apps": ["codium", "konsole"],
+        "apps": ["codium", "xfce4-terminal"],
         "description": "Optimiza cachés de sistema de archivos para compilaciones rápidas (Rust/C++/Python), libera RAM inactiva y abre VSCodium + Terminal.",
     },
     "creative": {

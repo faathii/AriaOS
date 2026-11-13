@@ -24,6 +24,13 @@ def _notify(title: str, body: str, urgency: str = "normal") -> None:
 
 
 def _kdialog(kind: str, text: str) -> int:
+    if shutil.which("zenity"):
+        zflag = "--info" if kind in {"msgbox", "info"} else "--warning" if kind == "warning" else "--question"
+        return subprocess.run(
+            ["zenity", zflag, "--text", text[:1000], "--title", "AriaOS Antivirus (ClamAV)"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        ).returncode
     if not shutil.which("kdialog"):
         return 1
     proc = subprocess.run(

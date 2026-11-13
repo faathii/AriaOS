@@ -50,19 +50,19 @@ def launch_gui(client: AriaDaemonClient) -> int:
             self.setStyleSheet(
                 """
                 QWidget {
-                    background-color: #070a12;
+                    background-color: #0d1117;
                     color: #e2e8f0;
                     font-family: "Noto Sans", sans-serif;
                     font-size: 13px;
                 }
                 QFrame.card {
-                    background-color: #0c1222;
-                    border: 1px solid #1e293b;
+                    background-color: #161b22;
+                    border: 1px solid #30363d;
                     border-radius: 12px;
                     padding: 12px;
                 }
                 QLabel#title {
-                    color: #00f0ff;
+                    color: #3b82f6;
                     font-size: 20px;
                     font-weight: bold;
                 }
@@ -71,23 +71,23 @@ def launch_gui(client: AriaDaemonClient) -> int:
                     font-size: 12px;
                 }
                 QComboBox, QTextEdit {
-                    background-color: #0d1424;
-                    border: 1px solid #1e3a5f;
+                    background-color: #161b22;
+                    border: 1px solid #30363d;
                     border-radius: 8px;
                     padding: 8px 12px;
                     color: #ffffff;
                 }
                 QPushButton.primary {
                     background-color: #0d1b33;
-                    border: 1px solid #00f0ff;
+                    border: 1px solid #3b82f6;
                     border-radius: 8px;
                     padding: 8px 14px;
-                    color: #00f0ff;
+                    color: #3b82f6;
                     font-weight: bold;
                 }
                 QPushButton.primary:hover {
-                    background-color: #00f0ff;
-                    color: #070a12;
+                    background-color: #3b82f6;
+                    color: #0d1117;
                 }
                 QPushButton.danger {
                     background-color: #2a0f18;
@@ -99,17 +99,17 @@ def launch_gui(client: AriaDaemonClient) -> int:
                 }
                 QPushButton.danger:hover {
                     background-color: #ff2a85;
-                    color: #070a12;
+                    color: #0d1117;
                 }
                 QTableWidget {
-                    background-color: #090d18;
-                    border: 1px solid #162238;
+                    background-color: #161b22;
+                    border: 1px solid #30363d;
                     border-radius: 8px;
-                    gridline-color: #162238;
+                    gridline-color: #30363d;
                 }
                 QHeaderView::section {
-                    background-color: #0c1222;
-                    color: #00f0ff;
+                    background-color: #161b22;
+                    color: #3b82f6;
                     padding: 6px;
                     border: none;
                     font-weight: bold;

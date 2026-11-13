@@ -197,50 +197,50 @@ def main() -> int:
         def _apply_theme(self) -> None:
             self.setStyleSheet("""
                 QWidget {
-                    background-color: #070a12;
+                    background-color: #0d1117;
                     color: #e2e8f0;
                     font-family: "Noto Sans", sans-serif;
                     font-size: 13px;
                 }
                 QLabel#telemetry_strip {
                     background-color: #0b1120;
-                    border: 1px solid #00f0ff;
+                    border: 1px solid #3b82f6;
                     border-radius: 8px;
                     padding: 7px 12px;
-                    color: #00f0ff;
+                    color: #3b82f6;
                     font-family: "Hack", monospace;
                     font-size: 11px;
                     font-weight: bold;
                 }
                 QFrame#card {
                     background-color: #0b101e;
-                    border: 1px solid #1e293b;
+                    border: 1px solid #30363d;
                     border-radius: 10px;
                     padding: 12px;
                 }
                 QPushButton {
-                    background-color: #0d1526;
+                    background-color: #21262d;
                     color: #e2e8f0;
-                    border: 1px solid #1e3a5f;
+                    border: 1px solid #30363d;
                     border-radius: 8px;
                     padding: 10px 16px;
                     font-weight: 500;
                 }
                 QPushButton:hover {
-                    background-color: #00f0ff;
-                    color: #070a12;
-                    border-color: #00f0ff;
+                    background-color: #3b82f6;
+                    color: #0d1117;
+                    border-color: #3b82f6;
                     font-weight: bold;
                 }
                 QPushButton#primary {
-                    background-color: #00b4d8;
-                    color: #070a12;
-                    border-color: #00f0ff;
+                    background-color: #3b82f6;
+                    color: #0d1117;
+                    border-color: #3b82f6;
                     font-weight: bold;
                 }
                 QPushButton#primary:hover {
-                    background-color: #00f0ff;
-                    color: #070a12;
+                    background-color: #3b82f6;
+                    color: #0d1117;
                 }
                 QPushButton#danger {
                     background-color: #e11d48;
@@ -252,21 +252,21 @@ def main() -> int:
                     background-color: #be123c;
                 }
                 QProgressBar {
-                    background-color: #0d1526;
-                    border: 1px solid #00f0ff;
+                    background-color: #21262d;
+                    border: 1px solid #3b82f6;
                     border-radius: 6px;
                     text-align: center;
                     color: #ffffff;
                     height: 16px;
                 }
                 QProgressBar::chunk {
-                    background-color: #00f0ff;
+                    background-color: #3b82f6;
                     border-radius: 5px;
                 }
                 QTextEdit {
                     background-color: #060911;
                     color: #94a3b8;
-                    border: 1px solid #162238;
+                    border: 1px solid #30363d;
                     border-radius: 8px;
                     font-family: "Hack", "JetBrains Mono", monospace;
                     font-size: 12px;
@@ -288,7 +288,7 @@ def main() -> int:
 
             title_box = QVBoxLayout()
             t = QLabel("ARIA SHIELD // CYBER OBSIDIAN SECURITY")
-            t.setStyleSheet("font-size: 20px; font-weight: bold; color: #00f0ff; letter-spacing: 0.8px;")
+            t.setStyleSheet("font-size: 20px; font-weight: bold; color: #3b82f6; letter-spacing: 0.8px;")
             sub = QLabel("Motor Antivirus Bajo Demanda (0 MB consumo en reposo) con Auto-Compactación del Kernel")
             sub.setStyleSheet("color: #94a3b8; font-size: 12px;")
             title_box.addWidget(t)
@@ -322,7 +322,7 @@ def main() -> int:
             col2 = QVBoxLayout()
             col2.addWidget(QLabel("<b>📅 Estado de Firmas:</b>"))
             self.lbl_db_info = QLabel(get_db_info())
-            self.lbl_db_info.setStyleSheet("color: #00f0ff;")
+            self.lbl_db_info.setStyleSheet("color: #3b82f6;")
             col2.addWidget(self.lbl_db_info)
             sc_layout.addLayout(col2)
 
@@ -367,7 +367,7 @@ def main() -> int:
 
             # Live Progress & Status
             self.lbl_scan_status = QLabel("⚡ Escudo listo. 0 MB de sobrecarga en segundo plano.")
-            self.lbl_scan_status.setStyleSheet("font-size: 13px; font-weight: bold; color: #00f0ff;")
+            self.lbl_scan_status.setStyleSheet("font-size: 13px; font-weight: bold; color: #3b82f6;")
             root.addWidget(self.lbl_scan_status)
 
             self.progress_bar = QProgressBar()
@@ -431,7 +431,7 @@ def main() -> int:
 
             self.log_view.clear()
             self.lbl_scan_status.setText(f"🔍 Analizando objetivo: {target}...")
-            self.lbl_scan_status.setStyleSheet("font-size: 13px; font-weight: bold; color: #00f0ff;")
+            self.lbl_scan_status.setStyleSheet("font-size: 13px; font-weight: bold; color: #3b82f6;")
             self.progress_bar.show()
             self.btn_cancel.show()
 
@@ -476,7 +476,7 @@ def main() -> int:
             if self.update_worker and self.update_worker.isRunning():
                 return
             self.lbl_scan_status.setText("🔄 Sincronizando base de firmas ClamAV (freshclam)...")
-            self.lbl_scan_status.setStyleSheet("font-size: 13px; font-weight: bold; color: #00f0ff;")
+            self.lbl_scan_status.setStyleSheet("font-size: 13px; font-weight: bold; color: #3b82f6;")
             self.progress_bar.show()
 
             self.update_worker = UpdateWorker()
@@ -493,7 +493,7 @@ def main() -> int:
                 self.lbl_scan_status.setStyleSheet("font-size: 13px; font-weight: bold; color: #10b981;")
             else:
                 self.lbl_scan_status.setText(f"ℹ️ {msg}")
-                self.lbl_scan_status.setStyleSheet("font-size: 13px; font-weight: bold; color: #00f0ff;")
+                self.lbl_scan_status.setStyleSheet("font-size: 13px; font-weight: bold; color: #3b82f6;")
 
         def _show_quarantine_dialog(self) -> None:
             dialog = QDialog(self)

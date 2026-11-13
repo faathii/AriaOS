@@ -1,6 +1,6 @@
 [Unit]
 Description=AriaOS Native AI Orchestration Daemon
-After=network-online.target ollama.service dbus.service
+After=network.target dbus.service ollama.service
 Wants=ollama.service
 
 [Service]

@@ -106,8 +106,8 @@ def create_snapshot(args: Dict[str, Any]) -> Dict[str, Any]:
         home / ".local" / "share" / "ariaos" / "power_mode.json",
         home / ".local" / "share" / "ariaos" / "firewall_state.json",
         home / ".local" / "share" / "ariaos" / "automations.json",
-        home / ".config" / "kdeglobals",
-        home / ".config" / "kwinrc",
+        home / ".config" / "openbox" / "rc.xml",
+        home / ".config" / "picom.conf",
     ]
     copied = 0
     total_bytes = 0
@@ -174,7 +174,7 @@ def restore_snapshot(args: Dict[str, Any]) -> Dict[str, Any]:
         "dry_run": dry_run,
         "snapshot_id": snap_id,
         "label": target.get("label", ""),
-        "restored_files": restored_files or ["neural_memory.json", "power_mode.json", "firewall_state.json", "kdeglobals"],
+        "restored_files": restored_files or ["neural_memory.json", "power_mode.json", "firewall_state.json", "rc.xml"],
     }
 
 

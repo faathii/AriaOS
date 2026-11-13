@@ -1,12 +1,19 @@
 {
   "id": "os-files",
-  "name": "Dolphin File Manager & OS File Organizer",
+  "name": "AriaDE File Manager & OS File Operations",
   "version": "0.2.0",
-  "description": "Controls AriaOS's KDE Dolphin file manager and filesystem: searches files/content, inspects metadata, finds duplicates, safely organizes directories, moves items to XDG Trash, and opens folders in Dolphin.",
+  "description": "Controls filesystem operations: creates folders, writes files, deletes, copies, moves, searches files, finds duplicates, organizes directories, and opens folders in Thunar.",
   "tier": "program_api",
   "transport": "stdio",
-  "entrypoint": ["python3", "connector.py"],
-  "dependencies": ["dolphin", "ripgrep", "fd", "kio-extras"],
+  "entrypoint": [
+    "python3",
+    "connector.py"
+  ],
+  "dependencies": [
+    "thunar",
+    "ripgrep",
+    "fd"
+  ],
   "tools": [
     {
       "name": "scan_directory",
@@ -16,10 +23,18 @@
       "input_schema": {
         "type": "object",
         "properties": {
-          "path": { "type": "string", "description": "Target directory path." },
-          "recursive": { "type": "boolean", "default": false }
+          "path": {
+            "type": "string",
+            "description": "Target directory path."
+          },
+          "recursive": {
+            "type": "boolean",
+            "default": false
+          }
         },
-        "required": ["path"]
+        "required": [
+          "path"
+        ]
       }
     },
     {
@@ -30,14 +45,36 @@
       "input_schema": {
         "type": "object",
         "properties": {
-          "path": { "type": "string", "description": "Root directory to search." },
-          "query": { "type": "string", "description": "Optional filename glob (e.g. '*.pdf') or case-insensitive substring." },
-          "text_query": { "type": "string", "description": "Optional text content substring to match inside small text/code files." },
-          "min_size_bytes": { "type": "integer", "minimum": 0 },
-          "recursive": { "type": "boolean", "default": true },
-          "limit": { "type": "integer", "minimum": 1, "maximum": 500, "default": 50 }
+          "path": {
+            "type": "string",
+            "description": "Root directory to search."
+          },
+          "query": {
+            "type": "string",
+            "description": "Optional filename glob (e.g. '*.pdf') or case-insensitive substring."
+          },
+          "text_query": {
+            "type": "string",
+            "description": "Optional text content substring to match inside small text/code files."
+          },
+          "min_size_bytes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "recursive": {
+            "type": "boolean",
+            "default": true
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 500,
+            "default": 50
+          }
         },
-        "required": ["path"]
+        "required": [
+          "path"
+        ]
       }
     },
     {
@@ -48,10 +85,18 @@
       "input_schema": {
         "type": "object",
         "properties": {
-          "path": { "type": "string", "description": "File or directory path." },
-          "include_hash": { "type": "boolean", "default": false }
+          "path": {
+            "type": "string",
+            "description": "File or directory path."
+          },
+          "include_hash": {
+            "type": "boolean",
+            "default": false
+          }
         },
-        "required": ["path"]
+        "required": [
+          "path"
+        ]
       }
     },
     {
@@ -62,10 +107,18 @@
       "input_schema": {
         "type": "object",
         "properties": {
-          "path": { "type": "string", "description": "Directory to scan." },
-          "recursive": { "type": "boolean", "default": true }
+          "path": {
+            "type": "string",
+            "description": "Directory to scan."
+          },
+          "recursive": {
+            "type": "boolean",
+            "default": true
+          }
         },
-        "required": ["path"]
+        "required": [
+          "path"
+        ]
       }
     },
     {
@@ -76,10 +129,19 @@
       "input_schema": {
         "type": "object",
         "properties": {
-          "path": { "type": "string", "description": "Directory to organize." },
-          "apply": { "type": "boolean", "default": false, "description": "Set true to execute moves; false returns a dry-run plan." }
+          "path": {
+            "type": "string",
+            "description": "Directory to organize."
+          },
+          "apply": {
+            "type": "boolean",
+            "default": false,
+            "description": "Set true to execute moves; false returns a dry-run plan."
+          }
         },
-        "required": ["path"]
+        "required": [
+          "path"
+        ]
       }
     },
     {
@@ -90,9 +152,14 @@
       "input_schema": {
         "type": "object",
         "properties": {
-          "path": { "type": "string", "description": "File or directory to move to Trash." }
+          "path": {
+            "type": "string",
+            "description": "File or directory to move to Trash."
+          }
         },
-        "required": ["path"]
+        "required": [
+          "path"
+        ]
       }
     },
     {
@@ -103,12 +170,123 @@
       "input_schema": {
         "type": "object",
         "properties": {
-          "path": { "type": "string", "description": "File or folder path to open in Dolphin." },
-          "select_file": { "type": "boolean", "default": true }
+          "path": {
+            "type": "string",
+            "description": "File or folder path to open in Dolphin."
+          },
+          "select_file": {
+            "type": "boolean",
+            "default": true
+          }
         },
-        "required": ["path"]
+        "required": [
+          "path"
+        ]
+      }
+    },
+    {
+      "name": "create_directory",
+      "description": "Create a new directory or folder recursively.",
+      "risk_level": "write",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Absolute or user path of the folder to create"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      }
+    },
+    {
+      "name": "write_file",
+      "description": "Create or overwrite a file with given text content.",
+      "risk_level": "write",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path of the file to write"
+          },
+          "content": {
+            "type": "string",
+            "description": "Text content to write"
+          },
+          "append": {
+            "type": "boolean",
+            "description": "Append to file if true"
+          }
+        },
+        "required": [
+          "path",
+          "content"
+        ]
+      }
+    },
+    {
+      "name": "delete_path",
+      "description": "Permanently delete a file or directory.",
+      "risk_level": "write",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path of file or folder to delete"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      }
+    },
+    {
+      "name": "copy_path",
+      "description": "Copy a file or directory to a destination path.",
+      "risk_level": "write",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string",
+            "description": "Source path"
+          },
+          "destination": {
+            "type": "string",
+            "description": "Destination path"
+          }
+        },
+        "required": [
+          "source",
+          "destination"
+        ]
+      }
+    },
+    {
+      "name": "move_path",
+      "description": "Move or rename a file or directory.",
+      "risk_level": "write",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string",
+            "description": "Source path"
+          },
+          "destination": {
+            "type": "string",
+            "description": "Destination path"
+          }
+        },
+        "required": [
+          "source",
+          "destination"
+        ]
       }
     }
   ]
 }
-

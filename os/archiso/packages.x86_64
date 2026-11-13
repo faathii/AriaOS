@@ -68,6 +68,14 @@ python-pyqt6
 qt6-base
 qt6-svg
 hicolor-icon-theme
+polkit-gnome
+zenity
+
+# --- Typography, Icons & Unicode Symbol Coverage ---
+noto-fonts
+noto-fonts-emoji
+ttf-jetbrains-mono-nerd
+ttf-dejavu
 
 # --- Antivirus & Core Security ---
 clamav
@@ -85,7 +93,6 @@ imagemagick
 gparted
 
 # --- Real-Time Monitoring & Hardware Diagnostics ---
-plasma-systemmonitor
 btop
 htop
 fastfetch

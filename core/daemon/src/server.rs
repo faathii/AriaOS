@@ -37,20 +37,36 @@ pub fn serve_socket(connectors: Vec<RegisteredConnector>, model: Option<String>)
 
     let shared_connectors: Arc<[RegisteredConnector]> = Arc::from(connectors);
 
-    for stream in listener.incoming() {
-        let Ok(mut stream) = stream else { continue };
+    let (tx, rx) = std::sync::mpsc::sync_channel::<std::os::unix::net::UnixStream>(64);
+    let rx_arc = Arc::new(std::sync::Mutex::new(rx));
+
+    let pool_size = 6;
+    for _ in 0..pool_size {
         let conns = Arc::clone(&shared_connectors);
         let mdl = model.clone();
+        let rx_worker = Arc::clone(&rx_arc);
         thread::spawn(move || {
-            let Ok(cloned) = stream.try_clone() else { return };
-            let mut reader = BufReader::new(cloned);
-            let mut line = String::new();
-            if reader.read_line(&mut line).is_err() || line.trim().is_empty() {
-                return;
+            loop {
+                let stream_res = {
+                    let Ok(lock) = rx_worker.lock() else { break };
+                    lock.recv()
+                };
+                let Ok(mut stream) = stream_res else { break };
+                let Ok(cloned) = stream.try_clone() else { continue };
+                let mut reader = BufReader::new(cloned);
+                let mut line = String::new();
+                if reader.read_line(&mut line).is_err() || line.trim().is_empty() {
+                    continue;
+                }
+                let response = handle_ipc_request(line.trim(), &conns, mdl.clone());
+                let _ = writeln!(stream, "{response}");
             }
-            let response = handle_ipc_request(line.trim(), &conns, mdl);
-            let _ = writeln!(stream, "{response}");
         });
+    }
+
+    for stream in listener.incoming() {
+        let Ok(stream) = stream else { continue };
+        let _ = tx.send(stream);
     }
     Ok(())
 }

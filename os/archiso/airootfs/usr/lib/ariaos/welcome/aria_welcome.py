@@ -137,32 +137,32 @@ def main() -> int:
         def _apply_style(self) -> None:
             self.setStyleSheet("""
                 QWidget {
-                    background-color: #070a12;
+                    background-color: #0d1117;
                     color: #e2e8f0;
                     font-family: "Noto Sans", sans-serif;
                     font-size: 13px;
                 }
                 QLabel#telemetry_banner {
                     background-color: #0b1120;
-                    border: 1px solid #00f0ff;
+                    border: 1px solid #3b82f6;
                     border-radius: 8px;
                     padding: 8px 12px;
-                    color: #00f0ff;
+                    color: #3b82f6;
                     font-family: "Hack", monospace;
                     font-size: 11px;
                     font-weight: bold;
                 }
                 QTabWidget::pane {
-                    border: 1px solid #1e293b;
+                    border: 1px solid #30363d;
                     background: #0b101e;
                     border-radius: 10px;
                     padding: 14px;
                 }
                 QTabBar::tab {
-                    background: #090d18;
+                    background: #161b22;
                     color: #94a3b8;
                     padding: 9px 18px;
-                    border: 1px solid #162238;
+                    border: 1px solid #30363d;
                     border-bottom: none;
                     border-top-left-radius: 8px;
                     border-top-right-radius: 8px;
@@ -170,37 +170,37 @@ def main() -> int:
                 }
                 QTabBar::tab:selected {
                     background: #0d1629;
-                    color: #00f0ff;
-                    border-color: #00f0ff;
+                    color: #3b82f6;
+                    border-color: #3b82f6;
                     font-weight: bold;
                 }
                 QPushButton {
-                    background-color: #0d1526;
+                    background-color: #21262d;
                     color: #e2e8f0;
-                    border: 1px solid #1e3a5f;
+                    border: 1px solid #30363d;
                     border-radius: 8px;
                     padding: 9px 14px;
                     font-weight: 500;
                 }
                 QPushButton:hover {
-                    background-color: #00f0ff;
-                    color: #070a12;
-                    border-color: #00f0ff;
+                    background-color: #3b82f6;
+                    color: #0d1117;
+                    border-color: #3b82f6;
                     font-weight: bold;
                 }
                 QPushButton#primary {
-                    background-color: #00b4d8;
-                    color: #070a12;
-                    border-color: #00f0ff;
+                    background-color: #3b82f6;
+                    color: #0d1117;
+                    border-color: #3b82f6;
                     font-weight: bold;
                 }
                 QPushButton#primary:hover {
-                    background-color: #00f0ff;
-                    color: #070a12;
+                    background-color: #3b82f6;
+                    color: #0d1117;
                 }
                 QFrame#card {
                     background-color: #0d1322;
-                    border: 1px solid #1e293b;
+                    border: 1px solid #30363d;
                     border-radius: 10px;
                     padding: 12px;
                 }
@@ -223,7 +223,7 @@ def main() -> int:
 
             title_box = QVBoxLayout()
             t = QLabel("ARIA OS // CYBER OBSIDIAN")
-            t.setStyleSheet("font-size: 21px; font-weight: bold; color: #00f0ff; letter-spacing: 1px;")
+            t.setStyleSheet("font-size: 21px; font-weight: bold; color: #3b82f6; letter-spacing: 1px;")
             sub = QLabel("La IA no es un programa: la IA es el Sistema Operativo (Kernel + Rust Neural Core + KDE Plasma 6)")
             sub.setStyleSheet("color: #94a3b8; font-size: 12px;")
             title_box.addWidget(t)
@@ -272,7 +272,7 @@ def main() -> int:
             self.av_status_lbl = QLabel("🛡️ Verificando estado de Aria Shield (Bajo demanda, 0 MB RAM en reposo)...")
 
             for lbl in (self.kernel_status_lbl, self.ai_status_lbl, self.net_status_lbl, self.av_status_lbl):
-                lbl.setStyleSheet("padding: 9px 12px; background: #090e1a; border: 1px solid #162238; border-radius: 8px;")
+                lbl.setStyleSheet("padding: 9px 12px; background: #090e1a; border: 1px solid #30363d; border-radius: 8px;")
                 layout.addWidget(lbl)
 
             btn_box = QHBoxLayout()

@@ -49,7 +49,7 @@ def _read_session_env_from_proc(uid: int) -> Dict[str, str]:
             if entry.stat().st_uid != uid:
                 continue
             comm = (entry / "comm").read_text(encoding="utf-8", errors="ignore").strip()
-            if comm not in {"plasmashell", "kwin_wayland", "kwin_x11", "startplasma-wayland", "systemd"}:
+            if comm not in {"ariaos-shell", "openbox", "picom", "Xorg", "xinit", "plasmashell", "kwin_wayland", "kwin_x11", "startplasma-wayland", "systemd"}:
                 continue
             raw_env = (entry / "environ").read_bytes()
         except OSError:

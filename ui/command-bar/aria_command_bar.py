@@ -109,6 +109,13 @@ def _run_cli(client: AriaDaemonClient, prompt: str | None) -> int:
 
 
 def _launch_gui(client: AriaDaemonClient) -> int:
+    import socket as py_socket
+    _lock = py_socket.socket(py_socket.AF_INET, py_socket.SOCK_STREAM)
+    try:
+        _lock.bind(("127.0.0.1", 47788))
+    except OSError:
+        return 0
+
     try:
         from PyQt6.QtCore import Qt, QThread, QTimer, pyqtSignal
         from PyQt6.QtGui import QIcon, QKeySequence, QShortcut
@@ -182,71 +189,81 @@ def _launch_gui(client: AriaDaemonClient) -> int:
             self.setStyleSheet(
                 """
                 QWidget {
-                    background-color: #070a12;
-                    color: #e2e8f0;
-                    border: 1px solid #00f0ff;
+                    background-color: #12161f;
+                    color: #e6edf3;
+                    border: 1px solid rgba(255, 255, 255, 30);
                     border-radius: 14px;
                     font-family: "Noto Sans", sans-serif;
                     font-size: 13px;
                 }
                 QLabel#telemetry_strip {
-                    background-color: #0c1222;
-                    border: 1px solid #1e293b;
+                    background-color: #161b24;
+                    border: 1px solid rgba(255, 255, 255, 18);
                     border-radius: 8px;
                     padding: 6px 12px;
-                    color: #00f0ff;
-                    font-family: "Hack", monospace;
+                    color: #8b949e;
+                    font-family: monospace;
                     font-size: 11px;
-                    font-weight: bold;
                 }
                 QLineEdit {
-                    background-color: #0d1424;
-                    border: 1px solid #00b4d8;
+                    background-color: #181d28;
+                    border: 1px solid rgba(255, 255, 255, 24);
                     border-radius: 10px;
                     padding: 12px 14px;
-                    font-size: 15px;
+                    font-size: 14px;
                     color: #ffffff;
                 }
                 QLineEdit:focus {
-                    border: 1.5px solid #00f0ff;
-                    background-color: #10192e;
+                    border: 1.5px solid #3b82f6;
+                    background-color: #1c2230;
                 }
                 QPushButton.pill {
-                    background-color: #0d1526;
-                    border: 1px solid #1e3a5f;
+                    background-color: rgba(255, 255, 255, 14);
+                    border: 1px solid rgba(255, 255, 255, 20);
                     border-radius: 7px;
                     padding: 6px 10px;
                     font-size: 12px;
-                    color: #94a3b8;
+                    color: #c9d1d9;
                 }
                 QPushButton.pill:hover {
-                    background-color: #00f0ff;
-                    color: #070a12;
-                    border-color: #00f0ff;
-                    font-weight: bold;
+                    background-color: #3b82f6;
+                    color: #ffffff;
+                    border-color: #3b82f6;
                 }
                 QPushButton#btn_settings {
-                    background-color: #0d1526;
-                    border: 1px solid #1e3a5f;
+                    background-color: rgba(255, 255, 255, 14);
+                    border: 1px solid rgba(255, 255, 255, 20);
                     border-radius: 10px;
                     font-size: 16px;
-                    color: #00f0ff;
+                    color: #e6edf3;
                 }
                 QPushButton#btn_settings:hover {
-                    background-color: #00f0ff;
-                    color: #070a12;
+                    background-color: #3b82f6;
+                    color: #ffffff;
+                }
+                QPushButton#btn_close_hud {
+                    background-color: rgba(239, 68, 68, 40);
+                    color: #f87171;
+                    border: 1px solid rgba(239, 68, 68, 60);
+                    border-radius: 6px;
+                    font-size: 11px;
+                    padding: 2px 8px;
+                }
+                QPushButton#btn_close_hud:hover {
+                    background-color: #ef4444;
+                    color: #ffffff;
                 }
                 QTextBrowser {
-                    background-color: #090d18;
-                    border: 1px solid #162238;
+                    background-color: #141822;
+                    border: 1px solid rgba(255, 255, 255, 18);
                     border-radius: 10px;
                     padding: 12px;
-                    color: #e2e8f0;
+                    color: #e6edf3;
                     font-size: 13px;
                 }
                 QLabel#status {
                     border: none;
-                    color: #64748b;
+                    color: #8b949e;
                     font-size: 11px;
                 }
                 """
@@ -256,10 +273,19 @@ def _launch_gui(client: AriaDaemonClient) -> int:
             layout.setContentsMargins(16, 16, 16, 14)
             layout.setSpacing(10)
 
-            # Top Kernel Telemetry Bar
+            # Top Header with Kernel Telemetry & Close button
+            top_header = QHBoxLayout()
             self.telemetry_strip = QLabel("⚡ ARIA NEURAL CORE • ENLAZANDO CON EL KERNEL...")
             self.telemetry_strip.setObjectName("telemetry_strip")
-            layout.addWidget(self.telemetry_strip)
+            top_header.addWidget(self.telemetry_strip, 1)
+
+            btn_close = QPushButton("✕")
+            btn_close.setObjectName("btn_close_hud")
+            btn_close.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn_close.setFixedSize(26, 26)
+            btn_close.clicked.connect(self.close)
+            top_header.addWidget(btn_close)
+            layout.addLayout(top_header)
 
             # Main Search & Command Input Bar
             input_bar = QHBoxLayout()
@@ -316,6 +342,16 @@ def _launch_gui(client: AriaDaemonClient) -> int:
 
             # Trigger instant welcome pulse
             self._run_quick_prompt("hola")
+
+        def mousePressEvent(self, event) -> None:
+            if event.button() == Qt.MouseButton.LeftButton:
+                self._drag_pos = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
+                event.accept()
+
+        def mouseMoveEvent(self, event) -> None:
+            if event.buttons() == Qt.MouseButton.LeftButton and hasattr(self, "_drag_pos"):
+                self.move(event.globalPosition().toPoint() - self._drag_pos)
+                event.accept()
 
         def _refresh_telemetry(self) -> None:
             try:

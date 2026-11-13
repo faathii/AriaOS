@@ -15,7 +15,7 @@ sys.path.insert(0, str(REPO_ROOT / "core" / "sdk" / "python"))
 from aria_sdk import ConnectorError, ConnectorServer  # noqa: E402
 
 server = ConnectorServer("dev-vscodium", "0.1.0")
-ALLOWED_EDITORS = {"auto", "vscodium", "kate"}
+ALLOWED_EDITORS = {"auto", "vscodium", "mousepad"}
 
 
 @server.tool("list_extensions")
@@ -55,9 +55,9 @@ def open_in_editor(params: dict[str, Any]) -> dict[str, Any]:
     candidates = (
         ["codium", "vscodium"]
         if editor == "vscodium"
-        else ["kate"]
-        if editor == "kate"
-        else ["codium", "vscodium", "kate"]
+        else ["mousepad"]
+        if editor == "mousepad"
+        else ["codium", "vscodium", "mousepad"]
     )
     binary = next((shutil.which(name) for name in candidates if shutil.which(name)), None)
     if not binary:

@@ -316,6 +316,7 @@ class AriaControlCenter(QDialog):
         vol_slider = QSlider(Qt.Orientation.Horizontal)
         vol_slider.setRange(0, 100)
         vol_slider.setValue(70)
+        vol_slider.valueChanged.connect(self._on_vol_changed)
         vol_slider.setStyleSheet(
             """
             QSlider::groove:horizontal { height: 6px; background: #1c202a; border-radius: 3px; }
@@ -326,6 +327,17 @@ class AriaControlCenter(QDialog):
         vol_lay.addWidget(vol_lbl)
         vol_lay.addWidget(vol_slider)
         layout.addWidget(vol_tile)
+
+    def _on_vol_changed(self, val: int) -> None:
+        try:
+            subprocess.Popen(
+                f"wpctl set-volume @DEFAULT_AUDIO_SINK@ {val}% 2>/dev/null || pactl set-sink-volume @DEFAULT_SINK@ {val}% 2>/dev/null || amixer sset Master {val}% 2>/dev/null || true",
+                shell=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+        except Exception:
+            pass
 
         # 3. Kernel Mode Selector Tile
         mode_tile = QFrame()
@@ -449,9 +461,17 @@ class AriaTopMenuBar(QWidget):
         layout.addWidget(app_name)
 
         # macOS standard menu items
-        for m in ("Archivo", "Edición", "Ver", "Ventana", "Ayuda"):
-            mb = QPushButton(m)
+        menu_items = [
+            ("Archivo", self._open_file_menu),
+            ("Edición", self._open_edit_menu),
+            ("Ver", self._open_view_menu),
+            ("Ventana", self._open_window_menu),
+            ("Ayuda", self._open_help_menu),
+        ]
+        for name, callback in menu_items:
+            mb = QPushButton(name)
             mb.setCursor(Qt.CursorShape.PointingHandCursor)
+            mb.clicked.connect(callback)
             layout.addWidget(mb)
 
         layout.addStretch()
@@ -476,7 +496,7 @@ class AriaTopMenuBar(QWidget):
             }
             """
         )
-        spot_btn.clicked.connect(lambda: launch_command("aria-command-bar"))
+        spot_btn.clicked.connect(self._open_spotlight)
         layout.addWidget(spot_btn)
 
         layout.addStretch()
@@ -553,6 +573,99 @@ class AriaTopMenuBar(QWidget):
                 act.triggered.connect(fn)
                 menu.addAction(act)
         menu.exec(self.mapToGlobal(QPoint(10, self.bar_height + 2)))
+
+    def _create_popup_menu(self, actions: list[tuple[str, Any]], pos: QPoint) -> None:
+        menu = QMenu(self)
+        menu.setStyleSheet(
+            """
+            QMenu {
+                background-color: rgba(24, 27, 36, 250);
+                color: #e6edf3;
+                border: 1px solid rgba(255, 255, 255, 25);
+                border-radius: 10px;
+                padding: 5px;
+                font-size: 12px;
+            }
+            QMenu::item {
+                padding: 6px 20px;
+                border-radius: 6px;
+            }
+            QMenu::item:selected {
+                background-color: #3b82f6;
+                color: #ffffff;
+            }
+            QMenu::separator {
+                height: 1px;
+                background: rgba(255, 255, 255, 18);
+                margin: 4px 6px;
+            }
+            """
+        )
+        for item, fn in actions:
+            if item == "sep":
+                menu.addSeparator()
+            else:
+                act = QAction(item, self)
+                if fn:
+                    act.triggered.connect(fn)
+                menu.addAction(act)
+        menu.exec(pos)
+
+    def _open_file_menu(self) -> None:
+        actions = [
+            ("Nueva Ventana de Terminal", lambda: launch_command("xfce4-terminal")),
+            ("Nuevo Documento de Texto", lambda: launch_command("mousepad")),
+            ("Abrir Explorador de Archivos", lambda: launch_command("thunar")),
+            ("sep", None),
+            ("Cerrar Ventana", lambda: launch_command("xdotool getactivewindow windowclose 2>/dev/null || true")),
+        ]
+        self._create_popup_menu(actions, self.mapToGlobal(QPoint(100, self.bar_height + 2)))
+
+    def _open_edit_menu(self) -> None:
+        actions = [
+            ("Historial del Portapapeles...", lambda: launch_command("ariaos-clipboard")),
+            ("sep", None),
+            ("Deshacer", lambda: launch_command("xdotool key ctrl+z 2>/dev/null || true")),
+            ("Rehacer", lambda: launch_command("xdotool key ctrl+y 2>/dev/null || true")),
+            ("sep", None),
+            ("Cortar", lambda: launch_command("xdotool key ctrl+x 2>/dev/null || true")),
+            ("Copiar", lambda: launch_command("xdotool key ctrl+c 2>/dev/null || true")),
+            ("Pegar", lambda: launch_command("xdotool key ctrl+v 2>/dev/null || true")),
+            ("Seleccionar Todo", lambda: launch_command("xdotool key ctrl+a 2>/dev/null || true")),
+        ]
+        self._create_popup_menu(actions, self.mapToGlobal(QPoint(155, self.bar_height + 2)))
+
+    def _open_view_menu(self) -> None:
+        actions = [
+            ("Explorador de Archivos", lambda: launch_command("thunar")),
+            ("Monitor del Sistema", lambda: launch_command("ariaos-monitor")),
+            ("Tienda de Aplicaciones", lambda: launch_command("ariaos-store")),
+            ("Radar de Red y Conectividad", lambda: launch_command("ariaos-netradar")),
+            ("sep", None),
+            ("Pantalla Completa", lambda: launch_command("xdotool key F11 2>/dev/null || true")),
+        ]
+        self._create_popup_menu(actions, self.mapToGlobal(QPoint(210, self.bar_height + 2)))
+
+    def _open_window_menu(self) -> None:
+        actions = [
+            ("Minimizar Ventana Activa", lambda: launch_command("xdotool getactivewindow windowminimize 2>/dev/null || true")),
+            ("Maximizar Ventana Activa", lambda: launch_command("xdotool getactivewindow windowsize 100% 100% 2>/dev/null || true")),
+            ("sep", None),
+            ("Siguiente Ventana (Alt+Tab)", lambda: launch_command("xdotool key alt+Tab 2>/dev/null || true")),
+        ]
+        self._create_popup_menu(actions, self.mapToGlobal(QPoint(245, self.bar_height + 2)))
+
+    def _open_help_menu(self) -> None:
+        actions = [
+            ("Bienvenido a AriaOS", lambda: launch_command("ariaos-welcome")),
+            ("Documentación de Arquitectura...", lambda: launch_command("mousepad /usr/share/ariaos/COMANDOS_IA_Y_APIS_ARIAOS.md")),
+            ("sep", None),
+            ("Acerca de AriaOS", lambda: launch_command("ariaos-welcome")),
+        ]
+        self._create_popup_menu(actions, self.mapToGlobal(QPoint(300, self.bar_height + 2)))
+
+    def _open_spotlight(self) -> None:
+        launch_command("aria-command-bar")
 
     def _toggle_control_center(self) -> None:
         if self.control_center.isVisible():
@@ -658,6 +771,9 @@ class AriaDesktopCanvas(QWidget):
                 self.wallpaper = QPixmap(str(wp))
                 break
 
+        self._cached_pixmap: QPixmap | None = None
+        self._update_cached_wallpaper()
+
         # Desktop Layout: Clean desktop with 1 tidy shortcut on the top-right (like Macintosh HD)
         root = QHBoxLayout(self)
         root.setContentsMargins(24, 46, 24, 80)
@@ -751,25 +867,58 @@ class AriaDesktopCanvas(QWidget):
                 menu.addAction(act)
         menu.exec(event.globalPos())
 
-    def paintEvent(self, _event) -> None:
-        p = QPainter(self)
-        p.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
-        rect = self.rect()
+    def resizeEvent(self, event) -> None:
+        super().resizeEvent(event)
+        self._update_cached_wallpaper()
 
-        if not self.wallpaper.isNull():
+    def _update_cached_wallpaper(self) -> None:
+        if not self.wallpaper.isNull() and self.width() > 0 and self.height() > 0:
             scaled = self.wallpaper.scaled(
-                rect.size(),
+                self.size(),
                 Qt.AspectRatioMode.KeepAspectRatioByExpanding,
                 Qt.TransformationMode.SmoothTransformation,
             )
-            sx = (scaled.width() - rect.width()) // 2
-            sy = (scaled.height() - rect.height()) // 2
-            p.drawPixmap(0, 0, scaled, sx, sy, rect.width(), rect.height())
+            sx = max(0, (scaled.width() - self.width()) // 2)
+            sy = max(0, (scaled.height() - self.height()) // 2)
+            self._cached_pixmap = scaled.copy(sx, sy, self.width(), self.height())
         else:
+            self._cached_pixmap = None
+
+    def paintEvent(self, _event) -> None:
+        p = QPainter(self)
+        if self._cached_pixmap and not self._cached_pixmap.isNull():
+            p.drawPixmap(0, 0, self._cached_pixmap)
+        else:
+            rect = self.rect()
             grad = QLinearGradient(0, 0, 0, rect.height())
             grad.setColorAt(0.0, QColor("#0c0f17"))
             grad.setColorAt(1.0, QColor("#141824"))
             p.fillRect(rect, grad)
+
+
+# ---------------------------------------------------------------------------
+# Background Telemetry Worker (Off-GUI Thread)
+# ---------------------------------------------------------------------------
+class TelemetryWorker(QThread):
+    telemetry_ready = pyqtSignal(dict)
+
+    def __init__(self, telemetry: SystemTelemetry) -> None:
+        super().__init__()
+        self.telemetry = telemetry
+        self._running = True
+
+    def run(self) -> None:
+        while self._running:
+            try:
+                data = self.telemetry.sample()
+                self.telemetry_ready.emit(data)
+            except Exception:
+                pass
+            time.sleep(2)
+
+    def stop(self) -> None:
+        self._running = False
+        self.wait(1000)
 
 
 # ---------------------------------------------------------------------------
@@ -789,25 +938,11 @@ class AriaDesktopEnvironment:
         if screen:
             screen.geometryChanged.connect(self._on_screen_resized)
 
-        self.timer = QTimer()
-        self.timer.timeout.connect(self._tick)
-        self.timer.start(2000)
-        self._tick()
+        self.worker = TelemetryWorker(self.telemetry)
+        self.worker.telemetry_ready.connect(self._on_telemetry)
+        self.worker.start()
 
-    def _on_screen_resized(self, new_geom: QRect) -> None:
-        self.canvas.setGeometry(new_geom)
-        self.topbar.setGeometry(new_geom.x(), new_geom.y(), new_geom.width(), self.topbar.bar_height)
-        dock_w = self.dock.width()
-        dock_h = self.dock.height()
-        self.dock.setGeometry(
-            new_geom.x() + (new_geom.width() - dock_w) // 2,
-            new_geom.y() + new_geom.height() - dock_h - 10,
-            dock_w,
-            dock_h,
-        )
-
-    def _tick(self) -> None:
-        data = self.telemetry.sample()
+    def _on_telemetry(self, data: dict) -> None:
         self.topbar.update_telemetry(data)
 
     def show_all(self) -> None:

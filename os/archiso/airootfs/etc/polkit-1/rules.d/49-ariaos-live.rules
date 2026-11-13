@@ -1,0 +1,11 @@
+/* AriaOS Live Session & Admin Authentication Rules */
+polkit.addRule(function(action, subject) {
+    if (subject.isInGroup("wheel") || subject.user == "aria") {
+        if (action.id.indexOf("org.freedesktop.udisks2.") === 0 ||
+            action.id.indexOf("org.freedesktop.login1.") === 0 ||
+            action.id.indexOf("org.freedesktop.NetworkManager.") === 0 ||
+            action.id.indexOf("org.freedesktop.policykit.") === 0) {
+            return polkit.Result.YES;
+        }
+    }
+});

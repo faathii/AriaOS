@@ -111,19 +111,19 @@ def launch_gui(client: AriaDaemonClient) -> int:
             self.setStyleSheet(
                 """
                 QWidget {
-                    background-color: #070a12;
+                    background-color: #0d1117;
                     color: #e2e8f0;
                     font-family: "Noto Sans", sans-serif;
                     font-size: 13px;
                 }
                 QFrame.card {
-                    background-color: #0c1222;
-                    border: 1px solid #1e293b;
+                    background-color: #161b22;
+                    border: 1px solid #30363d;
                     border-radius: 12px;
                     padding: 12px;
                 }
                 QLabel#title {
-                    color: #00f0ff;
+                    color: #3b82f6;
                     font-size: 20px;
                     font-weight: bold;
                 }
@@ -132,7 +132,7 @@ def launch_gui(client: AriaDaemonClient) -> int:
                     font-size: 12px;
                 }
                 QLabel.suite_title {
-                    color: #00f0ff;
+                    color: #3b82f6;
                     font-size: 14px;
                     font-weight: bold;
                 }
@@ -142,30 +142,30 @@ def launch_gui(client: AriaDaemonClient) -> int:
                 }
                 QPushButton.primary {
                     background-color: #0d1b33;
-                    border: 1px solid #00f0ff;
+                    border: 1px solid #3b82f6;
                     border-radius: 8px;
                     padding: 7px 14px;
-                    color: #00f0ff;
+                    color: #3b82f6;
                     font-weight: bold;
                 }
                 QPushButton.primary:hover {
-                    background-color: #00f0ff;
-                    color: #070a12;
+                    background-color: #3b82f6;
+                    color: #0d1117;
                 }
                 QLineEdit {
-                    background-color: #0d1424;
-                    border: 1px solid #1e3a5f;
+                    background-color: #161b22;
+                    border: 1px solid #30363d;
                     border-radius: 8px;
                     padding: 9px 12px;
                     color: #ffffff;
                 }
                 QTabWidget::pane {
-                    border: 1px solid #1e293b;
+                    border: 1px solid #30363d;
                     border-radius: 10px;
-                    background-color: #090d18;
+                    background-color: #161b22;
                 }
                 QTabBar::tab {
-                    background-color: #0c1222;
+                    background-color: #161b22;
                     color: #94a3b8;
                     padding: 9px 18px;
                     border-top-left-radius: 8px;
@@ -174,19 +174,19 @@ def launch_gui(client: AriaDaemonClient) -> int:
                 }
                 QTabBar::tab:selected {
                     background-color: #102038;
-                    color: #00f0ff;
+                    color: #3b82f6;
                     font-weight: bold;
-                    border-bottom: 2px solid #00f0ff;
+                    border-bottom: 2px solid #3b82f6;
                 }
                 QTableWidget {
-                    background-color: #090d18;
-                    border: 1px solid #162238;
+                    background-color: #161b22;
+                    border: 1px solid #30363d;
                     border-radius: 8px;
-                    gridline-color: #162238;
+                    gridline-color: #30363d;
                 }
                 QHeaderView::section {
-                    background-color: #0c1222;
-                    color: #00f0ff;
+                    background-color: #161b22;
+                    color: #3b82f6;
                     padding: 6px;
                     border: none;
                     font-weight: bold;

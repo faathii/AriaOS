@@ -37,9 +37,9 @@ impl HardwareTier {
 
     pub fn recommended_num_ctx(&self) -> u64 {
         match self {
-            HardwareTier::Workstation16GBPlus => 2048,
-            HardwareTier::Standard8GB => 1024,
-            HardwareTier::ConstrainedVM => 512,
+            HardwareTier::Workstation16GBPlus => 4096,
+            HardwareTier::Standard8GB => 2048,
+            HardwareTier::ConstrainedVM => 2048,
         }
     }
 
@@ -243,8 +243,8 @@ pub fn spawn_autonomic_kernel_governor() {
             tick = tick.wrapping_add(1);
             let snap = KernelTelemetry::collect();
 
-            // Proactive anti-freeze mitigation if RAM usage >= 88% or PSI memory stall > 8%
-            if snap.mem_usage_pct >= 88 || snap.psi_mem_some_avg10 > 8.0 {
+            // Proactive anti-freeze mitigation only if RAM usage >= 94% and PSI memory stall > 15%
+            if snap.mem_usage_pct >= 94 && snap.psi_mem_some_avg10 > 15.0 {
                 let _ = optimize_kernel_memory();
             }
 
@@ -543,19 +543,38 @@ fn read_cpu_temperature() -> Option<f64> {
     None
 }
 
+fn is_live_or_squashfs_environment() -> bool {
+    if Path::new("/run/archiso").exists() {
+        return true;
+    }
+    if let Ok(mounts) = fs::read_to_string("/proc/mounts") {
+        if mounts.contains("airootfs.sfs") || mounts.contains("squashfs") {
+            return true;
+        }
+    }
+    false
+}
+
 /// Performs safe kernel-level memory & cache optimization when requested by user or under pressure.
 pub fn optimize_kernel_memory() -> Value {
     let before = KernelTelemetry::collect();
     let mut actions = Vec::new();
 
-    if Path::new("/proc/sys/vm/drop_caches").exists() {
+    let is_live = is_live_or_squashfs_environment();
+    if !is_live && Path::new("/proc/sys/vm/drop_caches").exists() {
         if fs::write("/proc/sys/vm/drop_caches", "1\n").is_ok() {
             actions.push("dropped_clean_pagecache");
         }
+    } else if is_live {
+        actions.push("preserved_live_squashfs_cache");
     }
-    if Path::new("/proc/sys/vm/compact_memory").exists() {
-        if fs::write("/proc/sys/vm/compact_memory", "1\n").is_ok() {
-            actions.push("compacted_memory_pages");
+
+    // Only compact memory under extreme emergency pressure (RAM >= 95% AND PSI >= 25.0)
+    if before.mem_usage_pct >= 95 && before.psi_mem_some_avg10 >= 25.0 {
+        if Path::new("/proc/sys/vm/compact_memory").exists() {
+            if fs::write("/proc/sys/vm/compact_memory", "1\n").is_ok() {
+                actions.push("emergency_compacted_memory_pages");
+            }
         }
     }
 
@@ -641,11 +660,11 @@ pub fn self_heal_system() -> Value {
         }
     }
 
-    // 3. Check PSI pressure and compact memory if needed
+    // 3. Check PSI pressure and optimize memory only under real emergency stall
     let snap = KernelTelemetry::collect();
-    if snap.mem_usage_pct >= 85 || snap.psi_mem_some_avg10 > 5.0 {
+    if snap.mem_usage_pct >= 94 && snap.psi_mem_some_avg10 > 20.0 {
         let _ = optimize_kernel_memory();
-        actions.push("proactive_psi_memory_compaction".to_string());
+        actions.push("emergency_psi_memory_compaction".to_string());
     }
 
     json!({

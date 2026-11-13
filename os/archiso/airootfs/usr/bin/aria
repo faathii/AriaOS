@@ -11,6 +11,32 @@ case "$1" in
     exec /usr/bin/aria-daemon "$@"
     ;;
   *)
+    SOCKET="/run/ariaos/agent.sock"
+    if [ -S "${SOCKET}" ]; then
+      python3 -c "
+import sys, json, socket
+try:
+    sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    sock.connect('${SOCKET}')
+    sock.sendall((json.dumps({'action': 'ask', 'prompt': sys.argv[1]}) + '\n').encode('utf-8'))
+    raw = b''
+    while True:
+        chunk = sock.recv(65536)
+        if not chunk:
+            break
+        raw += chunk
+        if b'\n' in chunk:
+            break
+    res = json.loads(raw.decode('utf-8').strip())
+    if res.get('ok') and 'answer' in res:
+        print('\nAria: ' + res['answer'])
+    else:
+        print(json.dumps(res, indent=2, ensure_ascii=False))
+    sys.exit(0)
+except Exception:
+    pass
+" "$*" 2>/dev/null && exit 0
+    fi
     exec /usr/bin/aria-daemon ask "$*" --yes
     ;;
 esac

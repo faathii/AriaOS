@@ -324,20 +324,113 @@ def move_to_trash(args: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
+@server.tool("create_directory")
+def create_directory(args: Dict[str, Any]) -> Dict[str, Any]:
+    """Create a new folder or directory recursively with correct user ownership."""
+    raw_path = args.get("path")
+    if not isinstance(raw_path, str) or not raw_path.strip():
+        raise ConnectorError("Parameter 'path' must be a non-empty string", code=-32602)
+    target = Path(raw_path).expanduser().resolve()
+    target.mkdir(parents=True, exist_ok=True)
+    ctx = resolve_desktop_context(target)
+    chown_for_context(target, ctx)
+    return {
+        "created": True,
+        "path": str(target),
+        "owner": ctx.username,
+    }
+
+
+@server.tool("write_file")
+def write_file(args: Dict[str, Any]) -> Dict[str, Any]:
+    """Create or overwrite a file with given text content."""
+    raw_path = args.get("path")
+    content = str(args.get("content", ""))
+    append = bool(args.get("append", False))
+    if not isinstance(raw_path, str) or not raw_path.strip():
+        raise ConnectorError("Parameter 'path' must be a non-empty string", code=-32602)
+    target = Path(raw_path).expanduser().resolve()
+    target.parent.mkdir(parents=True, exist_ok=True)
+    ctx = resolve_desktop_context(target.parent)
+    chown_for_context(target.parent, ctx)
+    mode = "a" if append else "w"
+    with open(target, mode, encoding="utf-8") as f:
+        f.write(content)
+    chown_for_context(target, ctx)
+    return {
+        "written": True,
+        "path": str(target),
+        "bytes": len(content.encode("utf-8")),
+        "append": append,
+    }
+
+
+@server.tool("delete_path")
+def delete_path(args: Dict[str, Any]) -> Dict[str, Any]:
+    """Permanently delete a file or directory."""
+    target = _require_path(args.get("path"))
+    forbidden = {target.anchor, str(Path.home().resolve()), "/etc", "/usr", "/bin", "/boot", "/var", "/home", "/root"}
+    if str(target) in forbidden or target.parent == target:
+        raise ConnectorError(f"Refusing to delete protected system path: {target}", code=-32602)
+    if target.is_dir():
+        shutil.rmtree(target)
+    else:
+        target.unlink()
+    return {"deleted": True, "path": str(target)}
+
+
+@server.tool("copy_path")
+def copy_path(args: Dict[str, Any]) -> Dict[str, Any]:
+    """Copy a file or directory to a destination path."""
+    src = _require_path(args.get("source"))
+    raw_dst = args.get("destination")
+    if not isinstance(raw_dst, str) or not raw_dst.strip():
+        raise ConnectorError("Parameter 'destination' must be a non-empty string", code=-32602)
+    dst = Path(raw_dst).expanduser().resolve()
+    if src.is_dir():
+        shutil.copytree(src, dst, dirs_exist_ok=True)
+    else:
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, dst)
+    ctx = resolve_desktop_context(dst)
+    chown_for_context(dst, ctx)
+    return {"copied": True, "source": str(src), "destination": str(dst)}
+
+
+@server.tool("move_path")
+def move_path(args: Dict[str, Any]) -> Dict[str, Any]:
+    """Move or rename a file or directory."""
+    src = _require_path(args.get("source"))
+    raw_dst = args.get("destination")
+    if not isinstance(raw_dst, str) or not raw_dst.strip():
+        raise ConnectorError("Parameter 'destination' must be a non-empty string", code=-32602)
+    dst = Path(raw_dst).expanduser().resolve()
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    shutil.move(str(src), str(dst))
+    ctx = resolve_desktop_context(dst)
+    chown_for_context(dst, ctx)
+    return {"moved": True, "source": str(src), "destination": str(dst)}
+
+
 @server.tool("open_in_dolphin")
 def open_in_dolphin(args: Dict[str, Any]) -> Dict[str, Any]:
-    """Open a directory or select a file in KDE Dolphin (bridged into the active desktop session)."""
+    """Open a directory or select a file in the active desktop file manager (Thunar / Dolphin)."""
     target = _require_path(args.get("path"))
     select_file = bool(args.get("select_file", True))
-    dolphin_bin = shutil.which("dolphin")
-    if not dolphin_bin:
+    fm_bin = shutil.which("thunar") or shutil.which("dolphin") or shutil.which("xdg-open")
+    if not fm_bin:
         return {
             "launched": False,
             "path": str(target),
-            "reason": "dolphin binary not found on PATH",
+            "reason": "no graphical file manager found on PATH",
         }
     ctx = resolve_desktop_context(target)
-    cmd = [dolphin_bin, "--select", str(target)] if (select_file and target.is_file()) else [dolphin_bin, str(target)]
+    if "thunar" in fm_bin:
+        cmd = [fm_bin, str(target if target.is_dir() else target.parent)]
+    elif "dolphin" in fm_bin:
+        cmd = [fm_bin, "--select", str(target)] if (select_file and target.is_file()) else [fm_bin, str(target)]
+    else:
+        cmd = [fm_bin, str(target if target.is_dir() else target.parent)]
     proc = launch_in_desktop_session(cmd, ctx)
     return {
         "launched": True,

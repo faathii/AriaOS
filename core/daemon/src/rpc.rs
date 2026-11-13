@@ -81,11 +81,30 @@ pub fn call_stdio_tool(
         .stdout
         .take()
         .ok_or_else(|| "Failed to open connector stdout".to_string())?;
-    let mut reader = BufReader::new(stdout);
-    let mut response_line = String::new();
-    reader
-        .read_line(&mut response_line)
-        .map_err(|e| format!("Failed reading RPC response: {e}"))?;
+
+    let (tx, rx) = std::sync::mpsc::channel();
+    let conn_id = connector.manifest.id.clone();
+    std::thread::spawn(move || {
+        let mut reader = BufReader::new(stdout);
+        let mut line = String::new();
+        let res = reader.read_line(&mut line).map(|_| line);
+        let _ = tx.send(res);
+    });
+
+    let timeout = std::time::Duration::from_secs(25);
+    let response_line = match rx.recv_timeout(timeout) {
+        Ok(Ok(line)) => line,
+        Ok(Err(e)) => {
+            let _ = child.kill();
+            return Err(format!("Failed reading RPC response from '{conn_id}': {e}"));
+        }
+        Err(_) => {
+            let _ = child.kill();
+            return Err(format!(
+                "Timeout (25s) waiting for connector '{conn_id}' tool '{tool_name}'"
+            ));
+        }
+    };
 
     let output = child
         .wait_with_output()

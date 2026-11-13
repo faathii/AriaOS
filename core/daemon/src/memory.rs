@@ -229,14 +229,11 @@ pub fn build_universal_app_catalog() -> Vec<AppCatalogEntry> {
         ("ariaos-netradar", "Radar de Red, Escáner LAN y DNS Privado AriaOS", "Internet", "ariaos-netradar", &["radar de red", "netradar", "escaner lan", "dns seguro", "ariaos-netradar"]),
         ("ariaos-optimizer", "Optimizador de Arranque y Limpiador Profundo AriaOS", "System", "ariaos-optimizer", &["optimizador", "limpiador", "boot analyzer", "ariaos-optimizer"]),
         ("ariaos-clipboard", "Portapapeles Inteligente e Historial Neuronal AriaOS", "System", "ariaos-clipboard", &["portapapeles", "clipboard", "historial copiado", "ariaos-clipboard"]),
-        // Core KDE Plasma Utilities
-        ("org.kde.dolphin", "Gestor de Archivos Dolphin", "System", "dolphin", &["archivos", "carpetas", "dolphin", "explorador", "files", "gestor de archivos"]),
-        ("org.kde.konsole", "Terminal Konsole", "System", "konsole", &["terminal", "consola", "konsole", "bash", "shell", "linea de comandos"]),
-        ("org.kde.plasma-systemmonitor", "Monitor del Sistema", "System", "plasma-systemmonitor", &["monitor", "systemmonitor", "ksysguard", "administrador de tareas"]),
-        ("org.kde.kate", "Editor de Texto Kate", "Development", "kate", &["kate", "bloc de notas", "editor de texto"]),
-        ("org.kde.okular", "Visor de PDF Okular", "Office", "okular", &["okular", "visor pdf", "lector pdf"]),
-        ("org.kde.gwenview", "Visor de Imágenes Gwenview", "Multimedia", "gwenview", &["gwenview", "visor de fotos", "galeria"]),
-        ("org.kde.ark", "Gestor de Comprimidos Ark", "System", "ark", &["ark", "descomprimir", "zip", "rar"]),
+        // AriaDE Essential System Utilities (Cupertino Desktop)
+        ("thunar", "Gestor de Archivos Thunar", "System", "thunar", &["archivos", "carpetas", "thunar", "explorador", "files", "gestor de archivos", "carpeta"]),
+        ("xfce4-terminal", "Terminal de Sistema", "System", "xfce4-terminal", &["terminal", "consola", "shell", "bash", "linea de comandos", "cmd", "consola de comandos"]),
+        ("mousepad", "Editor de Texto Mousepad", "Office", "mousepad", &["editor", "bloc de notas", "editor de texto", "notas", "texto", "mousepad"]),
+        ("viewnior", "Visor de Imágenes Viewnior", "Multimedia", "viewnior", &["fotos", "imagenes", "imágenes", "visor de fotos", "galeria", "galería", "viewnior"]),
         // Web Browsers & Comms
         ("firefox", "Mozilla Firefox", "Internet", "firefox", &["firefox", "navegador", "browser", "web", "internet"]),
         ("brave-browser", "Brave Browser", "Internet", "brave", &["brave", "navegador brave"]),
@@ -359,17 +356,38 @@ pub fn build_universal_app_catalog() -> Vec<AppCatalogEntry> {
     catalog
 }
 
+fn binary_exists(bin: &str) -> bool {
+    if bin.starts_with('/') {
+        return std::path::Path::new(bin).is_file();
+    }
+    if let Ok(path) = env::var("PATH") {
+        for dir in env::split_paths(&path) {
+            if dir.join(bin).is_file() {
+                return true;
+            }
+        }
+    }
+    for fallback_dir in ["/usr/bin", "/usr/local/bin", "/bin"] {
+        if std::path::Path::new(fallback_dir).join(bin).is_file() {
+            return true;
+        }
+    }
+    false
+}
+
 /// Finds and launches any installed application matching the user's natural language request.
 pub fn find_and_launch_app(lower_prompt: &str) -> Option<(String, String)> {
     let catalog = build_universal_app_catalog();
     for entry in &catalog {
         if entry.keywords.iter().any(|kw| lower_prompt.contains(kw)) {
-            let _ = Command::new(&entry.binary)
-                .stdin(Stdio::null())
-                .stdout(Stdio::null())
-                .stderr(Stdio::null())
-                .spawn();
-            return Some((entry.name.clone(), entry.binary.clone()));
+            if binary_exists(&entry.binary) {
+                let _ = Command::new(&entry.binary)
+                    .stdin(Stdio::null())
+                    .stdout(Stdio::null())
+                    .stderr(Stdio::null())
+                    .spawn();
+                return Some((entry.name.clone(), entry.binary.clone()));
+            }
         }
     }
     None

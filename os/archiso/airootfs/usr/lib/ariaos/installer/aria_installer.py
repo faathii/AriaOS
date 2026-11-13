@@ -49,79 +49,81 @@ def launch_gui(client: AriaDaemonClient) -> int:
     class AriaInstallerWindow(QWidget):
         def __init__(self) -> None:
             super().__init__()
-            self.setWindowTitle("Instalador Gráfico de AriaOS Cyber Obsidian")
+            self.setWindowTitle("Instalador de Sistema AriaOS")
             self.setWindowIcon(QIcon.fromTheme("ariaos-logo"))
             self.resize(940, 660)
 
             self.setStyleSheet(
                 """
                 QWidget {
-                    background-color: #070a12;
-                    color: #e2e8f0;
+                    background-color: #0d1117;
+                    color: #e6edf3;
                     font-family: "Noto Sans", sans-serif;
                     font-size: 13px;
                 }
                 QFrame.card {
-                    background-color: #0c1222;
-                    border: 1px solid #1e293b;
+                    background-color: #161b22;
+                    border: 1px solid #30363d;
                     border-radius: 12px;
                     padding: 12px;
                 }
                 QLabel#title {
-                    color: #00f0ff;
-                    font-size: 21px;
+                    color: #ffffff;
+                    font-size: 20px;
                     font-weight: bold;
                 }
                 QLabel#subtitle {
-                    color: #94a3b8;
+                    color: #8b949e;
                     font-size: 12px;
                 }
                 QLabel.section_title {
-                    color: #00f0ff;
+                    color: #58a6ff;
                     font-size: 14px;
                     font-weight: bold;
                 }
                 QLineEdit, QComboBox {
-                    background-color: #0d1424;
-                    border: 1px solid #1e3a5f;
+                    background-color: #21262d;
+                    border: 1px solid #30363d;
                     border-radius: 8px;
                     padding: 8px 12px;
                     color: #ffffff;
                 }
+                QLineEdit:focus, QComboBox:focus {
+                    border: 1px solid #58a6ff;
+                }
                 QPushButton.primary {
-                    background-color: #00b4d8;
-                    border: 1px solid #00f0ff;
+                    background-color: #238636;
+                    border: 1px solid #2ea043;
                     border-radius: 8px;
                     padding: 10px 18px;
-                    color: #070a12;
-                    font-size: 14px;
-                    font-weight: bold;
+                    color: #ffffff;
+                    font-size: 13px;
+                    font-weight: 600;
                 }
                 QPushButton.primary:hover {
-                    background-color: #00f0ff;
-                    color: #070a12;
+                    background-color: #2ea043;
                 }
                 QPushButton.secondary {
-                    background-color: #0d1b33;
-                    border: 1px solid #00f0ff;
+                    background-color: #21262d;
+                    border: 1px solid #30363d;
                     border-radius: 8px;
                     padding: 8px 14px;
-                    color: #00f0ff;
-                    font-weight: bold;
+                    color: #c9d1d9;
+                    font-weight: 600;
                 }
                 QPushButton.secondary:hover {
-                    background-color: #00f0ff;
-                    color: #070a12;
+                    background-color: #30363d;
+                    color: #ffffff;
                 }
                 QTableWidget {
-                    background-color: #090d18;
-                    border: 1px solid #162238;
+                    background-color: #0d1117;
+                    border: 1px solid #30363d;
                     border-radius: 8px;
-                    gridline-color: #162238;
+                    gridline-color: #21262d;
                 }
                 QHeaderView::section {
-                    background-color: #0c1222;
-                    color: #00f0ff;
+                    background-color: #161b22;
+                    color: #c9d1d9;
                     padding: 6px;
                     border: none;
                     font-weight: bold;
@@ -136,10 +138,10 @@ def launch_gui(client: AriaDaemonClient) -> int:
             # Header
             header = QHBoxLayout()
             col = QVBoxLayout()
-            lbl_t = QLabel("💿 Instalador de Sistema AriaOS Cyber Obsidian")
+            lbl_t = QLabel("💿 Instalador de Sistema AriaOS")
             lbl_t.setObjectName("title")
             lbl_s = QLabel(
-                "Transfiere AriaOS, el Kernel Neuronal en Rust/ASM, el escritorio KDE Cyber Obsidian y el modelo aria-core a tu disco NVMe/SSD"
+                "Transfiere AriaOS, el Kernel Neuronal en Rust/ASM y el entorno AriaDE Cupertino a tu disco NVMe/SSD"
             )
             lbl_s.setObjectName("subtitle")
             col.addWidget(lbl_t)
@@ -243,10 +245,35 @@ def launch_gui(client: AriaDaemonClient) -> int:
             except Exception:
                 pass
 
+            if not devices and shutil.which("lsblk"):
+                try:
+                    out = subprocess.run(
+                        ["lsblk", "-J", "-o", "NAME,SIZE,TYPE,MOUNTPOINTS,MODEL"],
+                        capture_output=True,
+                        text=True,
+                        check=False,
+                    )
+                    if out.stdout:
+                        blk = json.loads(out.stdout).get("blockdevices", [])
+                        for b in blk:
+                            b_type = b.get("type", "disk")
+                            b_name = b.get("name", "")
+                            if b_type in {"disk", "loop"} and not b_name.startswith("loop"):
+                                dev_path = f"/dev/{b_name}" if not b_name.startswith("/dev/") else b_name
+                                mnts = b.get("mountpoints") or []
+                                mnt_str = mnts[0] if mnts and mnts[0] else (b.get("mountpoint") or "")
+                                devices.append({
+                                    "name": dev_path,
+                                    "size": str(b.get("size", "?")),
+                                    "type": b.get("model") or b_type,
+                                    "mountpoint": mnt_str or "Disponible",
+                                })
+                except Exception:
+                    pass
+
             if not devices:
                 devices = [
-                    {"name": "/dev/nvme0n1", "size": "512G", "type": "disk (NVMe SSD)", "mountpoint": ""},
-                    {"name": "/dev/vda", "size": "64G", "type": "disk (VirtIO VM Disk)", "mountpoint": ""},
+                    {"name": "/dev/sda", "size": "64G", "type": "disk (SATA/VirtIO)", "mountpoint": "Disponible"}
                 ]
 
             self.disk_table.setRowCount(len(devices))
@@ -257,14 +284,14 @@ def launch_gui(client: AriaDaemonClient) -> int:
                 self.disk_table.setItem(idx, 0, QTableWidgetItem(name))
                 self.disk_table.setItem(idx, 1, QTableWidgetItem(str(d.get("size", "?"))))
                 self.disk_table.setItem(idx, 2, QTableWidgetItem(str(d.get("type", "disk"))))
-                self.disk_table.setItem(idx, 3, QTableWidgetItem(str(d.get("mountpoint") or "Libre")))
+                self.disk_table.setItem(idx, 3, QTableWidgetItem(str(d.get("mountpoint") or "Disponible")))
             if devices:
                 self.disk_table.selectRow(0)
                 self.status_lbl.setText(f"✅ {len(devices)} unidad(es) de almacenamiento detectadas.")
 
         def _start_guided_install(self) -> None:
             row = self.disk_table.currentRow()
-            disk_dev = "/dev/vda"
+            disk_dev = "/dev/sda"
             if row >= 0 and self.disk_table.item(row, 0):
                 disk_dev = self.disk_table.item(row, 0).text()
 
@@ -315,23 +342,22 @@ def launch_gui(client: AriaDaemonClient) -> int:
                 QMessageBox.StandardButton.Cancel,
             )
             if confirm == QMessageBox.StandardButton.Yes:
-                if shutil.which("konsole"):
-                    subprocess.Popen(
-                        [
-                            "konsole",
-                            "--title",
-                            "Instalador de AriaOS",
-                            "-e",
-                            "bash",
-                            "-c",
-                            f"echo 'Perfil generado en {cfg_file}'; sudo archinstall --config {cfg_file} || sudo archinstall; read -p 'Pulsa Enter...'",
-                        ]
-                    )
+                term = shutil.which("xfce4-terminal") or shutil.which("alacritty") or shutil.which("konsole") or shutil.which("xterm")
+                if term:
+                    cmd_str = f"echo 'Perfil generado en {cfg_file}'; sudo archinstall --config {cfg_file} || sudo archinstall; read -p 'Pulsa Enter...'"
+                    if "xfce4-terminal" in term:
+                        subprocess.Popen([term, "--title=Instalador de AriaOS", "-e", f"bash -c \"{cmd_str}\""])
+                    else:
+                        subprocess.Popen([term, "-e", "bash", "-c", cmd_str])
                 self.status_lbl.setText(f"🚀 Instalador iniciado con perfil {cfg_file}")
 
         def _launch_archinstall_tui(self) -> None:
-            if shutil.which("konsole"):
-                subprocess.Popen(["konsole", "--title", "Instalador de AriaOS", "-e", "sudo", "archinstall"])
+            term = shutil.which("xfce4-terminal") or shutil.which("alacritty") or shutil.which("konsole") or shutil.which("xterm")
+            if term:
+                if "xfce4-terminal" in term:
+                    subprocess.Popen([term, "--title=Instalador de AriaOS", "-e", "sudo archinstall"])
+                else:
+                    subprocess.Popen([term, "-e", "sudo", "archinstall"])
 
     app = QApplication(sys.argv)
     win = AriaInstallerWindow()

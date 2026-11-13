@@ -30,9 +30,10 @@ if command -v xset >/dev/null 2>&1; then
   xsetroot -solid "#0c0f17" 2>/dev/null || true
 fi
 
-# Start Picom compositor (rounded corners, soft drop shadows, vsync)
+# Start Picom compositor (hardware accelerated glx with graceful xrender fallback)
 if command -v picom >/dev/null 2>&1; then
-  picom -b --config /etc/xdg/picom.conf 2>/dev/null || true
+  picom --backend glx -b --config /etc/xdg/picom.conf 2>/dev/null || \
+  picom --backend xrender -b --config /etc/xdg/picom.conf 2>/dev/null || true
 fi
 
 # Start Openbox Window Manager with AriaCupertino theme

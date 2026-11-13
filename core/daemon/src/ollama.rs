@@ -317,8 +317,15 @@ pub fn filter_tools_for_prompt(connectors: &[RegisteredConnector], prompt: &str)
                     "parameters": tool.input_schema
                 }
             }));
+            if tools.len() >= 4 {
+                break;
+            }
+        }
+        if tools.len() >= 4 {
+            break;
         }
     }
+    tools.truncate(4);
     tools
 }
 

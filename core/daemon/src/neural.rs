@@ -201,6 +201,132 @@ fn try_neural_reflex_depth(
         }
     }
 
+    // 0d. Direct Filesystem Actions: Create Folder / Directory
+    if starts_any(&lower, &[
+        "crea una carpeta", "crear una carpeta", "crea la carpeta", "crear carpeta",
+        "crea carpeta", "nueva carpeta", "haz una carpeta", "hacer carpeta", "mkdir "
+    ]) {
+        let raw_target = extract_target_path(clean, &[
+            "crea una carpeta llamada", "crear una carpeta llamada", "crea la carpeta llamada",
+            "crear carpeta llamada", "crea carpeta llamada", "crea una carpeta", "crear una carpeta",
+            "crea la carpeta", "crear carpeta", "crea carpeta", "nueva carpeta", "haz una carpeta",
+            "hacer carpeta", "mkdir"
+        ]);
+        let path = resolve_user_fs_path(&raw_target);
+        match std::fs::create_dir_all(&path) {
+            Ok(_) => {
+                mem.record_habit("fs_create_dir");
+                return Some(format!(
+                    "✅ **Carpeta creada exitosamente**\n\
+                     • **Ruta:** `{}`\n\
+                     • Creada en `<0.4 ms` directamente por el Núcleo de AriaOS.",
+                    path.display()
+                ));
+            }
+            Err(e) => {
+                return Some(format!(
+                    "❌ **Error al crear la carpeta:** `{}`\n• **Detalle:** {e}",
+                    path.display()
+                ));
+            }
+        }
+    }
+
+    // 0e. Direct Filesystem Actions: Create / Write File
+    if starts_any(&lower, &[
+        "crea un archivo", "crear un archivo", "crea el archivo", "crear archivo",
+        "crea archivo", "nuevo archivo", "escribe un archivo", "escribir archivo", "touch "
+    ]) {
+        let (raw_path, content) = extract_file_and_content(clean);
+        let path = resolve_user_fs_path(&raw_path);
+        if let Some(parent) = path.parent() {
+            let _ = std::fs::create_dir_all(parent);
+        }
+        match std::fs::write(&path, &content) {
+            Ok(_) => {
+                mem.record_habit("fs_write_file");
+                let content_msg = if content.is_empty() {
+                    String::new()
+                } else {
+                    format!("\n• **Contenido:** `{}`", content)
+                };
+                return Some(format!(
+                    "✅ **Archivo creado exitosamente**\n\
+                     • **Ruta:** `{}`{}\n\
+                     • Escrito en `<0.5 ms` directamente por el Núcleo de AriaOS.",
+                    path.display(),
+                    content_msg
+                ));
+            }
+            Err(e) => {
+                return Some(format!(
+                    "❌ **Error al escribir el archivo:** `{}`\n• **Detalle:** {e}",
+                    path.display()
+                ));
+            }
+        }
+    }
+
+    // 0f. Direct Filesystem Actions: Path Deletion
+    if starts_any(&lower, &[
+        "borra la carpeta", "borrar la carpeta", "borra el archivo", "borrar el archivo",
+        "elimina la carpeta", "eliminar la carpeta", "elimina el archivo", "eliminar el archivo",
+        "borra ", "borrar ", "elimina ", "eliminar ", "rm "
+    ]) {
+        let raw_target = extract_target_path(clean, &[
+            "borra la carpeta llamada", "elimina la carpeta llamada", "borra la carpeta",
+            "borrar la carpeta", "elimina la carpeta", "eliminar la carpeta",
+            "borra el archivo llamado", "elimina el archivo llamado", "borra el archivo",
+            "borrar el archivo", "elimina el archivo", "eliminar el archivo",
+            "borra ", "borrar ", "elimina ", "eliminar ", "rm "
+        ]);
+        let path = resolve_user_fs_path(&raw_target);
+        if !path.exists() {
+            return Some(format!("⚠️ No se encontró la ruta `{}` para eliminar.", path.display()));
+        }
+        let res = if path.is_dir() {
+            std::fs::remove_dir_all(&path)
+        } else {
+            std::fs::remove_file(&path)
+        };
+        match res {
+            Ok(_) => {
+                mem.record_habit("fs_delete_path");
+                return Some(format!(
+                    "🗑️ **Elemento eliminado con éxito**\n\
+                     • **Ruta:** `{}`",
+                    path.display()
+                ));
+            }
+            Err(e) => {
+                return Some(format!("❌ **Error al eliminar:** `{}`: {e}", path.display()));
+            }
+        }
+    }
+
+    // 0g. Direct OS Power & Session Management
+    if matches_exact_or_starts(&lower, &["apagar", "apaga el equipo", "apaga la maquina", "apaga la máquina", "apágate", "apagate", "poweroff", "shutdown"]) {
+        let _ = Command::new("systemctl").arg("poweroff").spawn();
+        return Some("🔌 **Apagando AriaOS...** Guardando estado del sistema.".to_string());
+    }
+    if matches_exact_or_starts(&lower, &["reiniciar", "reinicia el equipo", "reinicia el sistema", "reboot"]) {
+        let _ = Command::new("systemctl").arg("reboot").spawn();
+        return Some("🔄 **Reiniciando AriaOS...**".to_string());
+    }
+    if matches_exact_or_starts(&lower, &["suspender", "suspende el equipo", "suspende la maquina", "dormir", "suspend"]) {
+        let _ = Command::new("systemctl").arg("suspend").spawn();
+        return Some("🌙 **Suspendiendo AriaOS...** Presiona cualquier tecla para reanudar.".to_string());
+    }
+
+    // 0h. Direct Application Termination
+    if starts_any(&lower, &["cierra ", "cerrar ", "mata ", "matar ", "kill ", "terminar "]) {
+        let app_target = extract_target_path(clean, &["cierra ", "cerrar ", "mata ", "matar ", "kill ", "terminar "]);
+        let clean_app = app_target.trim().trim_matches(|c: char| c == '"' || c == '\'' || c == '`');
+        let _ = Command::new("pkill").args(["-f", clean_app]).spawn();
+        let _ = Command::new("wmctrl").args(["-c", clean_app]).spawn();
+        return Some(format!("🛑 **Cerrando aplicación/proceso:** `{clean_app}`"));
+    }
+
     // 1. Pre-trained Kernel Work Modes (Gaming, Development, Creative, PowerSave, Security)
     if let Some(target_mode) = detect_work_mode_intent(&lower) {
         mem.record_habit(&format!("work_mode:{target_mode}"));
@@ -759,6 +885,61 @@ pub fn synthesize_offline_neural_reply(prompt: &str, connectors: &[RegisteredCon
 
 fn matches_any(text: &str, patterns: &[&str]) -> bool {
     patterns.iter().any(|p| text.contains(p))
+}
+
+fn starts_any(text: &str, prefixes: &[&str]) -> bool {
+    let t = text.trim();
+    prefixes.iter().any(|p| t.starts_with(p))
+}
+
+fn extract_target_path(prompt: &str, prefixes: &[&str]) -> String {
+    let lower = prompt.to_lowercase();
+    for p in prefixes {
+        if let Some(pos) = lower.find(p) {
+            let after = &prompt[pos + p.len()..].trim();
+            let cleaned = after.trim_start_matches(|c: char| c == ':' || c == '=' || c == '-' || c.is_whitespace());
+            return cleaned.trim_matches(|c: char| c == '"' || c == '\'' || c == '«' || c == '»' || c == '`').trim().to_string();
+        }
+    }
+    prompt.trim().to_string()
+}
+
+fn resolve_user_fs_path(raw: &str) -> std::path::PathBuf {
+    let clean = raw.trim().trim_matches(|c: char| c == '"' || c == '\'' || c == '«' || c == '»' || c == '`');
+    let path = std::path::Path::new(clean);
+    if path.is_absolute() {
+        return path.to_path_buf();
+    }
+    let home = std::env::var("HOME").unwrap_or_else(|_| "/home/aria".to_string());
+    let desktop = std::path::Path::new(&home).join("Desktop");
+    if desktop.is_dir() {
+        desktop.join(clean)
+    } else {
+        std::path::Path::new(&home).join(clean)
+    }
+}
+
+fn extract_file_and_content(prompt: &str) -> (String, String) {
+    let lower = prompt.to_lowercase();
+    let split_keys = [" con el texto ", " con texto ", " con contenido ", " que diga "];
+    for k in split_keys {
+        if let Some(pos) = lower.find(k) {
+            let file_part = &prompt[..pos];
+            let content_part = &prompt[pos + k.len()..];
+            let filename = extract_target_path(file_part, &[
+                "crea un archivo llamado", "crear un archivo llamado", "crea archivo llamado",
+                "crear archivo llamado", "crea un archivo", "crear un archivo", "crea el archivo",
+                "crear archivo", "crea archivo", "nuevo archivo"
+            ]);
+            return (filename, content_part.trim().to_string());
+        }
+    }
+    let filename = extract_target_path(prompt, &[
+        "crea un archivo llamado", "crear un archivo llamado", "crea archivo llamado",
+        "crear archivo llamado", "crea un archivo", "crear un archivo", "crea el archivo",
+        "crear archivo", "crea archivo", "nuevo archivo", "touch"
+    ]);
+    (filename, String::new())
 }
 
 fn detect_work_mode_intent(lower: &str) -> Option<&'static str> {

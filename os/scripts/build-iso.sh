@@ -195,6 +195,8 @@ ln -sf "/etc/systemd/system/ariaos-onboarding.service" "${WANTS_DIR}/ariaos-onbo
 ln -sf "/usr/lib/systemd/system/ollama.service" "${WANTS_DIR}/ollama.service"
 ln -sf "/usr/lib/systemd/system/NetworkManager.service" "${WANTS_DIR}/NetworkManager.service"
 ln -sf "/usr/lib/systemd/system/sshd.service" "${WANTS_DIR}/sshd.service"
+ln -sf "/usr/lib/systemd/system/systemd-timesyncd.service" "${WANTS_DIR}/systemd-timesyncd.service"
+ln -sf "/etc/systemd/system/pacman-init.service" "${WANTS_DIR}/pacman-init.service"
 
 # Remove tty1 root agetty override so it does not conflict with SDDM
 rm -rf "${STAGE_DIR}/airootfs/etc/systemd/system/getty@tty1.service.d"

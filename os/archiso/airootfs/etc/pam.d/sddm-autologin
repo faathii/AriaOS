@@ -1,6 +1,7 @@
 #%PAM-1.0
 auth        required    pam_permit.so
-account     include     system-account
-password    include     system-password
-session     include     system-session
+account     include     system-login
+password    include     system-login
+session     optional    pam_keyinit.so force revoke
+session     include     system-login
 

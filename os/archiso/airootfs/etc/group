@@ -1,4 +1,5 @@
 root:x:0:root
 wheel:x:998:aria
+autologin:x:997:aria
+nopasswdlogin:x:996:aria
 aria:x:1000:
-

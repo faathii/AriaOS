@@ -1008,12 +1008,17 @@ class AriaDesktopEnvironment:
 
 def main() -> int:
     try:
-        lock_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # File-based single instance lock (Linux standard, avoids TCP TIME_WAIT collisions)
+        lock_file = "/tmp/aria_shell.lock"
         try:
-            lock_sock.bind(("127.0.0.1", 47779))
-        except OSError:
-            print("[AriaDE] Shell instance already running on 127.0.0.1:47779.")
+            import fcntl
+            lock_fd = open(lock_file, "w")
+            fcntl.flock(lock_fd.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except (BlockingIOError, OSError):
+            print("[AriaDE] Another instance of aria_shell is already active.")
             return 0
+        except Exception:
+            pass
 
         app = QApplication([sys.argv[0]])
         app.setApplicationName("AriaOS Desktop Environment")

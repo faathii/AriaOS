@@ -49,7 +49,12 @@ for agent in /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 /usr/lib/
 done
 
 # Start the AriaOS Native Desktop Shell as the primary session process with logging and failsafe
-exec /usr/bin/ariaos-shell >> /tmp/ariaos-session.log 2>&1 || {
-  echo "[startariaos] Shell exited, maintaining fallback session..." >> /tmp/ariaos-session.log
-  while true; do sleep 3600; done
-}
+/usr/bin/ariaos-shell >> /tmp/ariaos-session.log 2>&1 &
+SHELL_PID=$!
+
+# Wait on primary desktop shell; keep X session alive with openbox if shell ever exits
+wait "${SHELL_PID}" 2>/dev/null || true
+echo "[startariaos] Shell exited, keeping session alive with openbox..." >> /tmp/ariaos-session.log
+while true; do
+  sleep 3600
+done

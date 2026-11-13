@@ -194,6 +194,7 @@ ln -sf "/etc/systemd/system/aria-daemon.service" "${WANTS_DIR}/aria-daemon.servi
 ln -sf "/etc/systemd/system/ariaos-onboarding.service" "${WANTS_DIR}/ariaos-onboarding.service"
 ln -sf "/usr/lib/systemd/system/ollama.service" "${WANTS_DIR}/ollama.service"
 ln -sf "/usr/lib/systemd/system/NetworkManager.service" "${WANTS_DIR}/NetworkManager.service"
+ln -sf "/usr/lib/systemd/system/sshd.service" "${WANTS_DIR}/sshd.service"
 
 # Remove tty1 root agetty override so it does not conflict with SDDM
 rm -rf "${STAGE_DIR}/airootfs/etc/systemd/system/getty@tty1.service.d"

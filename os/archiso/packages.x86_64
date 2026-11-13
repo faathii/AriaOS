@@ -67,6 +67,7 @@ plymouth
 python-pyqt6
 qt6-base
 qt6-svg
+qt6-imageformats
 hicolor-icon-theme
 polkit-gnome
 zenity

@@ -23,22 +23,15 @@ def _notify(title: str, body: str, urgency: str = "normal") -> None:
         )
 
 
-def _kdialog(kind: str, text: str) -> int:
+def _gui_dialog(kind: str, text: str) -> int:
     if shutil.which("zenity"):
-        zflag = "--info" if kind in {"msgbox", "info"} else "--warning" if kind == "warning" else "--question"
+        zflag = "--info" if kind in {"msgbox", "info"} else "--warning" if kind in {"warning", "sorry"} else "--question"
         return subprocess.run(
             ["zenity", zflag, "--text", text[:1000], "--title", "AriaOS Antivirus (ClamAV)"],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         ).returncode
-    if not shutil.which("kdialog"):
-        return 1
-    proc = subprocess.run(
-        ["kdialog", f"--{kind}", text, "--title", "AriaOS Antivirus (ClamAV)"],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
-    return proc.returncode
+    return 1
 
 
 def _call_av(tool: str, args: dict, approved: bool = False) -> dict:
@@ -88,7 +81,7 @@ def main(argv: list[str]) -> int:
     if errors and not all_threats:
         msg = "\n".join(errors)
         _notify("AriaOS Antivirus - Aviso", msg, urgency="normal")
-        _kdialog("sorry", msg)
+        _gui_dialog("sorry", msg)
         print(msg, file=sys.stderr)
         return 1
 
@@ -103,7 +96,7 @@ def main(argv: list[str]) -> int:
     _notify("AriaOS Antivirus - Amenaza detectada", f"{len(all_threats)} amenaza(s) encontrada(s).", urgency="critical")
     print(alert_msg)
 
-    if _kdialog("yesno", alert_msg) == 0:
+    if _gui_dialog("yesno", alert_msg) == 0:
         quarantined = 0
         for threat in all_threats:
             try:

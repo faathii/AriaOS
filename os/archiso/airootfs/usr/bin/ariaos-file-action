@@ -52,8 +52,6 @@ def _call_connector(connector: str, tool: str, args: dict[str, Any], approved: b
 def _show_message(title: str, text: str) -> None:
     if shutil.which("zenity"):
         subprocess.run(["zenity", "--info", "--title", title, "--text", text[:1000]], check=False)
-    elif shutil.which("kdialog"):
-        subprocess.run(["kdialog", "--msgbox", text, "--title", title], check=False)
     elif shutil.which("notify-send"):
         subprocess.run(["notify-send", "-a", "AriaOS Files", "-i", "ariaos-logo", title, text[:400]], check=False)
     else:
@@ -63,8 +61,6 @@ def _show_message(title: str, text: str) -> None:
 def _ask_confirmation(title: str, prompt: str) -> bool:
     if shutil.which("zenity"):
         return subprocess.run(["zenity", "--question", "--title", title, "--text", prompt[:1000]]).returncode == 0
-    if shutil.which("kdialog"):
-        return subprocess.run(["kdialog", "--yesno", prompt, "--title", title]).returncode == 0
     return False
 
 

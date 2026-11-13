@@ -344,12 +344,12 @@ def launch_gui(client: AriaDaemonClient) -> int:
             if confirm == QMessageBox.StandardButton.Yes:
                 term = shutil.which("xfce4-terminal") or shutil.which("alacritty") or shutil.which("xterm")
                 if term:
-                    cmd_str = f"echo 'Perfil generado en {cfg_file}'; sudo archinstall --config {cfg_file} || sudo archinstall; read -p 'Pulsa Enter...'"
+                    cmd_str = f"sudo /usr/bin/ariaos-install-to-disk {disk_dev} && echo '✅ Instalación de AriaOS completada. Reiniciando...' && sleep 3 && sudo reboot; read -p 'Pulsa Enter...'"
                     if "xfce4-terminal" in term:
                         subprocess.Popen([term, "--title=Instalador de AriaOS", "-e", f"bash -c \"{cmd_str}\""])
                     else:
                         subprocess.Popen([term, "-e", "bash", "-c", cmd_str])
-                self.status_lbl.setText(f"🚀 Instalador iniciado con perfil {cfg_file}")
+                self.status_lbl.setText(f"🚀 Instalando AriaOS en {disk_dev}...")
 
         def _launch_archinstall_tui(self) -> None:
             term = shutil.which("xfce4-terminal") or shutil.which("alacritty") or shutil.which("xterm")

@@ -156,6 +156,7 @@ sed -i 's/\r$//' \
   "${STAGE_DIR}/airootfs/usr/bin/ariaos-optimizer" \
   "${STAGE_DIR}/airootfs/usr/bin/ariaos-clipboard" \
   "${STAGE_DIR}/airootfs/usr/bin/ariaos-shell" \
+  "${STAGE_DIR}/airootfs/usr/bin/ariaos-install-to-disk" \
   "${STAGE_DIR}/airootfs/usr/bin/startariaos"
 
 # Pre-package lightweight Aria Neural Model (aria-core / qwen2.5:0.5b ~350MB) inside ISO if ollama is available on build host

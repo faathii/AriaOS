@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+# AriaOS Native Disk Installer — Full Live-to-Disk Replication with EFI systemd-boot & AriaDE
+set -e
+
+TARGET_DISK="${1:-/dev/sda}"
+ROOT_PART="${TARGET_DISK}2"
+BOOT_PART="${TARGET_DISK}1"
+
+echo "=== [1/8] Preparando particiones en ${TARGET_DISK} ==="
+umount -R /mnt 2>/dev/null || true
+
+echo "Formateando particion EFI: ${BOOT_PART}..."
+mkfs.fat -F 32 -n "ESP" "${BOOT_PART}"
+
+echo "Formateando particion raiz: ${ROOT_PART} (ext4 AriaOS)..."
+mkfs.ext4 -F -L "AriaOS" "${ROOT_PART}"
+udevadm settle || sleep 2
+
+echo "=== [2/8] Montando particiones de destino en /mnt ==="
+mount -t ext4 "${ROOT_PART}" /mnt
+mkdir -p /mnt/boot
+mount -t vfat "${BOOT_PART}" /mnt/boot
+
+echo "=== [3/8] Clonando sistema completo AriaOS a disco (/mnt) ==="
+rsync -aAXH \
+  --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/media/*","/lost+found","/etc/fstab"} \
+  / /mnt/
+
+mkdir -p /mnt/dev /mnt/proc /mnt/sys /mnt/tmp /mnt/run /mnt/mnt /mnt/media
+chmod 1777 /mnt/tmp
+
+echo "=== [4/8] Instalando Kernel y Bootloader ==="
+cp -fv /run/archiso/bootmnt/arch/boot/x86_64/vmlinuz-linux /mnt/boot/vmlinuz-linux
+
+echo "Instalando systemd-boot..."
+bootctl --path=/mnt/boot install
+
+ROOT_UUID=$(blkid -s UUID -o value "${ROOT_PART}")
+
+mkdir -p /mnt/boot/loader/entries
+cat << EOF > /mnt/boot/loader/loader.conf
+default ariaos.conf
+timeout 3
+console-mode max
+EOF
+
+cat << EOF > /mnt/boot/loader/entries/ariaos.conf
+title   AriaOS Cyber Obsidian
+linux   /vmlinuz-linux
+initrd  /initramfs-linux.img
+options root=UUID=${ROOT_UUID} rw quiet splash loglevel=3
+EOF
+
+echo "=== [5/8] Generando fstab ==="
+genfstab -U /mnt > /mnt/etc/fstab
+
+echo "=== [6/8] Generando initramfs para el hardware destino ==="
+rm -fv /mnt/etc/mkinitcpio.conf.d/archiso.conf 2>/dev/null || true
+sed -i 's/^HOOKS=.*/HOOKS=(base udev plymouth autodetect microcode modconf kms keyboard keymap consolefont block filesystems fsck)/' /mnt/etc/mkinitcpio.conf
+arch-chroot /mnt mkinitcpio -P
+
+echo "=== [7/8] Configurando sesion grafica y usuario aria ==="
+echo "ariaos" > /mnt/etc/hostname
+
+mkdir -p /mnt/etc/sddm.conf.d
+cat << EOF > /mnt/etc/sddm.conf.d/autologin.conf
+[Autologin]
+User=aria
+Session=ariaos.desktop
+Relogin=true
+EOF
+
+cat << EOF > /mnt/etc/pam.d/sddm-autologin
+#%PAM-1.0
+auth        required    pam_permit.so
+account     include     system-login
+password    include     system-login
+session     optional    pam_keyinit.so force revoke
+session     include     system-login
+EOF
+
+arch-chroot /mnt groupadd -f autologin || true
+arch-chroot /mnt groupadd -f nopasswdlogin || true
+arch-chroot /mnt usermod -aG wheel,audio,video,optical,storage,autologin,nopasswdlogin aria 2>/dev/null || true
+echo "aria:aria" | arch-chroot /mnt chpasswd
+echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" > /mnt/etc/sudoers.d/wheel_nopasswd
+chmod 0440 /mnt/etc/sudoers.d/wheel_nopasswd
+
+ln -sf /usr/lib/systemd/system/graphical.target /mnt/etc/systemd/system/default.target
+ln -sf /usr/lib/systemd/system/sddm.service /mnt/etc/systemd/system/display-manager.service
+
+rm -rf /mnt/etc/systemd/system/getty@tty1.service.d 2>/dev/null || true
+rm -rf /mnt/etc/systemd/system/systemd-firstboot.service.d 2>/dev/null || true
+
+echo "=== [8/8] Sincronizando datos y desmontando ==="
+sync
+umount -R /mnt
+
+echo "COMPLETE_ARIAOS_INSTALL_SUCCESS"

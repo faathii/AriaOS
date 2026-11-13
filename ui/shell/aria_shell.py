@@ -32,7 +32,16 @@ import traceback
 from pathlib import Path
 from typing import Any
 
-# Force XCB backend for stable coordinates, EWMH struts and compositing
+def _custom_excepthook(exc_type, exc_value, exc_tb):
+    err = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
+    print(f"[AriaDE Error] {err}", file=sys.stderr)
+    try:
+        with open("/tmp/aria_shell_crash.log", "a", encoding="utf-8") as f:
+            f.write(f"[{datetime.datetime.now().isoformat()}] {err}\n")
+    except Exception:
+        pass
+
+sys.excepthook = _custom_excepthook
 if os.environ.get("DISPLAY"):
     os.environ["QT_QPA_PLATFORM"] = "xcb"
 
@@ -332,17 +341,6 @@ class AriaControlCenter(QDialog):
         vol_lay.addWidget(vol_slider)
         layout.addWidget(vol_tile)
 
-    def _on_vol_changed(self, val: int) -> None:
-        try:
-            subprocess.Popen(
-                f"wpctl set-volume @DEFAULT_AUDIO_SINK@ {val}% 2>/dev/null || pactl set-sink-volume @DEFAULT_SINK@ {val}% 2>/dev/null || amixer sset Master {val}% 2>/dev/null || true",
-                shell=True,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
-        except Exception:
-            pass
-
         # 3. Kernel Mode Selector Tile
         mode_tile = QFrame()
         mode_tile.setStyleSheet(
@@ -394,10 +392,25 @@ class AriaControlCenter(QDialog):
 
         layout.addStretch()
 
+    def _on_vol_changed(self, val: int) -> None:
+        try:
+            subprocess.Popen(
+                f"wpctl set-volume @DEFAULT_AUDIO_SINK@ {val}% 2>/dev/null || pactl set-sink-volume @DEFAULT_SINK@ {val}% 2>/dev/null || amixer sset Master {val}% 2>/dev/null || true",
+                shell=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+        except Exception:
+            pass
+
     def update_telemetry(self, data: dict) -> None:
-        self.telem_lbl.setText(
-            f"CPU: {int(data['cpu_pct'])}%   ·   RAM: {data['mem_used_gb']:.1f} / {data['mem_total_gb']:.1f} GB   ·   {int(data['temp_c'])}°C"
-        )
+        try:
+            if hasattr(self, "telem_lbl"):
+                self.telem_lbl.setText(
+                    f"CPU: {int(data['cpu_pct'])}%   ·   RAM: {data['mem_used_gb']:.1f} / {data['mem_total_gb']:.1f} GB   ·   {int(data['temp_c'])}°C"
+                )
+        except Exception:
+            pass
 
 
 # ---------------------------------------------------------------------------
@@ -962,7 +975,10 @@ class AriaDesktopEnvironment:
             pass
 
     def _on_telemetry(self, data: dict) -> None:
-        self.topbar.update_telemetry(data)
+        try:
+            self.topbar.update_telemetry(data)
+        except Exception:
+            pass
 
     def show_all(self) -> None:
         self.canvas.show()

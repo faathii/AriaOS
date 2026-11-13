@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from __future__ import annotations
 """
 AriaOS Professional Desktop Environment (AriaDE / ariaos-shell)
 ==============================================================
@@ -27,7 +28,9 @@ import socket
 import subprocess
 import sys
 import time
+import traceback
 from pathlib import Path
+from typing import Any
 
 # Force XCB backend for stable coordinates, EWMH struts and compositing
 if os.environ.get("DISPLAY"):
@@ -41,6 +44,7 @@ from PyQt6.QtCore import (
     QRectF,
     QSize,
     Qt,
+    QThread,
     QTimer,
     pyqtSignal,
 )
@@ -942,6 +946,21 @@ class AriaDesktopEnvironment:
         self.worker.telemetry_ready.connect(self._on_telemetry)
         self.worker.start()
 
+    def _on_screen_resized(self, geom: QRect) -> None:
+        try:
+            self.canvas.setGeometry(geom)
+            self.canvas._update_cached_wallpaper()
+            self.topbar.setGeometry(geom.x(), geom.y(), geom.width(), self.topbar.bar_height)
+            self.topbar.frame.setGeometry(0, 0, geom.width(), self.topbar.bar_height)
+            dock_w = self.dock.width()
+            dock_h = self.dock.height()
+            x_pos = geom.x() + (geom.width() - dock_w) // 2
+            y_pos = geom.y() + geom.height() - dock_h - 10
+            self.dock.setGeometry(x_pos, y_pos, dock_w, dock_h)
+            self._reassert()
+        except Exception:
+            pass
+
     def _on_telemetry(self, data: dict) -> None:
         self.topbar.update_telemetry(data)
 
@@ -988,18 +1007,29 @@ class AriaDesktopEnvironment:
 
 
 def main() -> int:
-    lock_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
-        lock_sock.bind(("127.0.0.1", 47779))
-    except OSError:
-        return 0
+        lock_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            lock_sock.bind(("127.0.0.1", 47779))
+        except OSError:
+            print("[AriaDE] Shell instance already running on 127.0.0.1:47779.")
+            return 0
 
-    app = QApplication([sys.argv[0]])
-    app.setApplicationName("AriaOS Desktop Environment")
-    app.setQuitOnLastWindowClosed(False)
-    env = AriaDesktopEnvironment(app)
-    env.show_all()
-    return app.exec()
+        app = QApplication([sys.argv[0]])
+        app.setApplicationName("AriaOS Desktop Environment")
+        app.setQuitOnLastWindowClosed(False)
+        env = AriaDesktopEnvironment(app)
+        env.show_all()
+        return app.exec()
+    except Exception as exc:
+        err_msg = f"[AriaDE] Fatal crash in aria_shell: {exc}\n{traceback.format_exc()}"
+        print(err_msg, file=sys.stderr)
+        try:
+            with open("/tmp/aria_shell_crash.log", "a", encoding="utf-8") as f:
+                f.write(f"[{datetime.datetime.now().isoformat()}] {err_msg}\n")
+        except Exception:
+            pass
+        return 1
 
 
 if __name__ == "__main__":

@@ -30,10 +30,9 @@ if command -v xset >/dev/null 2>&1; then
   xsetroot -solid "#0c0f17" 2>/dev/null || true
 fi
 
-# Start Picom compositor (hardware accelerated glx with graceful xrender fallback)
+# Start Picom compositor (uses config in /etc/xdg/picom.conf with reliable xrender backend)
 if command -v picom >/dev/null 2>&1; then
-  picom --backend glx -b --config /etc/xdg/picom.conf 2>/dev/null || \
-  picom --backend xrender -b --config /etc/xdg/picom.conf 2>/dev/null || true
+  picom -b --config /etc/xdg/picom.conf 2>/dev/null || true
 fi
 
 # Start Openbox Window Manager with AriaCupertino theme
@@ -49,5 +48,8 @@ for agent in /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 /usr/lib/
   fi
 done
 
-# Start the AriaOS Native Desktop Shell as the primary session process
-exec /usr/bin/ariaos-shell
+# Start the AriaOS Native Desktop Shell as the primary session process with logging and failsafe
+exec /usr/bin/ariaos-shell >> /tmp/ariaos-session.log 2>&1 || {
+  echo "[startariaos] Shell exited, maintaining fallback session..." >> /tmp/ariaos-session.log
+  while true; do sleep 3600; done
+}

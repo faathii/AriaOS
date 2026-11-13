@@ -180,15 +180,23 @@ if command -v ollama >/dev/null 2>&1; then
 fi
 
 echo "[3/4] Enabling systemd units inside airootfs..."
+# Set graphical.target as default target so SDDM and AriaDE launch automatically
+ln -sf "/usr/lib/systemd/system/graphical.target" "${STAGE_DIR}/airootfs/etc/systemd/system/default.target"
+
+GRAPHICAL_WANTS="${STAGE_DIR}/airootfs/etc/systemd/system/graphical.target.wants"
+mkdir -p "${GRAPHICAL_WANTS}"
+ln -sf "/usr/lib/systemd/system/sddm.service" "${GRAPHICAL_WANTS}/sddm.service"
+ln -sf "/usr/lib/systemd/system/sddm.service" "${STAGE_DIR}/airootfs/etc/systemd/system/display-manager.service"
+
 WANTS_DIR="${STAGE_DIR}/airootfs/etc/systemd/system/multi-user.target.wants"
 mkdir -p "${WANTS_DIR}"
 ln -sf "/etc/systemd/system/aria-daemon.service" "${WANTS_DIR}/aria-daemon.service"
 ln -sf "/etc/systemd/system/ariaos-onboarding.service" "${WANTS_DIR}/ariaos-onboarding.service"
 ln -sf "/usr/lib/systemd/system/ollama.service" "${WANTS_DIR}/ollama.service"
 ln -sf "/usr/lib/systemd/system/NetworkManager.service" "${WANTS_DIR}/NetworkManager.service"
-# Note: ClamAV services (clamd/clamonacc/freshclam) are intentionally kept on-demand via Aria Shield
-# to save >2GB of RAM during boot and prevent Live ISO tmpfs exhaustion.
-ln -sf "/usr/lib/systemd/system/sddm.service" "${STAGE_DIR}/airootfs/etc/systemd/system/display-manager.service"
+
+# Remove tty1 root agetty override so it does not conflict with SDDM
+rm -rf "${STAGE_DIR}/airootfs/etc/systemd/system/getty@tty1.service.d"
 
 echo "[4/4] Running mkarchiso..."
 sudo mkarchiso -v -w "${WORK_DIR}" -o "${OUT_DIR}" "${STAGE_DIR}"
